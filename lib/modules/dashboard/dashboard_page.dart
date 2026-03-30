@@ -5,6 +5,7 @@ import '../auth/login_page.dart';
 import '../categorias/categoria_list_page.dart';
 import '../organizacoes/organizacao_list_page.dart';
 import '../produtos/produto_list_page.dart';
+import '../lojas/loja_list_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -44,6 +45,8 @@ class DashboardPage extends StatelessWidget {
           lojaId: lojaId,
           organizacaoId: 1,
         );
+      } else if (nomeModulo == 'Lojas') {
+        destino = const LojaListPage();
       }
     }
 
