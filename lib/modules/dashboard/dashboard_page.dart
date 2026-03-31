@@ -6,6 +6,7 @@ import '../categorias/categoria_list_page.dart';
 import '../lojas/loja_list_page.dart';
 import '../organizacoes/organizacao_list_page.dart';
 import '../produtos/produto_list_page.dart';
+import '../eventos/evento_list_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -54,6 +55,19 @@ class DashboardPage extends StatelessWidget {
       }
 
       destino = CategoriaListPage(
+        organizacaoId: organizacaoId,
+      );
+    } else if (nomeModulo == 'Eventos') {
+      final organizacaoId = await StorageService.getOrganizacaoId();
+
+      if (organizacaoId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Organização não encontrada no login')),
+        );
+        return;
+      }
+
+      destino = EventoListPage(
         organizacaoId: organizacaoId,
       );
     }
