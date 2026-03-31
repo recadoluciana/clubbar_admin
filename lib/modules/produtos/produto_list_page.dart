@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+
 import '../../core/config/api_config.dart';
+import '../../core/repositories/loja_repository.dart';
 import '../../core/repositories/produto_repository.dart';
+import '../../models/loja.dart';
 import 'produto_form_page.dart';
 
 class ProdutoListPage extends StatefulWidget {
-  final int lojaId;
   final int organizacaoId;
 
   const ProdutoListPage({
     super.key,
-    required this.lojaId,
     required this.organizacaoId,
   });
 
@@ -20,16 +21,22 @@ class ProdutoListPage extends StatefulWidget {
 
 class _ProdutoListPageState extends State<ProdutoListPage> {
   final ProdutoRepository _repository = ProdutoRepository();
+  final LojaRepository _lojaRepository = LojaRepository();
   final TextEditingController _buscaController = TextEditingController();
 
   bool _carregando = true;
+  bool _carregandoLojas = true;
+
   List<dynamic> _produtos = [];
   List<dynamic> _produtosFiltrados = [];
+
+  List<Loja> _lojas = [];
+  int? _lojaIdSelecionada;
 
   @override
   void initState() {
     super.initState();
-    _carregarProdutos();
+    _carregarLojas();
   }
 
   @override
@@ -58,11 +65,71 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
     return texto.replaceAll('Exception:', '').trim();
   }
 
+  Future<void> _carregarLojas() async {
+    setState(() {
+      _carregandoLojas = true;
+      _carregando = true;
+    });
+
+    try {
+      final lojas = await _lojaRepository.listar(widget.organizacaoId);
+
+      if (!mounted) return;
+
+      int? lojaSelecionada = _lojaIdSelecionada;
+
+      if (lojas.isNotEmpty) {
+        final existe = lojas.any((l) => l.lojaId == lojaSelecionada);
+        if (!existe) {
+          lojaSelecionada = lojas.first.lojaId;
+        }
+      } else {
+        lojaSelecionada = null;
+      }
+
+      setState(() {
+        _lojas = lojas;
+        _lojaIdSelecionada = lojaSelecionada;
+        _carregandoLojas = false;
+      });
+
+      if (_lojaIdSelecionada != null) {
+        await _carregarProdutos();
+      } else {
+        setState(() {
+          _produtos = [];
+          _produtosFiltrados = [];
+          _carregando = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _carregandoLojas = false;
+        _carregando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_extrairMensagemErro(e))),
+      );
+    }
+  }
+
   Future<void> _carregarProdutos() async {
+    if (_lojaIdSelecionada == null) {
+      setState(() {
+        _produtos = [];
+        _produtosFiltrados = [];
+        _carregando = false;
+      });
+      return;
+    }
+
     setState(() => _carregando = true);
 
     try {
-      final lista = await _repository.listar(widget.lojaId);
+      final lista = await _repository.listar(_lojaIdSelecionada!);
 
       if (!mounted) return;
 
@@ -105,10 +172,17 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
   }
 
   Future<void> _abrirCadastro() async {
+    if (_lojaIdSelecionada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione uma loja')),
+      );
+      return;
+    }
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => ProdutoFormPage(
-          lojaId: widget.lojaId,
+          lojaId: _lojaIdSelecionada!,
           organizacaoId: widget.organizacaoId,
         ),
       ),
@@ -120,10 +194,12 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
   }
 
   Future<void> _abrirEdicao(dynamic produto) async {
+    if (_lojaIdSelecionada == null) return;
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => ProdutoFormPage(
-          lojaId: widget.lojaId,
+          lojaId: _lojaIdSelecionada!,
           organizacaoId: widget.organizacaoId,
           produto: Map<String, dynamic>.from(produto),
         ),
@@ -269,6 +345,7 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
             Row(
               children: [
                 Expanded(
+                  flex: 3,
                   child: TextField(
                     controller: _buscaController,
                     onChanged: _filtrar,
@@ -278,6 +355,34 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
                       prefixIcon: Icon(Icons.search),
                     ),
                   ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: _carregandoLojas
+                      ? const SizedBox(
+                          height: 50,
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : DropdownButtonFormField<int>(
+                          value: _lojaIdSelecionada,
+                          decoration: const InputDecoration(
+                            labelText: 'Loja',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _lojas.map((loja) {
+                            return DropdownMenuItem<int>(
+                              value: loja.lojaId,
+                              child: Text(loja.nmloja),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _lojaIdSelecionada = value;
+                            });
+                            _carregarProdutos();
+                          },
+                        ),
                 ),
                 const SizedBox(width: 12),
                 SizedBox(

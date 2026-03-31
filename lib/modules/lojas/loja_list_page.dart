@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 
+import '../../core/config/api_config.dart';
 import '../../core/repositories/loja_repository.dart';
 import '../../core/services/storage_service.dart';
 import '../../models/loja.dart';
@@ -100,7 +101,8 @@ class _LojaListPageState extends State<LojaListPage> {
         _lojasFiltradas = _lojas.where((loja) {
           return loja.lojaId.toString().contains(busca) ||
               loja.nmloja.toLowerCase().contains(busca) ||
-              (loja.cnpjloja ?? '').toLowerCase().contains(busca) ||
+              (loja.dsbairroloja ?? '').toLowerCase().contains(busca) ||
+              (loja.nrtelloja ?? '').toLowerCase().contains(busca) ||
               (loja.sitloja ?? '').toLowerCase().contains(busca);
         }).toList();
       }
@@ -108,13 +110,9 @@ class _LojaListPageState extends State<LojaListPage> {
   }
 
   Future<void> _abrirNovaLoja() async {
-    if (_organizacaoId == null) return;
-
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => LojaFormPage(
-          organizacaoId: _organizacaoId!,
-        ),
+        builder: (_) => const LojaFormPage(),
       ),
     );
 
@@ -124,12 +122,9 @@ class _LojaListPageState extends State<LojaListPage> {
   }
 
   Future<void> _abrirEdicao(Loja loja) async {
-    if (_organizacaoId == null) return;
-
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => LojaFormPage(
-          organizacaoId: _organizacaoId!,
           loja: loja,
         ),
       ),
@@ -167,7 +162,7 @@ class _LojaListPageState extends State<LojaListPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Loja excluída com sucesso.')),
+        const SnackBar(content: Text('Loja excluída com sucesso')),
       );
 
       _carregarLojas();
@@ -194,43 +189,71 @@ class _LojaListPageState extends State<LojaListPage> {
 
     return Card(
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columns: const [
-            DataColumn(label: Text('ID')),
-            DataColumn(label: Text('Nome')),
-            DataColumn(label: Text('CNPJ')),
-            DataColumn(label: Text('Telefone')),
-            DataColumn(label: Text('Status')),
-            DataColumn(label: Text('Ações')),
-          ],
-          rows: _lojasFiltradas.map((loja) {
-            return DataRow(
-              cells: [
-                DataCell(Text(loja.lojaId.toString())),
-                DataCell(Text(loja.nmloja)),
-                DataCell(Text(loja.cnpjloja ?? '-')),
-                DataCell(Text(loja.telloja ?? '-')),
-                DataCell(Text(loja.sitloja ?? '-')),
-                DataCell(
-                  Row(
-                    children: [
-                      IconButton(
-                        tooltip: 'Editar',
-                        onPressed: () => _abrirEdicao(loja),
-                        icon: const Icon(Icons.edit),
-                      ),
-                      IconButton(
-                        tooltip: 'Excluir',
-                        onPressed: () => _confirmarExclusao(loja),
-                        icon: const Icon(Icons.delete),
-                      ),
-                    ],
+        scrollDirection: Axis.vertical,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columns: const [
+              DataColumn(label: Text('Logo')),
+              DataColumn(label: Text('ID')),
+              DataColumn(label: Text('Nome')),
+              DataColumn(label: Text('Bairro')),
+              DataColumn(label: Text('Telefone')),
+              DataColumn(label: Text('Horário')),
+              DataColumn(label: Text('Validade')),
+              DataColumn(label: Text('Status')),
+              DataColumn(label: Text('Ações')),
+            ],
+            rows: _lojasFiltradas.map((loja) {
+              final urlLogo = loja.urllogoloja ?? '';
+              final urlCompleta = urlLogo.startsWith('http')
+                  ? urlLogo
+                  : '${ApiConfig.baseUrl}$urlLogo';
+
+              return DataRow(
+                cells: [
+                  DataCell(
+                    urlLogo.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              urlCompleta,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.store),
+                            ),
+                          )
+                        : const Icon(Icons.store),
                   ),
-                ),
-              ],
-            );
-          }).toList(),
+                  DataCell(Text(loja.lojaId.toString())),
+                  DataCell(Text(loja.nmloja)),
+                  DataCell(Text(loja.dsbairroloja ?? '-')),
+                  DataCell(Text(loja.nrtelloja ?? '-')),
+                  DataCell(Text(loja.dshorarioloja ?? '-')),
+                  DataCell(Text(loja.nrdiavalidade?.toString() ?? '-')),
+                  DataCell(Text(loja.sitloja ?? '-')),
+                  DataCell(
+                    Row(
+                      children: [
+                        IconButton(
+                          tooltip: 'Editar',
+                          onPressed: () => _abrirEdicao(loja),
+                          icon: const Icon(Icons.edit),
+                        ),
+                        IconButton(
+                          tooltip: 'Excluir',
+                          onPressed: () => _confirmarExclusao(loja),
+                          icon: const Icon(Icons.delete),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
         ),
       ),
     );

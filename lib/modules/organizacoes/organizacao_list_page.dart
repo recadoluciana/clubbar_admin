@@ -55,6 +55,11 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
     } catch (e) {
       if (!mounted) return;
 
+      setState(() {
+        _organizacao = null;
+        _organizacoesFiltradas = [];
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao carregar organização: $e')),
       );
@@ -85,15 +90,31 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
         final nome = _organizacao!.nmorganizacao.toLowerCase();
         final status = (_organizacao!.sitorganizacao ?? '').toLowerCase();
         final cnpj = (_organizacao!.cnpjorganizacao ?? '').toLowerCase();
+        final email = (_organizacao!.emailorganizacao ?? '').toLowerCase();
+        final telefone = (_organizacao!.telorganizacao ?? '').toLowerCase();
 
         final bate = id.contains(busca) ||
             nome.contains(busca) ||
             status.contains(busca) ||
-            cnpj.contains(busca);
+            cnpj.contains(busca) ||
+            email.contains(busca) ||
+            telefone.contains(busca);
 
         _organizacoesFiltradas = bate ? [_organizacao!] : [];
       }
     });
+  }
+
+  Future<void> _novaOrganizacao() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => const OrganizacaoFormPage(),
+      ),
+    );
+
+    if (result == true) {
+      _carregarOrganizacao();
+    }
   }
 
   Future<void> _editarOrganizacao(Organizacao organizacao) async {
@@ -130,6 +151,8 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
             DataColumn(label: Text('ID')),
             DataColumn(label: Text('Nome')),
             DataColumn(label: Text('CNPJ')),
+            DataColumn(label: Text('E-mail')),
+            DataColumn(label: Text('Telefone')),
             DataColumn(label: Text('Status')),
             DataColumn(label: Text('Ações')),
           ],
@@ -139,6 +162,8 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
                 DataCell(Text(organizacao.organizacaoId.toString())),
                 DataCell(Text(organizacao.nmorganizacao)),
                 DataCell(Text(organizacao.cnpjorganizacao ?? '-')),
+                DataCell(Text(organizacao.emailorganizacao ?? '-')),
+                DataCell(Text(organizacao.telorganizacao ?? '-')),
                 DataCell(Text(organizacao.sitorganizacao ?? '-')),
                 DataCell(
                   IconButton(
@@ -177,6 +202,15 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.search),
                     ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: _novaOrganizacao,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Nova'),
                   ),
                 ),
                 const SizedBox(width: 12),

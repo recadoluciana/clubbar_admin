@@ -18,6 +18,7 @@ class AuthService {
       final token = data['access_token'];
       final lojaId = data['loja_id'];
       final usuarioId = data['usuario_id'];
+      final organizacaoId = data['organizacao_id'];
 
       if (token == null || token.toString().isEmpty) {
         throw Exception('Token não retornado');
@@ -31,6 +32,10 @@ class AuthService {
 
       if (usuarioId != null) {
         await StorageService.saveUsuarioId(usuarioId);
+      }
+
+      if (organizacaoId != null) {
+        await StorageService.saveOrganizacaoId(organizacaoId);
       }
     } else {
       throw Exception('Login inválido: ${response.body}');

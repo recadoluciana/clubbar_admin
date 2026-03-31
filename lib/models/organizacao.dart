@@ -3,12 +3,16 @@ class Organizacao {
   final String nmorganizacao;
   final String? sitorganizacao;
   final String? cnpjorganizacao;
+  final String? emailorganizacao;
+  final String? telorganizacao;
 
   Organizacao({
     required this.organizacaoId,
     required this.nmorganizacao,
     this.sitorganizacao,
     this.cnpjorganizacao,
+    this.emailorganizacao,
+    this.telorganizacao,
   });
 
   factory Organizacao.fromJson(Map<String, dynamic> json) {
@@ -17,6 +21,8 @@ class Organizacao {
       nmorganizacao: (json['nmorganizacao'] ?? '').toString(),
       sitorganizacao: json['sitorganizacao']?.toString(),
       cnpjorganizacao: json['cnpjorganizacao']?.toString(),
+      emailorganizacao: json['emailorganizacao']?.toString(),
+      telorganizacao: json['telorganizacao']?.toString(),
     );
   }
 
@@ -26,6 +32,8 @@ class Organizacao {
       'nmorganizacao': nmorganizacao,
       'sitorganizacao': sitorganizacao,
       'cnpjorganizacao': cnpjorganizacao,
+      'emailorganizacao': emailorganizacao,
+      'telorganizacao': telorganizacao,
     };
   }
 }

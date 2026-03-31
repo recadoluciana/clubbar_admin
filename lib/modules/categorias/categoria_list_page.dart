@@ -1,14 +1,18 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+
 import '../../core/repositories/categoria_repository.dart';
+import '../../core/repositories/loja_repository.dart';
 import '../../models/categoria.dart';
+import '../../models/loja.dart';
 import 'categoria_form_page.dart';
 
 class CategoriaListPage extends StatefulWidget {
-  final int lojaId;
+  final int organizacaoId;
 
   const CategoriaListPage({
     super.key,
-    required this.lojaId,
+    required this.organizacaoId,
   });
 
   @override
@@ -17,16 +21,22 @@ class CategoriaListPage extends StatefulWidget {
 
 class _CategoriaListPageState extends State<CategoriaListPage> {
   final CategoriaRepository _repository = CategoriaRepository();
+  final LojaRepository _lojaRepository = LojaRepository();
   final TextEditingController _buscaController = TextEditingController();
 
   bool _carregando = true;
+  bool _carregandoLojas = true;
+
   List<Categoria> _categorias = [];
   List<Categoria> _categoriasFiltradas = [];
+
+  List<Loja> _lojas = [];
+  int? _lojaIdSelecionada;
 
   @override
   void initState() {
     super.initState();
-    _carregarCategorias();
+    _carregarLojas();
   }
 
   @override
@@ -35,13 +45,93 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
     super.dispose();
   }
 
+  String _extrairMensagemErro(Object e) {
+    final texto = e.toString();
+
+    try {
+      final inicio = texto.indexOf('{');
+      final fim = texto.lastIndexOf('}');
+
+      if (inicio != -1 && fim != -1) {
+        final jsonStr = texto.substring(inicio, fim + 1);
+        final jsonMap = jsonDecode(jsonStr);
+
+        if (jsonMap is Map && jsonMap['detail'] != null) {
+          return jsonMap['detail'].toString();
+        }
+      }
+    } catch (_) {}
+
+    return texto.replaceAll('Exception:', '').trim();
+  }
+
+  Future<void> _carregarLojas() async {
+    setState(() {
+      _carregandoLojas = true;
+      _carregando = true;
+    });
+
+    try {
+      final lojas = await _lojaRepository.listar(widget.organizacaoId);
+
+      if (!mounted) return;
+
+      int? lojaSelecionada = _lojaIdSelecionada;
+
+      if (lojas.isNotEmpty) {
+        final existe = lojas.any((l) => l.lojaId == lojaSelecionada);
+        if (!existe) {
+          lojaSelecionada = lojas.first.lojaId;
+        }
+      } else {
+        lojaSelecionada = null;
+      }
+
+      setState(() {
+        _lojas = lojas;
+        _lojaIdSelecionada = lojaSelecionada;
+        _carregandoLojas = false;
+      });
+
+      if (_lojaIdSelecionada != null) {
+        await _carregarCategorias();
+      } else {
+        setState(() {
+          _categorias = [];
+          _categoriasFiltradas = [];
+          _carregando = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _carregandoLojas = false;
+        _carregando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_extrairMensagemErro(e))),
+      );
+    }
+  }
+
   Future<void> _carregarCategorias() async {
+    if (_lojaIdSelecionada == null) {
+      setState(() {
+        _categorias = [];
+        _categoriasFiltradas = [];
+        _carregando = false;
+      });
+      return;
+    }
+
     setState(() {
       _carregando = true;
     });
 
     try {
-      final lista = await _repository.listar(widget.lojaId);
+      final lista = await _repository.listar(_lojaIdSelecionada!);
 
       if (!mounted) return;
 
@@ -53,7 +143,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao carregar categorias: $e')),
+        SnackBar(content: Text(_extrairMensagemErro(e))),
       );
     } finally {
       if (mounted) {
@@ -72,41 +162,59 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
         _categoriasFiltradas = _categorias;
       } else {
         _categoriasFiltradas = _categorias.where((categoria) {
-          return categoria.nmcategoria.toLowerCase().contains(busca) ||
-              categoria.categoriaId.toString().contains(busca);
+          final id = categoria.categoriaId.toString();
+          final nome = categoria.nmcategoria.toLowerCase();
+          final status = (categoria.sitcategoria ?? '').toLowerCase();
+
+          return id.contains(busca) ||
+              nome.contains(busca) ||
+              status.contains(busca);
         }).toList();
       }
     });
   }
 
   Future<void> _abrirNovaCategoria() async {
-    final resultado = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => CategoriaFormPage(lojaId: widget.lojaId),
-      ),
-    );
-
-    if (resultado == true) {
-      await _carregarCategorias();
+    if (_lojaIdSelecionada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione uma loja')),
+      );
+      return;
     }
-  }
 
-  Future<void> _abrirEdicao(Categoria categoria) async {
-    final resultado = await Navigator.of(context).push<bool>(
+    final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => CategoriaFormPage(
-          categoria: categoria,
-          lojaId: widget.lojaId,
+          lojaId: _lojaIdSelecionada!,
         ),
       ),
     );
 
-    if (resultado == true) {
-      await _carregarCategorias();
+    if (result == true) {
+      _carregarCategorias();
+    }
+  }
+
+  Future<void> _abrirEdicao(Categoria categoria) async {
+    if (_lojaIdSelecionada == null) return;
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => CategoriaFormPage(
+          lojaId: _lojaIdSelecionada!,
+          categoria: categoria,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _carregarCategorias();
     }
   }
 
   Future<void> _confirmarExclusao(Categoria categoria) async {
+    if (_lojaIdSelecionada == null) return;
+
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -130,10 +238,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
     if (confirmar != true) return;
 
     try {
-      await _repository.excluir(
-        widget.lojaId,
-        categoria.categoriaId,
-      );
+      await _repository.excluir(_lojaIdSelecionada!, categoria.categoriaId);
 
       if (!mounted) return;
 
@@ -141,12 +246,12 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
         const SnackBar(content: Text('Categoria excluída com sucesso.')),
       );
 
-      await _carregarCategorias();
+      _carregarCategorias();
     } catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao excluir: $e')),
+        SnackBar(content: Text(_extrairMensagemErro(e))),
       );
     }
   }
@@ -217,6 +322,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
             Row(
               children: [
                 Expanded(
+                  flex: 3,
                   child: TextField(
                     controller: _buscaController,
                     onChanged: _filtrar,
@@ -226,6 +332,34 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
                       prefixIcon: Icon(Icons.search),
                     ),
                   ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: _carregandoLojas
+                      ? const SizedBox(
+                          height: 50,
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : DropdownButtonFormField<int>(
+                          value: _lojaIdSelecionada,
+                          decoration: const InputDecoration(
+                            labelText: 'Loja',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _lojas.map((loja) {
+                            return DropdownMenuItem<int>(
+                              value: loja.lojaId,
+                              child: Text(loja.nmloja),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _lojaIdSelecionada = value;
+                            });
+                            _carregarCategorias();
+                          },
+                        ),
                 ),
                 const SizedBox(width: 12),
                 SizedBox(

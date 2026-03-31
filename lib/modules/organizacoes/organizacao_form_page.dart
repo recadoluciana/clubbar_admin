@@ -5,11 +5,11 @@ import '../../core/services/storage_service.dart';
 import '../../models/organizacao.dart';
 
 class OrganizacaoFormPage extends StatefulWidget {
-  final Organizacao organizacao;
+  final Organizacao? organizacao;
 
   const OrganizacaoFormPage({
     super.key,
-    required this.organizacao,
+    this.organizacao,
   });
 
   @override
@@ -22,23 +22,33 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
 
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _cnpjController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _telefoneController = TextEditingController();
 
   bool _salvando = false;
   String _status = 'ATIVA';
+
+  bool get editando => widget.organizacao != null;
 
   @override
   void initState() {
     super.initState();
 
-    _nomeController.text = widget.organizacao.nmorganizacao;
-    _cnpjController.text = widget.organizacao.cnpjorganizacao ?? '';
-    _status = widget.organizacao.sitorganizacao ?? 'ATIVA';
+    if (widget.organizacao != null) {
+      _nomeController.text = widget.organizacao!.nmorganizacao;
+      _cnpjController.text = widget.organizacao!.cnpjorganizacao ?? '';
+      _emailController.text = widget.organizacao!.emailorganizacao ?? '';
+      _telefoneController.text = widget.organizacao!.telorganizacao ?? '';
+      _status = widget.organizacao!.sitorganizacao ?? 'ATIVA';
+    }
   }
 
   @override
   void dispose() {
     _nomeController.dispose();
     _cnpjController.dispose();
+    _emailController.dispose();
+    _telefoneController.dispose();
     super.dispose();
   }
 
@@ -50,26 +60,41 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
     });
 
     try {
-      final usuarioId = await StorageService.getUsuarioId();
+      if (editando) {
+        final usuarioId = await StorageService.getUsuarioId();
 
-      if (usuarioId == null) {
-        throw Exception('Usuário não encontrado');
+        if (usuarioId == null) {
+          throw Exception('Usuário não encontrado');
+        }
+
+        await _repository.atualizar(
+          usuarioId,
+          {
+            'nmorganizacao': _nomeController.text.trim(),
+            'cnpjorganizacao': _cnpjController.text.trim(),
+            'emailorganizacao': _emailController.text.trim(),
+            'telorganizacao': _telefoneController.text.trim(),
+            'sitorganizacao': _status,
+          },
+        );
+      } else {
+        await _repository.criar(
+          {
+            'nmorganizacao': _nomeController.text.trim(),
+            'cnpjorganizacao': _cnpjController.text.trim(),
+          },
+        );
       }
-
-      await _repository.atualizar(
-        usuarioId,
-        {
-          'nmorganizacao': _nomeController.text.trim(),
-          'cnpjorganizacao': _cnpjController.text.trim(),
-          'sitorganizacao': _status,
-        },
-      );
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Organização atualizada com sucesso'),
+        SnackBar(
+          content: Text(
+            editando
+                ? 'Organização atualizada com sucesso'
+                : 'Organização criada com sucesso',
+          ),
         ),
       );
 
@@ -93,7 +118,7 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Organização'),
+        title: Text(editando ? 'Editar Organização' : 'Nova Organização'),
         centerTitle: true,
       ),
       body: Center(
@@ -103,8 +128,8 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              child: ListView(
+                shrinkWrap: true,
                 children: [
                   TextFormField(
                     controller: _nomeController,
@@ -127,31 +152,49 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _status,
-                    decoration: const InputDecoration(
-                      labelText: 'Status',
-                      border: OutlineInputBorder(),
+                  if (editando) ...[
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'E-mail',
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'ATIVA',
-                        child: Text('ATIVA'),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _telefoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Telefone',
+                        border: OutlineInputBorder(),
                       ),
-                      DropdownMenuItem(
-                        value: 'INATIVA',
-                        child: Text('INATIVA'),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _status,
+                      decoration: const InputDecoration(
+                        labelText: 'Status',
+                        border: OutlineInputBorder(),
                       ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _status = value;
-                        });
-                      }
-                    },
-                  ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'ATIVA',
+                          child: Text('ATIVA'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'INATIVA',
+                          child: Text('INATIVA'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _status = value;
+                          });
+                        }
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,

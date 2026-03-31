@@ -28,4 +28,15 @@ class OrganizacaoRepository {
       throw Exception('Erro ao atualizar organização: ${response.body}');
     }
   }
+
+  Future<void> criar(Map<String, dynamic> dados) async {
+    final response = await ApiService.post(
+      '/organizacoes',
+      dados,
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Erro ao criar organização: ${response.body}');
+    }
+  }
 }

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/services/storage_service.dart';
 import '../auth/login_page.dart';
 import '../categorias/categoria_list_page.dart';
+import '../lojas/loja_list_page.dart';
 import '../organizacoes/organizacao_list_page.dart';
 import '../produtos/produto_list_page.dart';
-import '../lojas/loja_list_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -26,28 +26,36 @@ class DashboardPage extends StatelessWidget {
   void _abrirModulo(BuildContext context, String nomeModulo) async {
     Widget? destino;
 
-    final lojaId = await StorageService.getLojaId();
-
     if (nomeModulo == 'Organizações') {
       destino = const OrganizacaoListPage();
-    } else {
-      if (lojaId == null) {
+    } else if (nomeModulo == 'Lojas') {
+      destino = const LojaListPage();
+    } else if (nomeModulo == 'Produtos') {
+      final organizacaoId = await StorageService.getOrganizacaoId();
+
+      if (organizacaoId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Loja não encontrada no login')),
+          const SnackBar(content: Text('Organização não encontrada no login')),
         );
         return;
       }
 
-      if (nomeModulo == 'Categorias') {
-        destino = CategoriaListPage(lojaId: lojaId);
-      } else if (nomeModulo == 'Produtos') {
-        destino = ProdutoListPage(
-          lojaId: lojaId,
-          organizacaoId: 1,
+      destino = ProdutoListPage(
+        organizacaoId: organizacaoId,
+      );
+    } else if (nomeModulo == 'Categorias') {
+      final organizacaoId = await StorageService.getOrganizacaoId();
+
+      if (organizacaoId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Organização não encontrada no login')),
         );
-      } else if (nomeModulo == 'Lojas') {
-        destino = const LojaListPage();
+        return;
       }
+
+      destino = CategoriaListPage(
+        organizacaoId: organizacaoId,
+      );
     }
 
     if (destino != null) {
