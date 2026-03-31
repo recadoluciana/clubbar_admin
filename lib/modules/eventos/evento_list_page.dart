@@ -6,6 +6,7 @@ import '../../core/repositories/loja_repository.dart';
 import '../../models/evento.dart';
 import '../../models/loja.dart';
 import 'evento_form_page.dart';
+import 'evento_lote_list_page.dart';
 
 class EventoListPage extends StatefulWidget {
   final int organizacaoId;
@@ -164,7 +165,9 @@ class _EventoListPageState extends State<EventoListPage> {
         _eventosFiltrados = _eventos.where((evento) {
           return evento.eventoId.toString().contains(busca) ||
               evento.nmtituloevento.toLowerCase().contains(busca) ||
-              (evento.sitevento ?? '').toLowerCase().contains(busca);
+              (evento.statusevento ?? '').toLowerCase().contains(busca) ||
+              (evento.nmlocalevento ?? '').toLowerCase().contains(busca) ||
+              (evento.dsendlocevento ?? '').toLowerCase().contains(busca);
         }).toList();
       }
     });
@@ -193,6 +196,8 @@ class _EventoListPageState extends State<EventoListPage> {
   }
 
   Future<void> _abrirEdicao(Evento evento) async {
+    if (_lojaIdSelecionada == null) return;
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => EventoFormPage(
@@ -206,6 +211,17 @@ class _EventoListPageState extends State<EventoListPage> {
     if (result == true) {
       _carregarEventos();
     }
+  }
+
+  Future<void> _abrirLotes(Evento evento) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => EventoLoteListPage(
+          eventoId: evento.eventoId,
+          eventoTitulo: evento.nmtituloevento,
+        ),
+      ),
+    );
   }
 
   Future<void> _confirmarExclusao(Evento evento) async {
@@ -285,10 +301,15 @@ class _EventoListPageState extends State<EventoListPage> {
                 DataCell(Text(evento.dtfimevento ?? '-')),
                 DataCell(Text(evento.nmlocalevento ?? '-')),
                 DataCell(Text(evento.dsendlocevento ?? '-')),
-                DataCell(Text(evento.sitevento ?? '-')),
+                DataCell(Text(evento.statusevento ?? '-')),
                 DataCell(
                   Row(
                     children: [
+                      IconButton(
+                        tooltip: 'Lotes',
+                        onPressed: () => _abrirLotes(evento),
+                        icon: const Icon(Icons.confirmation_number),
+                      ),
                       IconButton(
                         tooltip: 'Editar',
                         onPressed: () => _abrirEdicao(evento),

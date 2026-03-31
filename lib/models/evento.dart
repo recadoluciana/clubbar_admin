@@ -3,13 +3,15 @@ class Evento {
   final int organizacaoId;
   final int lojaId;
   final String nmtituloevento;
+
   final String? dsdescevento;
-  final String? nmlocalevento;
-  final String? dsendlocevento;
   final String? dtinicioevento;
   final String? dtfimevento;
-  final String? sitevento;
+  final String? statusevento;
+
   final String? urlbannerevento;
+  final String? nmlocalevento;
+  final String? dsendlocevento;
 
   Evento({
     required this.eventoId,
@@ -17,12 +19,12 @@ class Evento {
     required this.lojaId,
     required this.nmtituloevento,
     this.dsdescevento,
-    this.nmlocalevento,
-    this.dsendlocevento,
     this.dtinicioevento,
     this.dtfimevento,
-    this.sitevento,
+    this.statusevento,
     this.urlbannerevento,
+    this.nmlocalevento,
+    this.dsendlocevento,
   });
 
   factory Evento.fromJson(Map<String, dynamic> json) {
@@ -31,13 +33,15 @@ class Evento {
       organizacaoId: json['organizacao_id'] ?? 0,
       lojaId: json['loja_id'] ?? 0,
       nmtituloevento: (json['nmtituloevento'] ?? '').toString(),
+
       dsdescevento: json['dsdescevento']?.toString(),
-      nmlocalevento: json['nmlocalevento']?.toString(),
-      dsendlocevento: json['dsendlocevento']?.toString(),
       dtinicioevento: json['dtinicioevento']?.toString(),
       dtfimevento: json['dtfimevento']?.toString(),
-      sitevento: json['sitevento']?.toString(),
+      statusevento: json['statusevento']?.toString(),
+
       urlbannerevento: json['urlbannerevento']?.toString(),
+      nmlocalevento: json['nmlocalevento']?.toString(),
+      dsendlocevento: json['dsendlocevento']?.toString(),
     );
   }
 }
