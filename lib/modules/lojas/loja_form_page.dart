@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -38,7 +39,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
 
   List<Cidade> _cidades = [];
   int? _cidadeIdSelecionada;
-  File? _imagemSelecionada;
+
+  XFile? _imagemSelecionada;
+  Uint8List? _imagemBytes;
 
   bool get editando => widget.loja != null;
 
@@ -119,11 +122,19 @@ class _LojaFormPageState extends State<LojaFormPage> {
       );
 
       if (arquivo != null) {
+        Uint8List? bytes;
+        if (kIsWeb) {
+          bytes = await arquivo.readAsBytes();
+        }
+
         setState(() {
-          _imagemSelecionada = File(arquivo.path);
+          _imagemSelecionada = arquivo;
+          _imagemBytes = bytes;
         });
       }
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao selecionar imagem: $e')),
       );
@@ -152,8 +163,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
       }
 
       final diasValidadeTexto = _diasValidadeController.text.trim();
-      final diasValidade =
-          diasValidadeTexto.isEmpty ? null : int.tryParse(diasValidadeTexto);
+      final diasValidade = diasValidadeTexto.isEmpty
+          ? null
+          : int.tryParse(diasValidadeTexto);
 
       if (diasValidadeTexto.isNotEmpty && diasValidade == null) {
         throw Exception('Dias de validade deve ser numérico');
@@ -243,11 +255,21 @@ class _LojaFormPageState extends State<LojaFormPage> {
                       child: _imagemSelecionada != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.file(
-                                _imagemSelecionada!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
+                              child: kIsWeb
+                                  ? Image.memory(
+                                      _imagemBytes!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    )
+                                  : Image.network(
+                                      _imagemSelecionada!.path,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      errorBuilder: (_, __, ___) =>
+                                          const Center(
+                                        child: Icon(Icons.store, size: 40),
+                                      ),
+                                    ),
                             )
                           : (editando && imagemAtual.isNotEmpty)
                               ? ClipRRect(
@@ -256,7 +278,8 @@ class _LojaFormPageState extends State<LojaFormPage> {
                                     imagemAtual,
                                     fit: BoxFit.cover,
                                     width: double.infinity,
-                                    errorBuilder: (_, __, ___) => const Center(
+                                    errorBuilder: (_, __, ___) =>
+                                        const Center(
                                       child: Icon(Icons.store, size: 40),
                                     ),
                                   ),

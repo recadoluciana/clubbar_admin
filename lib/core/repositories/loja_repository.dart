@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/api_config.dart';
 import '../../models/loja.dart';
@@ -30,16 +29,21 @@ class LojaRepository {
 
   Future<http.MultipartFile> _montarArquivoImagem(
     String fieldName,
-    File imagem,
+    XFile imagem,
   ) async {
-    final mimeType = lookupMimeType(imagem.path) ?? 'image/jpeg';
-    final parts = mimeType.split('/');
-
-    return await http.MultipartFile.fromPath(
-      fieldName,
-      imagem.path,
-      contentType: MediaType(parts[0], parts[1]),
-    );
+    if (kIsWeb) {
+      final bytes = await imagem.readAsBytes();
+      return http.MultipartFile.fromBytes(
+        fieldName,
+        bytes,
+        filename: imagem.name,
+      );
+    } else {
+      return await http.MultipartFile.fromPath(
+        fieldName,
+        imagem.path,
+      );
+    }
   }
 
   Future<void> criar({
@@ -50,7 +54,7 @@ class LojaRepository {
     String? telefone,
     String? horario,
     int? diasValidade,
-    File? imagem,
+    XFile? imagem,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/lojas');
 
@@ -93,7 +97,7 @@ class LojaRepository {
     String? telefone,
     String? horario,
     int? diasValidade,
-    File? imagem,
+    XFile? imagem,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/lojas/$lojaId');
 
