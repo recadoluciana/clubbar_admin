@@ -1,14 +1,11 @@
-import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
 
-import '../../core/config/api_config.dart';
 import '../../core/repositories/categoria_repository.dart';
 import '../../core/repositories/produto_repository.dart';
-import '../../core/services/storage_service.dart';
 import '../../models/categoria.dart';
 
 class ProdutoFormPage extends StatefulWidget {
@@ -28,30 +25,44 @@ class ProdutoFormPage extends StatefulWidget {
 }
 
 class _ProdutoFormPageState extends State<ProdutoFormPage> {
-  final TextEditingController _nomeController = TextEditingController();
-  final TextEditingController _descricaoController = TextEditingController();
-  final TextEditingController _precoController = TextEditingController();
-  final TextEditingController _skuController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _produtoRepository = ProdutoRepository();
+  final _categoriaRepository = CategoriaRepository();
+  final _picker = ImagePicker();
 
-  final ImagePicker _picker = ImagePicker();
-  final CategoriaRepository _categoriaRepository = CategoriaRepository();
-  final ProdutoRepository _produtoRepository = ProdutoRepository();
+  final _nomeController = TextEditingController();
+  final _descricaoController = TextEditingController();
+  final _precoController = TextEditingController();
+  final _skuController = TextEditingController();
 
-  File? _imagemSelecionada;
-
-  bool _carregando = false;
+  bool _salvando = false;
   bool _carregandoCategorias = true;
 
-  int? _categoriaIdSelecionada;
   List<Categoria> _categorias = [];
-  String _sitproduto = 'ATIVO';
+  int? _categoriaIdSelecionada;
+  String _statusSelecionado = 'ATIVO';
+
+  XFile? _imagemSelecionada;
+  Uint8List? _imagemBytes;
 
   bool get editando => widget.produto != null;
 
   @override
   void initState() {
     super.initState();
-    _preencherCamposSeEdicao();
+
+    if (widget.produto != null) {
+      _nomeController.text = (widget.produto!['nmproduto'] ?? '').toString();
+      _descricaoController.text =
+          (widget.produto!['dsproduto'] ?? '').toString();
+      _precoController.text =
+          (widget.produto!['vrprecoprod'] ?? '').toString();
+      _skuController.text = (widget.produto!['skuproduto'] ?? '').toString();
+      _categoriaIdSelecionada = widget.produto!['categoria_id'];
+      _statusSelecionado =
+          (widget.produto!['sitproduto'] ?? 'ATIVO').toString();
+    }
+
     _carregarCategorias();
   }
 
@@ -62,24 +73,6 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     _precoController.dispose();
     _skuController.dispose();
     super.dispose();
-  }
-
-  void _preencherCamposSeEdicao() {
-    final produto = widget.produto;
-    if (produto == null) return;
-
-    _nomeController.text = (produto['nmproduto'] ?? '').toString();
-    _descricaoController.text = (produto['dsproduto'] ?? '').toString();
-    _precoController.text = (produto['vrprecoprod'] ?? '').toString();
-    _skuController.text = (produto['skuproduto'] ?? '').toString();
-    _sitproduto = (produto['sitproduto'] ?? 'ATIVO').toString();
-
-    final categoriaId = produto['categoria_id'];
-    if (categoriaId is int) {
-      _categoriaIdSelecionada = categoriaId;
-    } else if (categoriaId != null) {
-      _categoriaIdSelecionada = int.tryParse(categoriaId.toString());
-    }
   }
 
   Future<void> _carregarCategorias() async {
@@ -94,11 +87,15 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
       int? categoriaSelecionada = _categoriaIdSelecionada;
 
-      final existe = lista.any((c) => c.categoriaId == categoriaSelecionada);
+      if (lista.isNotEmpty) {
+        final existe =
+            lista.any((categoria) => categoria.categoriaId == categoriaSelecionada);
 
-      if (!existe) {
-        categoriaSelecionada =
-            lista.isNotEmpty ? lista.first.categoriaId : null;
+        if (!existe) {
+          categoriaSelecionada = lista.first.categoriaId;
+        }
+      } else {
+        categoriaSelecionada = null;
       }
 
       setState(() {
@@ -111,8 +108,6 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
       setState(() {
         _carregandoCategorias = false;
-        _categorias = [];
-        _categoriaIdSelecionada = null;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,130 +123,75 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
       );
 
       if (arquivo != null) {
+        Uint8List? bytes;
+        if (kIsWeb) {
+          bytes = await arquivo.readAsBytes();
+        }
+
         setState(() {
-          _imagemSelecionada = File(arquivo.path);
+          _imagemSelecionada = arquivo;
+          _imagemBytes = bytes;
         });
       }
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao selecionar imagem: $e')),
       );
     }
   }
 
-  String _extrairMensagemErro(Object e) {
-    final texto = e.toString();
-
-    try {
-      final inicio = texto.indexOf('{');
-      final fim = texto.lastIndexOf('}');
-
-      if (inicio != -1 && fim != -1) {
-        final jsonStr = texto.substring(inicio, fim + 1);
-        final jsonMap = jsonDecode(jsonStr);
-
-        if (jsonMap is Map && jsonMap['detail'] != null) {
-          return jsonMap['detail'].toString();
-        }
-      }
-    } catch (_) {}
-
-    return texto.replaceAll('Exception:', '').trim();
-  }
-
-  Future<void> _salvarProdutoNaApi() async {
-    final String nome = _nomeController.text.trim();
-    final String descricao = _descricaoController.text.trim();
-    final String precoTexto = _precoController.text.trim().replaceAll(',', '.');
-    final String sku = _skuController.text.trim();
-
-    if (nome.isEmpty || precoTexto.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha nome e preço.')),
-      );
-      return;
-    }
+  Future<void> _salvar() async {
+    if (!_formKey.currentState!.validate()) return;
 
     if (_categoriaIdSelecionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma categoria.')),
-      );
-      return;
-    }
-
-    final preco = double.tryParse(precoTexto);
-    if (preco == null || preco <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informe um preço válido.')),
-      );
-      return;
-    }
-
-    if (!editando && _imagemSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma imagem.')),
+        const SnackBar(content: Text('Selecione uma categoria')),
       );
       return;
     }
 
     setState(() {
-      _carregando = true;
+      _salvando = true;
     });
 
     try {
+      final precoTexto = _precoController.text
+          .replaceAll('R\$', '')
+          .replaceAll(' ', '')
+          .replaceAll(',', '.')
+          .trim();
+
+      final preco = double.tryParse(precoTexto);
+
+      if (preco == null) {
+        throw Exception('Preço inválido');
+      }
+
       if (editando) {
         await _produtoRepository.atualizar(
           produtoId: widget.produto!['produto_id'],
-          categoriaId: _categoriaIdSelecionada!,
-          nome: nome,
-          descricao: descricao,
+          categoriaId: _categoriaIdSelecionada,
+          nome: _nomeController.text.trim(),
+          descricao: _descricaoController.text.trim(),
           preco: preco,
-          sitproduto: _sitproduto,
-          skuproduto: sku,
+          status: _statusSelecionado,
+          sku: _skuController.text.trim(),
           imagem: _imagemSelecionada,
         );
       } else {
-        final token = await StorageService.getToken();
-
-        final uri = Uri.parse('${ApiConfig.baseUrl}/produtos');
-        final request = http.MultipartRequest('POST', uri);
-
-        if (token != null && token.isNotEmpty) {
-          request.headers['Authorization'] = 'Bearer $token';
-        }
-
-        request.fields['organizacao_id'] = widget.organizacaoId.toString();
-        request.fields['loja_id'] = widget.lojaId.toString();
-        request.fields['categoria_id'] = _categoriaIdSelecionada.toString();
-        request.fields['nmproduto'] = nome;
-        request.fields['dsproduto'] = descricao;
-        request.fields['vrprecoprod'] = preco.toString();
-        request.fields['idtipoproduto'] = 'P';
-        request.fields['sitproduto'] = 'ATIVO';
-        request.fields['skuproduto'] = sku;
-
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'foto',
-            _imagemSelecionada!.path,
-          ),
+        await _produtoRepository.criar(
+          organizacaoId: widget.organizacaoId,
+          lojaId: widget.lojaId,
+          categoriaId: _categoriaIdSelecionada!,
+          nome: _nomeController.text.trim(),
+          descricao: _descricaoController.text.trim(),
+          preco: preco,
+          sku: _skuController.text.trim(),
+          sitproduto: _statusSelecionado,
+          imagem: _imagemSelecionada,
         );
-
-        final streamedResponse = await request.send();
-        final response = await http.Response.fromStream(streamedResponse);
-
-        if (response.statusCode != 200 && response.statusCode != 201) {
-          String mensagemErro = response.body;
-
-          try {
-            final jsonBody = jsonDecode(response.body);
-            if (jsonBody is Map && jsonBody['detail'] != null) {
-              mensagemErro = jsonBody['detail'].toString();
-            }
-          } catch (_) {}
-
-          throw Exception('${response.statusCode} - $mensagemErro');
-        }
       }
 
       if (!mounted) return;
@@ -260,8 +200,8 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
         SnackBar(
           content: Text(
             editando
-                ? 'Produto atualizado com sucesso!'
-                : 'Produto salvo com sucesso!',
+                ? 'Produto atualizado com sucesso'
+                : 'Produto criado com sucesso',
           ),
         ),
       );
@@ -271,12 +211,12 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
+        SnackBar(content: Text('Erro ao salvar: $e')),
       );
     } finally {
       if (mounted) {
         setState(() {
-          _carregando = false;
+          _salvando = false;
         });
       }
     }
@@ -284,171 +224,196 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final imagemAtual = widget.produto?['urlfotoproduto']?.toString() ?? '';
-    final imagemAtualCompleta = imagemAtual.startsWith('http')
-        ? imagemAtual
-        : '${ApiConfig.baseUrl}$imagemAtual';
+    final imagemAtual =
+        (widget.produto?['urlfotoproduto'] ?? '').toString();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(editando ? 'Editar Produto' : 'Cadastrar Produto'),
+        title: Text(editando ? 'Editar Produto' : 'Novo Produto'),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: <Widget>[
-          GestureDetector(
-            onTap: _selecionarImagem,
-            child: Container(
-              height: 180,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: _imagemSelecionada != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        _imagemSelecionada!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  GestureDetector(
+                    onTap: _selecionarImagem,
+                    child: Container(
+                      height: 160,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade400),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    )
-                  : (editando && imagemAtual.isNotEmpty)
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            imagemAtualCompleta,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(Icons.image_not_supported, size: 50),
-                            ),
-                          ),
-                        )
-                      : const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.image_outlined, size: 50),
-                              SizedBox(height: 8),
-                              Text('Toque para selecionar uma imagem'),
-                            ],
-                          ),
-                        ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _nomeController,
-            decoration: const InputDecoration(
-              labelText: 'Nome do produto',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _descricaoController,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Descrição do produto',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _precoController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Preço',
-              border: OutlineInputBorder(),
-              prefixText: 'R\$ ',
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _skuController,
-            decoration: const InputDecoration(
-              labelText: 'SKU',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            value: _sitproduto,
-            decoration: const InputDecoration(
-              labelText: 'Status',
-              border: OutlineInputBorder(),
-            ),
-            items: const [
-              DropdownMenuItem(
-                value: 'ATIVO',
-                child: Text('ATIVO'),
-              ),
-              DropdownMenuItem(
-                value: 'INATIVO',
-                child: Text('INATIVO'),
-              ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _sitproduto = value;
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          _carregandoCategorias
-              ? const Center(child: CircularProgressIndicator())
-              : _categorias.isEmpty
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Nenhuma categoria encontrada para esta loja.',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        const SizedBox(height: 8),
-                        OutlinedButton.icon(
-                          onPressed: _carregarCategorias,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Recarregar categorias'),
-                        ),
-                      ],
-                    )
-                  : DropdownButtonFormField<int>(
-                      value: _categorias.any(
-                              (c) => c.categoriaId == _categoriaIdSelecionada)
-                          ? _categoriaIdSelecionada
-                          : null,
-                      decoration: const InputDecoration(
-                        labelText: 'Categoria',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _categorias.map((categoria) {
-                        return DropdownMenuItem<int>(
-                          value: categoria.categoriaId,
-                          child: Text(categoria.nmcategoria),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _categoriaIdSelecionada = value;
-                        });
-                      },
+                      child: _imagemSelecionada != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: kIsWeb
+                                  ? Image.memory(
+                                      _imagemBytes!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    )
+                                  : Image.network(
+                                      _imagemSelecionada!.path,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      errorBuilder: (_, __, ___) =>
+                                          const Center(
+                                        child: Icon(Icons.image_not_supported,
+                                            size: 40),
+                                      ),
+                                    ),
+                            )
+                          : (editando && imagemAtual.isNotEmpty)
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    imagemAtual,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder: (_, __, ___) =>
+                                        const Center(
+                                      child: Icon(Icons.image_not_supported,
+                                          size: 40),
+                                    ),
+                                  ),
+                                )
+                              : const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.image_outlined, size: 40),
+                                      SizedBox(height: 8),
+                                      Text('Toque para selecionar uma imagem'),
+                                    ],
+                                  ),
+                                ),
                     ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _carregando ? null : _salvarProdutoNaApi,
-              child: _carregando
-                  ? const CircularProgressIndicator()
-                  : Text(editando ? 'Salvar Alterações' : 'Salvar Produto'),
+                  ),
+                  TextFormField(
+                    controller: _nomeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome do produto',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Informe o nome do produto';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descricaoController,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Descrição do produto',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _precoController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Preço',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Informe o preço';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _skuController,
+                    decoration: const InputDecoration(
+                      labelText: 'SKU',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: _statusSelecionado,
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'ATIVO',
+                        child: Text('ATIVO'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'INATIVO',
+                        child: Text('INATIVO'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _statusSelecionado = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _carregandoCategorias
+                      ? const Center(child: CircularProgressIndicator())
+                      : DropdownButtonFormField<int>(
+                          value: _categoriaIdSelecionada,
+                          decoration: const InputDecoration(
+                            labelText: 'Categoria',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _categorias.map((categoria) {
+                            return DropdownMenuItem<int>(
+                              value: categoria.categoriaId,
+                              child: Text(categoria.nmcategoria),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _categoriaIdSelecionada = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Selecione uma categoria';
+                            }
+                            return null;
+                          },
+                        ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _salvando ? null : _salvar,
+                      child: _salvando
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Salvar'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

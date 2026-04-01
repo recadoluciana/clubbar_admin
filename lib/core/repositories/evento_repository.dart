@@ -1,11 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 import '../../core/config/api_config.dart';
 import '../../models/evento.dart';
 import '../services/api_service.dart';
+import '../services/storage_service.dart';
 
 class EventoRepository {
   Future<List<Evento>> listar(int lojaId) async {
@@ -19,6 +23,33 @@ class EventoRepository {
     throw Exception('Erro ao listar eventos: ${response.body}');
   }
 
+  Future<http.MultipartFile> _montarArquivoImagem(
+    String fieldName,
+    XFile imagem,
+  ) async {
+    final mimeType =
+        lookupMimeType(imagem.name) ?? lookupMimeType(imagem.path) ?? 'image/jpeg';
+
+    final parts = mimeType.split('/');
+
+    if (kIsWeb) {
+      final bytes = await imagem.readAsBytes();
+
+      return http.MultipartFile.fromBytes(
+        fieldName,
+        bytes,
+        filename: imagem.name,
+        contentType: MediaType(parts[0], parts[1]),
+      );
+    } else {
+      return await http.MultipartFile.fromPath(
+        fieldName,
+        imagem.path,
+        contentType: MediaType(parts[0], parts[1]),
+      );
+    }
+  }
+
   Future<void> criar({
     required int organizacaoId,
     required int lojaId,
@@ -30,11 +61,16 @@ class EventoRepository {
     String? local,
     String? endereco,
     String? status,
-    File? imagem,
+    XFile? imagem,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/eventos');
 
     final request = http.MultipartRequest('POST', uri);
+
+    final token = await StorageService.getToken();
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
 
     request.fields['organizacao_id'] = organizacaoId.toString();
     request.fields['loja_id'] = lojaId.toString();
@@ -60,10 +96,7 @@ class EventoRepository {
 
     if (imagem != null) {
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'urlbannerevento',
-          imagem.path,
-        ),
+        await _montarArquivoImagem('urlbannerevento', imagem),
       );
     }
 
@@ -84,11 +117,16 @@ class EventoRepository {
     String? local,
     String? endereco,
     String? status,
-    File? imagem,
+    XFile? imagem,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/eventos/$eventoId');
 
     final request = http.MultipartRequest('PUT', uri);
+
+    final token = await StorageService.getToken();
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
 
     if (titulo != null && titulo.isNotEmpty) {
       request.fields['nmtituloevento'] = titulo;
@@ -114,10 +152,7 @@ class EventoRepository {
 
     if (imagem != null) {
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'urlbannerevento',
-          imagem.path,
-        ),
+        await _montarArquivoImagem('urlbannerevento', imagem),
       );
     }
 

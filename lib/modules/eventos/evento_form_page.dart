@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -25,6 +27,7 @@ class EventoFormPage extends StatefulWidget {
 class _EventoFormPageState extends State<EventoFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _repo = EventoRepository();
+  final _picker = ImagePicker();
 
   final _tituloController = TextEditingController();
   final _descricaoController = TextEditingController();
@@ -33,7 +36,8 @@ class _EventoFormPageState extends State<EventoFormPage> {
   final _localController = TextEditingController();
   final _enderecoController = TextEditingController();
 
-  File? _imagem;
+  XFile? _imagemSelecionada;
+  Uint8List? _imagemBytes;
   bool _salvando = false;
 
   bool get editando => widget.evento != null;
@@ -64,13 +68,26 @@ class _EventoFormPageState extends State<EventoFormPage> {
   }
 
   Future<void> _pickImagem() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.gallery);
+    try {
+      final file = await _picker.pickImage(source: ImageSource.gallery);
 
-    if (file != null) {
-      setState(() {
-        _imagem = File(file.path);
-      });
+      if (file != null) {
+        Uint8List? bytes;
+        if (kIsWeb) {
+          bytes = await file.readAsBytes();
+        }
+
+        setState(() {
+          _imagemSelecionada = file;
+          _imagemBytes = bytes;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
+      );
     }
   }
 
@@ -90,7 +107,7 @@ class _EventoFormPageState extends State<EventoFormPage> {
           local: _localController.text.trim(),
           endereco: _enderecoController.text.trim(),
           status: 'ATIVO',
-          imagem: _imagem,
+          imagem: _imagemSelecionada,
         );
       } else {
         await _repo.criar(
@@ -104,7 +121,7 @@ class _EventoFormPageState extends State<EventoFormPage> {
           local: _localController.text.trim(),
           endereco: _enderecoController.text.trim(),
           status: 'ATIVO',
-          imagem: _imagem,
+          imagem: _imagemSelecionada,
         );
       }
 
@@ -148,59 +165,117 @@ class _EventoFormPageState extends State<EventoFormPage> {
           key: _formKey,
           child: ListView(
             children: [
-              ElevatedButton.icon(
-                onPressed: _pickImagem,
-                icon: const Icon(Icons.image),
-                label: const Text('Selecionar banner'),
-              ),
-              const SizedBox(height: 12),
-              if (_imagem != null)
-                Image.file(_imagem!, height: 120)
-              else if (editando && bannerAtual.isNotEmpty)
-                Image.network(
-                  bannerAtual,
-                  height: 120,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.image_not_supported, size: 50),
+              GestureDetector(
+                onTap: _pickImagem,
+                child: Container(
+                  height: 160,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _imagemSelecionada != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: kIsWeb
+                              ? Image.memory(
+                                  _imagemBytes!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                )
+                              : Image.file(
+                                  File(_imagemSelecionada!.path),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
+                        )
+                      : (editando && bannerAtual.isNotEmpty)
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                bannerAtual,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (_, __, ___) => const Center(
+                                  child: Icon(Icons.image_not_supported,
+                                      size: 50),
+                                ),
+                              ),
+                            )
+                          : const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.image, size: 40),
+                                  SizedBox(height: 8),
+                                  Text('Selecionar banner'),
+                                ],
+                              ),
+                            ),
                 ),
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _tituloController,
-                decoration: const InputDecoration(labelText: 'Título'),
+                decoration: const InputDecoration(
+                  labelText: 'Título',
+                  border: OutlineInputBorder(),
+                ),
                 validator: (v) => v == null || v.isEmpty ? 'Obrigatório' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _descricaoController,
-                decoration: const InputDecoration(labelText: 'Descrição'),
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Descrição',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _dataInicioController,
-                decoration:
-                    const InputDecoration(labelText: 'Data início (ISO)'),
+                decoration: const InputDecoration(
+                  labelText: 'Data início (ISO)',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _dataFimController,
-                decoration: const InputDecoration(labelText: 'Data fim (ISO)'),
+                decoration: const InputDecoration(
+                  labelText: 'Data fim (ISO)',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _localController,
-                decoration: const InputDecoration(labelText: 'Local'),
+                decoration: const InputDecoration(
+                  labelText: 'Local',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _enderecoController,
-                decoration: const InputDecoration(labelText: 'Endereço'),
+                decoration: const InputDecoration(
+                  labelText: 'Endereço',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _salvando ? null : _salvar,
-                child: _salvando
-                    ? const CircularProgressIndicator()
-                    : const Text('Salvar'),
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _salvando ? null : _salvar,
+                  child: _salvando
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Salvar'),
+                ),
               ),
             ],
           ),

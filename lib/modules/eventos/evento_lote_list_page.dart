@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../core/repositories/evento_lote_repository.dart';
+import '../../core/services/storage_service.dart';
 import '../../models/evento_lote.dart';
+import 'evento_lote_form_page.dart';
 
 class EventoLoteListPage extends StatefulWidget {
   final int eventoId;
@@ -22,11 +24,19 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
 
   List<EventoLote> _lotes = [];
   bool _loading = true;
+  int? _organizacaoId;
+  int? _lojaId;
 
   @override
   void initState() {
     super.initState();
-    _carregar();
+    _iniciar();
+  }
+
+  Future<void> _iniciar() async {
+    _organizacaoId = await StorageService.getOrganizacaoId();
+    _lojaId = await StorageService.getLojaId();
+    await _carregar();
   }
 
   Future<void> _carregar() async {
@@ -54,65 +64,49 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
   }
 
   Future<void> _novoLote() async {
-    final nomeController = TextEditingController();
-    final precoController = TextEditingController();
-    final qtdController = TextEditingController();
+    if (_organizacaoId == null || _lojaId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Organização ou loja não encontrada no login')),
+      );
+      return;
+    }
 
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Novo Lote'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nomeController,
-              decoration: const InputDecoration(labelText: 'Nome'),
-            ),
-            TextField(
-              controller: precoController,
-              decoration: const InputDecoration(labelText: 'Preço'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: qtdController,
-              decoration: const InputDecoration(labelText: 'Quantidade'),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+    final ok = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => EventoLoteFormPage(
+          eventoId: widget.eventoId,
+          organizacaoId: _organizacaoId!,
+          lojaId: _lojaId!,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Salvar'),
-          ),
-        ],
       ),
     );
 
-    if (ok != true) return;
-
-    try {
-      await _repo.criar(
-        eventoId: widget.eventoId,
-        organizacaoId: 1,
-        lojaId: 1,
-        nome: nomeController.text.trim(),
-        preco: double.tryParse(precoController.text.trim()) ?? 0,
-        quantidade: int.tryParse(qtdController.text.trim()) ?? 0,
-      );
-
+    if (ok == true) {
       _carregar();
-    } catch (e) {
-      if (!mounted) return;
+    }
+  }
 
+  Future<void> _editarLote(EventoLote lote) async {
+    if (_organizacaoId == null || _lojaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$e')),
+        const SnackBar(content: Text('Organização ou loja não encontrada no login')),
       );
+      return;
+    }
+
+    final ok = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => EventoLoteFormPage(
+          eventoId: widget.eventoId,
+          organizacaoId: _organizacaoId!,
+          lojaId: _lojaId!,
+          lote: lote,
+        ),
+      ),
+    );
+
+    if (ok == true) {
+      _carregar();
     }
   }
 
@@ -127,6 +121,92 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
         SnackBar(content: Text('$e')),
       );
     }
+  }
+
+  Future<void> _confirmarExclusao(EventoLote lote) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Excluir lote'),
+        content: Text('Deseja excluir o lote "${lote.nmlote}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      _excluir(lote.loteId);
+    }
+  }
+
+  Widget _buildTabela() {
+    if (_lotes.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Center(
+            child: Text('Nenhum lote encontrado.'),
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('ID')),
+            DataColumn(label: Text('Nome')),
+            DataColumn(label: Text('Preço')),
+            DataColumn(label: Text('Qt Total')),
+            DataColumn(label: Text('Qt Vendida')),
+            DataColumn(label: Text('Início Venda')),
+            DataColumn(label: Text('Fim Venda')),
+            DataColumn(label: Text('Status')),
+            DataColumn(label: Text('Ações')),
+          ],
+          rows: _lotes.map((lote) {
+            return DataRow(
+              cells: [
+                DataCell(Text(lote.loteId.toString())),
+                DataCell(Text(lote.nmlote)),
+                DataCell(Text('R\$ ${lote.vrprecolote}')),
+                DataCell(Text(lote.qttotallote.toString())),
+                DataCell(Text(lote.qtvendidalote.toString())),
+                DataCell(Text(lote.dtiniciovenda ?? '-')),
+                DataCell(Text(lote.dtfimvenda ?? '-')),
+                DataCell(Text(lote.statuslote ?? '-')),
+                DataCell(
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Editar',
+                        onPressed: () => _editarLote(lote),
+                        icon: const Icon(Icons.edit),
+                      ),
+                      IconButton(
+                        tooltip: 'Excluir',
+                        onPressed: () => _confirmarExclusao(lote),
+                        icon: const Icon(Icons.delete),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -158,27 +238,7 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Expanded(
-                    child: Card(
-                      child: ListView.builder(
-                        itemCount: _lotes.length,
-                        itemBuilder: (_, i) {
-                          final l = _lotes[i];
-
-                          return ListTile(
-                            title: Text(l.nmlote),
-                            subtitle: Text(
-                              'R\$ ${l.vrprecolote} | Total: ${l.qttotallote} | Vendidos: ${l.qtvendidalote}',
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () => _excluir(l.loteId),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
+                  Expanded(child: _buildTabela()),
                 ],
               ),
       ),

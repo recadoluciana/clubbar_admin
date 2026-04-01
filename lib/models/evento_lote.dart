@@ -32,7 +32,7 @@ class EventoLote {
       lojaId: json['loja_id'],
       eventoId: json['evento_id'],
       nmlote: (json['nmlote'] ?? '').toString(),
-      vrprecolote: (json['vrprecolote'] as num?)?.toDouble() ?? 0.0,
+      vrprecolote: (json['vrprecolote'] as num?)?.toDouble() ?? 0,
       qttotallote: (json['qttotallote'] as num?)?.toInt() ?? 0,
       qtvendidalote: (json['qtvendidalote'] as num?)?.toInt() ?? 0,
       dtiniciovenda: json['dtiniciovenda']?.toString(),

@@ -77,7 +77,9 @@ class LojaRepository {
     }
 
     if (imagem != null) {
-      request.files.add(await _montarArquivoImagem('file', imagem));
+      request.files.add(
+        await _montarArquivoImagem('urllogoloja', imagem),
+      );
     }
 
     final response = await request.send();
@@ -120,7 +122,9 @@ class LojaRepository {
     }
 
     if (imagem != null) {
-      request.files.add(await _montarArquivoImagem('file', imagem));
+      request.files.add(
+        await _montarArquivoImagem('urllogoloja', imagem),
+      );
     }
 
     final response = await request.send();

@@ -12,7 +12,7 @@ class EventoLoteRepository {
       return data.map((e) => EventoLote.fromJson(e)).toList();
     }
 
-    throw Exception('Erro ao carregar lotes: ${response.body}');
+    throw Exception('Erro ao listar lotes: ${response.body}');
   }
 
   Future<void> criar({
@@ -21,8 +21,8 @@ class EventoLoteRepository {
     required int lojaId,
     required String nome,
     required double preco,
-    required int quantidade,
-    int qtvendida = 0,
+    required int quantidadeTotal,
+    required int quantidadeVendida,
     String? dtInicioVenda,
     String? dtFimVenda,
     String status = 'ATIVO',
@@ -34,8 +34,8 @@ class EventoLoteRepository {
         'loja_id': lojaId,
         'nmlote': nome,
         'vrprecolote': preco,
-        'qttotallote': quantidade,
-        'qtvendidalote': qtvendida,
+        'qttotallote': quantidadeTotal,
+        'qtvendidalote': quantidadeVendida,
         'dtiniciovenda': dtInicioVenda,
         'dtfimvenda': dtFimVenda,
         'statuslote': status,
@@ -54,8 +54,8 @@ class EventoLoteRepository {
     int? eventoId,
     String? nome,
     double? preco,
-    int? quantidade,
-    int? qtvendida,
+    int? quantidadeTotal,
+    int? quantidadeVendida,
     String? dtInicioVenda,
     String? dtFimVenda,
     String? status,
@@ -68,8 +68,8 @@ class EventoLoteRepository {
         'evento_id': eventoId,
         'nmlote': nome,
         'vrprecolote': preco,
-        'qttotallote': quantidade,
-        'qtvendidalote': qtvendida,
+        'qttotallote': quantidadeTotal,
+        'qtvendidalote': quantidadeVendida,
         'dtiniciovenda': dtInicioVenda,
         'dtfimvenda': dtFimVenda,
         'statuslote': status,
