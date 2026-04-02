@@ -260,7 +260,7 @@ class DashboardPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Bem-vinda ao Clubbar Admin',
+                          'Clubbar Administrator',
                           style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
