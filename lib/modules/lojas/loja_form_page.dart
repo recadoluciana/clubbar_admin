@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/config/api_config.dart';
 import '../../core/repositories/cidade_repository.dart';
 import '../../core/repositories/loja_repository.dart';
 import '../../core/services/storage_service.dart';
@@ -224,9 +225,22 @@ class _LojaFormPageState extends State<LojaFormPage> {
     }
   }
 
+  String _montarUrlImagemAtual() {
+    final imagemAtual = (widget.loja?.urllogoloja ?? '').trim();
+
+    if (imagemAtual.isEmpty) return '';
+
+    if (imagemAtual.startsWith('http')) {
+      return imagemAtual;
+    }
+
+    final path = imagemAtual.startsWith('/') ? imagemAtual : '/$imagemAtual';
+    return '${ApiConfig.baseUrl}$path';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final imagemAtual = widget.loja?.urllogoloja ?? '';
+    final imagemAtualUrl = _montarUrlImagemAtual();
 
     return Scaffold(
       appBar: AppBar(
@@ -271,17 +285,21 @@ class _LojaFormPageState extends State<LojaFormPage> {
                                       ),
                                     ),
                             )
-                          : (editando && imagemAtual.isNotEmpty)
+                          : (editando && imagemAtualUrl.isNotEmpty)
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: Image.network(
-                                    imagemAtual,
+                                    imagemAtualUrl,
+                                    key: ValueKey(imagemAtualUrl),
                                     fit: BoxFit.cover,
                                     width: double.infinity,
-                                    errorBuilder: (_, __, ___) =>
-                                        const Center(
-                                      child: Icon(Icons.store, size: 40),
-                                    ),
+                                    errorBuilder: (_, error, __) {
+                                      print('ERRO IMG LOJA: $imagemAtualUrl');
+                                      print('DETALHE: $error');
+                                      return const Center(
+                                        child: Icon(Icons.store, size: 40),
+                                      );
+                                    },
                                   ),
                                 )
                               : const Center(

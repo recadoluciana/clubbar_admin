@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/config/api_config.dart';
 import '../../core/repositories/categoria_repository.dart';
 import '../../core/repositories/produto_repository.dart';
 import '../../models/categoria.dart';
@@ -88,8 +89,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
       int? categoriaSelecionada = _categoriaIdSelecionada;
 
       if (lista.isNotEmpty) {
-        final existe =
-            lista.any((categoria) => categoria.categoriaId == categoriaSelecionada);
+        final existe = lista.any(
+          (categoria) => categoria.categoriaId == categoriaSelecionada,
+        );
 
         if (!existe) {
           categoriaSelecionada = lista.first.categoriaId;
@@ -140,6 +142,19 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
         SnackBar(content: Text('Erro ao selecionar imagem: $e')),
       );
     }
+  }
+
+  String _montarUrlImagemAtual() {
+    final imagemAtual = (widget.produto?['urlfotoproduto'] ?? '').toString().trim();
+
+    if (imagemAtual.isEmpty) return '';
+
+    if (imagemAtual.startsWith('http')) {
+      return imagemAtual;
+    }
+
+    final path = imagemAtual.startsWith('/') ? imagemAtual : '/$imagemAtual';
+    return '${ApiConfig.baseUrl}$path';
   }
 
   Future<void> _salvar() async {
@@ -224,8 +239,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final imagemAtual =
-        (widget.produto?['urlfotoproduto'] ?? '').toString();
+    final imagemAtualUrl = _montarUrlImagemAtual();
 
     return Scaffold(
       appBar: AppBar(
@@ -266,23 +280,31 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                                       width: double.infinity,
                                       errorBuilder: (_, __, ___) =>
                                           const Center(
-                                        child: Icon(Icons.image_not_supported,
-                                            size: 40),
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          size: 40,
+                                        ),
                                       ),
                                     ),
                             )
-                          : (editando && imagemAtual.isNotEmpty)
+                          : (editando && imagemAtualUrl.isNotEmpty)
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: Image.network(
-                                    imagemAtual,
+                                    imagemAtualUrl,
+                                    key: ValueKey(imagemAtualUrl),
                                     fit: BoxFit.cover,
                                     width: double.infinity,
-                                    errorBuilder: (_, __, ___) =>
-                                        const Center(
-                                      child: Icon(Icons.image_not_supported,
-                                          size: 40),
-                                    ),
+                                    errorBuilder: (_, error, __) {
+                                      print('ERRO IMG PRODUTO: $imagemAtualUrl');
+                                      print('DETALHE: $error');
+                                      return const Center(
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          size: 40,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 )
                               : const Center(

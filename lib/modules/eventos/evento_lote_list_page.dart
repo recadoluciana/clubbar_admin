@@ -3,17 +3,20 @@ import 'package:intl/intl.dart';
 
 import '../../core/repositories/evento_lote_repository.dart';
 import '../../models/evento_lote.dart';
-import '../../core/services/storage_service.dart';
 import 'evento_lote_form_page.dart';
 
 class EventoLoteListPage extends StatefulWidget {
   final int eventoId;
   final String eventoTitulo;
+  final int organizacaoId;
+  final int lojaId;
 
   const EventoLoteListPage({
     super.key,
     required this.eventoId,
     required this.eventoTitulo,
+    required this.organizacaoId,
+    required this.lojaId,
   });
 
   @override
@@ -32,25 +35,17 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
   List<EventoLote> _lotes = [];
   List<EventoLote> _lotesFiltrados = [];
   bool _loading = true;
-  int? _organizacaoId;
-  int? _lojaId;
 
   @override
   void initState() {
     super.initState();
-    _iniciar();
+    _carregar();
   }
 
   @override
   void dispose() {
     _buscaController.dispose();
     super.dispose();
-  }
-
-  Future<void> _iniciar() async {
-    _organizacaoId = await StorageService.getOrganizacaoId();
-    _lojaId = await StorageService.getLojaId();
-    await _carregar();
   }
 
   Future<void> _carregar() async {
@@ -109,21 +104,12 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
   }
 
   Future<void> _novoLote() async {
-    if (_organizacaoId == null || _lojaId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Organização ou loja não encontrada no login'),
-        ),
-      );
-      return;
-    }
-
     final ok = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => EventoLoteFormPage(
           eventoId: widget.eventoId,
-          organizacaoId: _organizacaoId!,
-          lojaId: _lojaId!,
+          organizacaoId: widget.organizacaoId,
+          lojaId: widget.lojaId,
         ),
       ),
     );
@@ -134,21 +120,12 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
   }
 
   Future<void> _editarLote(EventoLote lote) async {
-    if (_organizacaoId == null || _lojaId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Organização ou loja não encontrada no login'),
-        ),
-      );
-      return;
-    }
-
     final ok = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => EventoLoteFormPage(
           eventoId: widget.eventoId,
-          organizacaoId: _organizacaoId!,
-          lojaId: _lojaId!,
+          organizacaoId: widget.organizacaoId,
+          lojaId: widget.lojaId,
           lote: lote,
         ),
       ),

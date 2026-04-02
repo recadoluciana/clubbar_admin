@@ -214,11 +214,15 @@ class _EventoListPageState extends State<EventoListPage> {
   }
 
   Future<void> _abrirLotes(Evento evento) async {
+    if (_lojaIdSelecionada == null) return;
+
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => EventoLoteListPage(
           eventoId: evento.eventoId,
           eventoTitulo: evento.nmtituloevento,
+          organizacaoId: widget.organizacaoId,
+          lojaId: _lojaIdSelecionada!,
         ),
       ),
     );
