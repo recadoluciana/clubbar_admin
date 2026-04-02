@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
-
-import '../../core/repositories/loja_repository.dart';
-import '../../core/repositories/usuario_repository.dart';
-import '../../models/loja.dart';
-import '../../models/usuario.dart';
+import 'package:clubbar_admin/models/usuario.dart';
+import 'package:clubbar_admin/core/repositories/usuario_repository.dart';
+import 'package:clubbar_admin/modules/usuarios/usuario_form_page.dart';
 
 class UsuarioListPage extends StatefulWidget {
   final int organizacaoId;
-  final Usuario? usuario;
 
   const UsuarioListPage({
     super.key,
     required this.organizacaoId,
-    this.usuario,
   });
 
   @override
@@ -20,269 +16,211 @@ class UsuarioListPage extends StatefulWidget {
 }
 
 class _UsuarioListPageState extends State<UsuarioListPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _usuarioRepository = UsuarioRepository();
-  final _lojaRepository = LojaRepository();
+  final UsuarioRepository _repository = UsuarioRepository();
 
-  final _nomeController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _senhaController = TextEditingController();
-
-  bool _salvando = false;
-  bool _carregandoLojas = true;
-
-  List<Loja> _lojas = [];
-  int? _lojaIdSelecionada;
-  String _statusSelecionado = 'ATIVO';
-
-  bool get editando => widget.usuario != null;
+  List<Usuario> _usuarios = [];
+  bool _carregando = true;
+  String? _erro;
 
   @override
   void initState() {
     super.initState();
-
-    if (widget.usuario != null) {
-      _nomeController.text = widget.usuario!.nmusuario;
-      _emailController.text = widget.usuario!.emailuser;
-      _lojaIdSelecionada = widget.usuario!.lojaId;
-      _statusSelecionado = widget.usuario!.situsuario ?? 'ATIVO';
-    }
-
-    _carregarLojas();
+    _carregarUsuarios();
   }
 
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    _emailController.dispose();
-    _senhaController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _carregarLojas() async {
+  Future<void> _carregarUsuarios() async {
     setState(() {
-      _carregandoLojas = true;
+      _carregando = true;
+      _erro = null;
     });
 
     try {
-      final lista = await _lojaRepository.listar(widget.organizacaoId);
+      final lista = await _repository.listar(widget.organizacaoId);
 
       if (!mounted) return;
 
-      int? lojaSelecionada = _lojaIdSelecionada;
-
-      if (lista.isNotEmpty && lojaSelecionada != null) {
-        final existe = lista.any((loja) => loja.lojaId == lojaSelecionada);
-        if (!existe) {
-          lojaSelecionada = null;
-        }
-      }
-
       setState(() {
-        _lojas = lista;
-        _lojaIdSelecionada = lojaSelecionada;
-        _carregandoLojas = false;
+        _usuarios = lista;
       });
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        _carregandoLojas = false;
+        _erro = 'Erro ao carregar usuários: $e';
       });
+    } finally {
+      if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao carregar lojas: $e')),
-      );
+      setState(() {
+        _carregando = false;
+      });
     }
   }
 
-  Future<void> _salvar() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _novoUsuario() async {
+    final resultado = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UsuarioFormPage(
+          organizacaoId: widget.organizacaoId,
+        ),
+      ),
+    );
 
-    setState(() {
-      _salvando = true;
-    });
+    if (resultado == true) {
+      _carregarUsuarios();
+    }
+  }
+
+  Future<void> _editarUsuario(Usuario usuario) async {
+    final resultado = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UsuarioFormPage(
+          organizacaoId: widget.organizacaoId,
+          usuario: usuario,
+        ),
+      ),
+    );
+
+    if (resultado == true) {
+      _carregarUsuarios();
+    }
+  }
+
+  Future<void> _excluirUsuario(Usuario usuario) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirmar exclusão'),
+          content: Text(
+            'Deseja realmente excluir o usuário "${usuario.nmusuario}"?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmar != true) return;
 
     try {
-      if (editando) {
-        await _usuarioRepository.atualizar(
-          usuarioId: widget.usuario!.usuarioId,
-          nome: _nomeController.text.trim(),
-          email: _emailController.text.trim(),
-          senha: _senhaController.text.trim().isEmpty
-              ? null
-              : _senhaController.text.trim(),
-          lojaId: _lojaIdSelecionada,
-          situsuario: _statusSelecionado,
-        );
-      } else {
-        await _usuarioRepository.criar(
-          organizacaoId: widget.organizacaoId,
-          nome: _nomeController.text.trim(),
-          email: _emailController.text.trim(),
-          senha: _senhaController.text.trim(),
-          lojaId: _lojaIdSelecionada,
-          situsuario: _statusSelecionado,
-        );
-      }
+      await _repository.excluir(usuario.usuarioId);
 
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Usuário excluído com sucesso'),
+        ),
+      );
+
+      _carregarUsuarios();
+    } catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            editando
-                ? 'Usuário atualizado com sucesso'
-                : 'Usuário criado com sucesso',
+          content: Text('Erro ao excluir usuário: $e'),
+        ),
+      );
+    }
+  }
+
+  Widget _buildBody() {
+    if (_carregando) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_erro != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            _erro!,
+            textAlign: TextAlign.center,
           ),
         ),
       );
-
-      Navigator.of(context).pop(true);
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar usuário: $e')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _salvando = false;
-        });
-      }
     }
+
+    if (_usuarios.isEmpty) {
+      return const Center(
+        child: Text('Nenhum usuário encontrado.'),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _carregarUsuarios,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: _usuarios.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final usuario = _usuarios[index];
+
+          return Card(
+            child: ListTile(
+              title: Text(usuario.nmusuario),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(usuario.emailuser),
+                  Text('Situação: ${usuario.situsuario ?? '-'}'),
+                  Text(
+                    'Loja ID: ${usuario.lojaId?.toString() ?? 'Não vinculada'}',
+                  ),
+                ],
+              ),
+              isThreeLine: true,
+              trailing: PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'editar') {
+                    _editarUsuario(usuario);
+                  } else if (value == 'excluir') {
+                    _excluirUsuario(usuario);
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'editar',
+                    child: Text('Editar'),
+                  ),
+                  PopupMenuItem(
+                    value: 'excluir',
+                    child: Text('Excluir'),
+                  ),
+                ],
+              ),
+              onTap: () => _editarUsuario(usuario),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(editando ? 'Editar Usuário' : 'Novo Usuário'),
-        centerTitle: true,
+        title: const Text('Usuários'),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 650),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                children: [
-                  TextFormField(
-                    controller: _nomeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nome do usuário',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Informe o nome do usuário';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'E-mail',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Informe o e-mail';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _senhaController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: editando ? 'Nova senha (opcional)' : 'Senha',
-                      border: const OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (!editando && (value == null || value.trim().isEmpty)) {
-                        return 'Informe a senha';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _carregandoLojas
-                      ? const Center(child: CircularProgressIndicator())
-                      : DropdownButtonFormField<int?>(
-                          value: _lojaIdSelecionada,
-                          decoration: const InputDecoration(
-                            labelText: 'Loja',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: [
-                            const DropdownMenuItem<int?>(
-                              value: null,
-                              child: Text('Sem loja'),
-                            ),
-                            ..._lojas.map((loja) {
-                              return DropdownMenuItem<int?>(
-                                value: loja.lojaId,
-                                child: Text(loja.nmloja),
-                              );
-                            }),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _lojaIdSelecionada = value;
-                            });
-                          },
-                        ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _statusSelecionado,
-                    decoration: const InputDecoration(
-                      labelText: 'Status',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'ATIVO',
-                        child: Text('ATIVO'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'INATIVO',
-                        child: Text('INATIVO'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _statusSelecionado = value;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _salvando ? null : _salvar,
-                      child: _salvando
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Salvar'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      body: _buildBody(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _novoUsuario,
+        child: const Icon(Icons.add),
       ),
     );
   }
