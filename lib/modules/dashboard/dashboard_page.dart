@@ -57,7 +57,7 @@ class DashboardPage extends StatelessWidget {
       destino = CategoriaListPage(
         organizacaoId: organizacaoId,
       );
-    } else if (nomeModulo == 'Eventos') {
+    } else if (nomeModulo == 'Eventos / Lotes') {
       final organizacaoId = await StorageService.getOrganizacaoId();
 
       if (organizacaoId == null) {
@@ -115,15 +115,11 @@ class DashboardPage extends StatelessWidget {
         icone: Icons.people,
       ),
       _DashboardItem(
-        titulo: 'Eventos',
-        subtitulo: 'Agenda da loja e eventos',
+        titulo: 'Eventos / Lotes',
+        subtitulo: 'Cadastro de eventos e lotes',
         icone: Icons.event,
       ),
-      _DashboardItem(
-        titulo: 'Lotes',
-        subtitulo: 'Lotes de ingressos dos eventos',
-        icone: Icons.confirmation_number,
-      ),
+      
     ];
 
     return Scaffold(
@@ -215,20 +211,13 @@ class DashboardPage extends StatelessWidget {
                     ),
                     ListTile(
                       leading: const Icon(Icons.event),
-                      title: const Text('Eventos'),
+                      title: const Text('Eventos / Lotes'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Eventos');
+                        _abrirModulo(context, 'Eventos / Lotes');
                       },
                     ),
-                    ListTile(
-                      leading: const Icon(Icons.confirmation_number),
-                      title: const Text('Lotes'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _abrirModulo(context, 'Lotes');
-                      },
-                    ),
+                    
                   ],
                 ),
               ),

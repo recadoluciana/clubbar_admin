@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/repositories/evento_lote_repository.dart';
-import '../../core/services/storage_service.dart';
 import '../../models/evento_lote.dart';
+import '../../core/services/storage_service.dart';
 import 'evento_lote_form_page.dart';
 
 class EventoLoteListPage extends StatefulWidget {
@@ -21,8 +22,15 @@ class EventoLoteListPage extends StatefulWidget {
 
 class _EventoLoteListPageState extends State<EventoLoteListPage> {
   final _repo = EventoLoteRepository();
+  final _buscaController = TextEditingController();
+
+  final NumberFormat _moeda = NumberFormat.currency(
+    locale: 'pt_BR',
+    symbol: 'R\$',
+  );
 
   List<EventoLote> _lotes = [];
+  List<EventoLote> _lotesFiltrados = [];
   bool _loading = true;
   int? _organizacaoId;
   int? _lojaId;
@@ -31,6 +39,12 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
   void initState() {
     super.initState();
     _iniciar();
+  }
+
+  @override
+  void dispose() {
+    _buscaController.dispose();
+    super.dispose();
   }
 
   Future<void> _iniciar() async {
@@ -49,6 +63,7 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
 
       setState(() {
         _lotes = lista;
+        _lotesFiltrados = lista;
       });
     } catch (e) {
       if (!mounted) return;
@@ -63,10 +78,42 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
     }
   }
 
+  void _filtrar(String texto) {
+    final busca = texto.trim().toLowerCase();
+
+    setState(() {
+      if (busca.isEmpty) {
+        _lotesFiltrados = _lotes;
+      } else {
+        _lotesFiltrados = _lotes.where((lote) {
+          return lote.loteId.toString().contains(busca) ||
+              lote.nmlote.toLowerCase().contains(busca) ||
+              lote.vrprecolote.toString().contains(busca) ||
+              lote.qttotallote.toString().contains(busca) ||
+              lote.qtvendidalote.toString().contains(busca) ||
+              (lote.statuslote ?? '').toLowerCase().contains(busca);
+        }).toList();
+      }
+    });
+  }
+
+  String _formatarData(String? valor) {
+    if (valor == null || valor.trim().isEmpty) return '-';
+
+    try {
+      final data = DateTime.parse(valor);
+      return DateFormat('dd/MM/yyyy HH:mm').format(data);
+    } catch (_) {
+      return valor;
+    }
+  }
+
   Future<void> _novoLote() async {
     if (_organizacaoId == null || _lojaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Organização ou loja não encontrada no login')),
+        const SnackBar(
+          content: Text('Organização ou loja não encontrada no login'),
+        ),
       );
       return;
     }
@@ -89,7 +136,9 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
   Future<void> _editarLote(EventoLote lote) async {
     if (_organizacaoId == null || _lojaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Organização ou loja não encontrada no login')),
+        const SnackBar(
+          content: Text('Organização ou loja não encontrada no login'),
+        ),
       );
       return;
     }
@@ -148,7 +197,7 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
   }
 
   Widget _buildTabela() {
-    if (_lotes.isEmpty) {
+    if (_lotesFiltrados.isEmpty) {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(24),
@@ -174,16 +223,16 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
             DataColumn(label: Text('Status')),
             DataColumn(label: Text('Ações')),
           ],
-          rows: _lotes.map((lote) {
+          rows: _lotesFiltrados.map((lote) {
             return DataRow(
               cells: [
                 DataCell(Text(lote.loteId.toString())),
                 DataCell(Text(lote.nmlote)),
-                DataCell(Text('R\$ ${lote.vrprecolote}')),
+                DataCell(Text(_moeda.format(lote.vrprecolote))),
                 DataCell(Text(lote.qttotallote.toString())),
                 DataCell(Text(lote.qtvendidalote.toString())),
-                DataCell(Text(lote.dtiniciovenda ?? '-')),
-                DataCell(Text(lote.dtfimvenda ?? '-')),
+                DataCell(Text(_formatarData(lote.dtiniciovenda))),
+                DataCell(Text(_formatarData(lote.dtfimvenda))),
                 DataCell(Text(lote.statuslote ?? '-')),
                 DataCell(
                   Row(
@@ -224,16 +273,34 @@ class _EventoLoteListPageState extends State<EventoLoteListPage> {
                 children: [
                   Row(
                     children: [
-                      ElevatedButton.icon(
-                        onPressed: _novoLote,
-                        icon: const Icon(Icons.add),
-                        label: const Text('Novo Lote'),
+                      Expanded(
+                        child: TextField(
+                          controller: _buscaController,
+                          onChanged: _filtrar,
+                          decoration: const InputDecoration(
+                            labelText: 'Buscar lote',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.search),
+                          ),
+                        ),
                       ),
-                      const SizedBox(width: 10),
-                      OutlinedButton.icon(
-                        onPressed: _carregar,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Atualizar'),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: _novoLote,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Novo Lote'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: _carregar,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Atualizar'),
+                        ),
                       ),
                     ],
                   ),

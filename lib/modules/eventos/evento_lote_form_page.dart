@@ -166,16 +166,6 @@ class _EventoLoteFormPageState extends State<EventoLoteFormPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            editando
-                ? 'Lote atualizado com sucesso'
-                : 'Lote criado com sucesso',
-          ),
-        ),
-      );
-
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
