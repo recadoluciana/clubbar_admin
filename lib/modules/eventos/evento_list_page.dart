@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../../core/config/api_config.dart';
 import '../../core/repositories/evento_repository.dart';
 import '../../core/repositories/loja_repository.dart';
 import '../../models/evento.dart';
@@ -33,6 +35,8 @@ class _EventoListPageState extends State<EventoListPage> {
 
   List<Loja> _lojas = [];
   int? _lojaIdSelecionada;
+
+  final DateFormat _formatoData = DateFormat('dd/MM/yyyy HH:mm');
 
   @override
   void initState() {
@@ -173,6 +177,30 @@ class _EventoListPageState extends State<EventoListPage> {
     });
   }
 
+  String _formatarData(String? valor) {
+    if (valor == null || valor.trim().isEmpty) return '-';
+
+    try {
+      final data = DateTime.parse(valor);
+      return _formatoData.format(data);
+    } catch (_) {
+      return valor;
+    }
+  }
+
+  String _montarUrlBanner(Evento evento) {
+    final banner = (evento.urlbannerevento ?? '').trim();
+
+    if (banner.isEmpty) return '';
+
+    if (banner.startsWith('http')) {
+      return banner;
+    }
+
+    final path = banner.startsWith('/') ? banner : '/$banner';
+    return '${ApiConfig.baseUrl}$path';
+  }
+
   Future<void> _abrirNovoEvento() async {
     if (_lojaIdSelecionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -287,6 +315,7 @@ class _EventoListPageState extends State<EventoListPage> {
         scrollDirection: Axis.horizontal,
         child: DataTable(
           columns: const [
+            DataColumn(label: Text('Banner')),
             DataColumn(label: Text('ID')),
             DataColumn(label: Text('Título')),
             DataColumn(label: Text('Início')),
@@ -297,12 +326,35 @@ class _EventoListPageState extends State<EventoListPage> {
             DataColumn(label: Text('Ações')),
           ],
           rows: _eventosFiltrados.map((evento) {
+            final urlBanner = _montarUrlBanner(evento);
+
             return DataRow(
               cells: [
+                DataCell(
+                  urlBanner.isNotEmpty
+                      ? SizedBox(
+                          width: 50,
+                          height: 40,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              urlBanner,
+                              key: ValueKey(urlBanner),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, error, __) {
+                                print('ERRO IMG EVENTO LISTA: $urlBanner');
+                                print('DETALHE: $error');
+                                return const Icon(Icons.image_not_supported);
+                              },
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.image_not_supported),
+                ),
                 DataCell(Text(evento.eventoId.toString())),
                 DataCell(Text(evento.nmtituloevento)),
-                DataCell(Text(evento.dtinicioevento ?? '-')),
-                DataCell(Text(evento.dtfimevento ?? '-')),
+                DataCell(Text(_formatarData(evento.dtinicioevento))),
+                DataCell(Text(_formatarData(evento.dtfimevento))),
                 DataCell(Text(evento.nmlocalevento ?? '-')),
                 DataCell(Text(evento.dsendlocevento ?? '-')),
                 DataCell(Text(evento.statusevento ?? '-')),
