@@ -34,7 +34,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
   final _nomeController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _precoController = TextEditingController();
-  
+
   bool _salvando = false;
   bool _carregandoCategorias = true;
 
@@ -53,14 +53,13 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
     if (widget.produto != null) {
       _nomeController.text = (widget.produto!['nmproduto'] ?? '').toString();
-      _descricaoController.text =
-          (widget.produto!['dsproduto'] ?? '').toString();
-      _precoController.text =
-          (widget.produto!['vrprecoprod'] ?? '').toString();
-      _skuController.text = (widget.produto!['skuproduto'] ?? '').toString();
+      _descricaoController.text = (widget.produto!['dsproduto'] ?? '')
+          .toString();
+      _precoController.text = (widget.produto!['vrprecoprod'] ?? '').toString();
+
       _categoriaIdSelecionada = widget.produto!['categoria_id'];
-      _statusSelecionado =
-          (widget.produto!['sitproduto'] ?? 'ATIVO').toString();
+      _statusSelecionado = (widget.produto!['sitproduto'] ?? 'ATIVO')
+          .toString();
     }
 
     _carregarCategorias();
@@ -71,7 +70,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     _nomeController.dispose();
     _descricaoController.dispose();
     _precoController.dispose();
-    _skuController.dispose();
+
     super.dispose();
   }
 
@@ -137,14 +136,16 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao selecionar imagem: $e')));
     }
   }
 
   String _montarUrlImagemAtual() {
-    final imagemAtual = (widget.produto?['urlfotoproduto'] ?? '').toString().trim();
+    final imagemAtual = (widget.produto?['urlfotoproduto'] ?? '')
+        .toString()
+        .trim();
 
     if (imagemAtual.isEmpty) return '';
 
@@ -160,9 +161,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_categoriaIdSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma categoria')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Selecione uma categoria')));
       return;
     }
 
@@ -191,7 +192,6 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
           descricao: _descricaoController.text.trim(),
           preco: preco,
           status: _statusSelecionado,
-          sku: _skuController.text.trim(),
           imagem: _imagemSelecionada,
         );
       } else {
@@ -202,7 +202,6 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
           nome: _nomeController.text.trim(),
           descricao: _descricaoController.text.trim(),
           preco: preco,
-          sku: _skuController.text.trim(),
           sitproduto: _statusSelecionado,
           imagem: _imagemSelecionada,
         );
@@ -224,9 +223,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -279,43 +278,43 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                                       width: double.infinity,
                                       errorBuilder: (_, __, ___) =>
                                           const Center(
-                                        child: Icon(
-                                          Icons.image_not_supported,
-                                          size: 40,
-                                        ),
-                                      ),
+                                            child: Icon(
+                                              Icons.image_not_supported,
+                                              size: 40,
+                                            ),
+                                          ),
                                     ),
                             )
                           : (editando && imagemAtualUrl.isNotEmpty)
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    imagemAtualUrl,
-                                    key: ValueKey(imagemAtualUrl),
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    errorBuilder: (_, error, __) {
-                                      print('ERRO IMG PRODUTO: $imagemAtualUrl');
-                                      print('DETALHE: $error');
-                                      return const Center(
-                                        child: Icon(
-                                          Icons.image_not_supported,
-                                          size: 40,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                )
-                              : const Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.image_outlined, size: 40),
-                                      SizedBox(height: 8),
-                                      Text('Toque para selecionar uma imagem'),
-                                    ],
-                                  ),
-                                ),
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                imagemAtualUrl,
+                                key: ValueKey(imagemAtualUrl),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (_, error, __) {
+                                  print('ERRO IMG PRODUTO: $imagemAtualUrl');
+                                  print('DETALHE: $error');
+                                  return const Center(
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      size: 40,
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.image_outlined, size: 40),
+                                  SizedBox(height: 8),
+                                  Text('Toque para selecionar uma imagem'),
+                                ],
+                              ),
+                            ),
                     ),
                   ),
                   TextFormField(
@@ -355,7 +354,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                       return null;
                     },
                   ),
-                  
+
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: _statusSelecionado,
@@ -364,10 +363,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                       border: OutlineInputBorder(),
                     ),
                     items: const [
-                      DropdownMenuItem(
-                        value: 'ATIVO',
-                        child: Text('ATIVO'),
-                      ),
+                      DropdownMenuItem(value: 'ATIVO', child: Text('ATIVO')),
                       DropdownMenuItem(
                         value: 'INATIVO',
                         child: Text('INATIVO'),

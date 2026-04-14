@@ -26,7 +26,9 @@ class ProdutoRepository {
     XFile imagem,
   ) async {
     final mimeType =
-        lookupMimeType(imagem.name) ?? lookupMimeType(imagem.path) ?? 'image/jpeg';
+        lookupMimeType(imagem.name) ??
+        lookupMimeType(imagem.path) ??
+        'image/jpeg';
 
     final parts = mimeType.split('/');
 
@@ -55,7 +57,6 @@ class ProdutoRepository {
     required String nome,
     String descricao = '',
     required double preco,
-    String sku = '',
     String sitproduto = 'ATIVO',
     XFile? imagem,
   }) async {
@@ -75,13 +76,10 @@ class ProdutoRepository {
     request.fields['dsproduto'] = descricao;
     request.fields['vrprecoprod'] = preco.toString();
     request.fields['sitproduto'] = sitproduto;
-    request.fields['skuproduto'] = sku;
     request.fields['idtipoproduto'] = 'P';
 
     if (imagem != null) {
-      request.files.add(
-        await _montarArquivoImagem('urlfotoproduto', imagem),
-      );
+      request.files.add(await _montarArquivoImagem('urlfotoproduto', imagem));
     }
 
     final response = await request.send();
@@ -99,7 +97,6 @@ class ProdutoRepository {
     String? descricao,
     double? preco,
     String? status,
-    String? sku,
     XFile? imagem,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/produtos/$produtoId');
@@ -126,14 +123,9 @@ class ProdutoRepository {
     if (status != null) {
       request.fields['sitproduto'] = status;
     }
-    if (sku != null) {
-      request.fields['skuproduto'] = sku;
-    }
 
     if (imagem != null) {
-      request.files.add(
-        await _montarArquivoImagem('urlfotoproduto', imagem),
-      );
+      request.files.add(await _montarArquivoImagem('urlfotoproduto', imagem));
     }
 
     final response = await request.send();
