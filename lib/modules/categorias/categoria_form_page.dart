@@ -129,7 +129,7 @@ class _CategoriaFormPageState extends State<CategoriaFormPage> {
 
                   // 🔥 NOVO: STATUS
                   DropdownButtonFormField<String>(
-                    value: _sitcategoria,
+                    initialValue: _sitcategoria,
                     decoration: const InputDecoration(
                       labelText: 'Status',
                       border: OutlineInputBorder(),

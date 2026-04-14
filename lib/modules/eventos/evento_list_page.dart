@@ -421,7 +421,7 @@ class _EventoListPageState extends State<EventoListPage> {
                           child: Center(child: CircularProgressIndicator()),
                         )
                       : DropdownButtonFormField<int>(
-                          value: _lojaIdSelecionada,
+                          initialValue: _lojaIdSelecionada,
                           decoration: const InputDecoration(
                             labelText: 'Loja',
                             border: OutlineInputBorder(),

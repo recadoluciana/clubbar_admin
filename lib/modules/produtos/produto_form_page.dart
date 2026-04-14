@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -357,7 +355,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _statusSelecionado,
+                    initialValue: _statusSelecionado,
                     decoration: const InputDecoration(
                       labelText: 'Status',
                       border: OutlineInputBorder(),
@@ -381,7 +379,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                   _carregandoCategorias
                       ? const Center(child: CircularProgressIndicator())
                       : DropdownButtonFormField<int>(
-                          value: _categoriaIdSelecionada,
+                          initialValue: _categoriaIdSelecionada,
                           decoration: const InputDecoration(
                             labelText: 'Categoria',
                             border: OutlineInputBorder(),

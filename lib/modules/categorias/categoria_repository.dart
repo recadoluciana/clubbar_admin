@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:clubbar_admin/core/services/api_service.dart';
 
 import '../../models/categoria.dart';
-import '../../services/api_service.dart';
 
 class CategoriaRepository {
   Future<List<Categoria>> listar(int lojaId) async {

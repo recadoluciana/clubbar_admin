@@ -331,7 +331,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
                   _carregandoCidades
                       ? const Center(child: CircularProgressIndicator())
                       : DropdownButtonFormField<int>(
-                          value: _cidadeIdSelecionada,
+                          initialValue: _cidadeIdSelecionada,
                           decoration: const InputDecoration(
                             labelText: 'Cidade',
                             border: OutlineInputBorder(),

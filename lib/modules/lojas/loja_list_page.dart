@@ -68,10 +68,6 @@ class _LojaListPageState extends State<LojaListPage> {
     try {
       final organizacaoId = widget.organizacaoId;
 
-      if (organizacaoId == null) {
-        throw Exception('Organização não encontrada no login');
-      }
-
       final lista = await _repository.listar(organizacaoId);
 
       if (!mounted) return;

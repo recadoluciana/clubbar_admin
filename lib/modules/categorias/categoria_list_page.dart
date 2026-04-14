@@ -342,7 +342,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
                           child: Center(child: CircularProgressIndicator()),
                         )
                       : DropdownButtonFormField<int>(
-                          value: _lojaIdSelecionada,
+                          initialValue: _lojaIdSelecionada,
                           decoration: const InputDecoration(
                             labelText: 'Loja',
                             border: OutlineInputBorder(),

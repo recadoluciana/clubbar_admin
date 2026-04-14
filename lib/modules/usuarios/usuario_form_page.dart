@@ -216,7 +216,7 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                   _carregandoLojas
                       ? const Center(child: CircularProgressIndicator())
                       : DropdownButtonFormField<int?>(
-                          value: _lojaIdSelecionada,
+                          initialValue: _lojaIdSelecionada,
                           decoration: const InputDecoration(
                             labelText: 'Loja',
                             border: OutlineInputBorder(),
@@ -241,7 +241,7 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                         ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _statusSelecionado,
+                    initialValue: _statusSelecionado,
                     decoration: const InputDecoration(
                       labelText: 'Status',
                       border: OutlineInputBorder(),
