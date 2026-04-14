@@ -4,6 +4,7 @@ import '../../core/repositories/organizacao_repository.dart';
 import '../../core/services/storage_service.dart';
 import '../../models/organizacao.dart';
 import 'organizacao_form_page.dart';
+import 'organizacao_home_page.dart';
 
 class OrganizacaoListPage extends StatefulWidget {
   const OrganizacaoListPage({super.key});
@@ -105,6 +106,17 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
     });
   }
 
+  Future<void> _abrirOrganizacao(dynamic organizacao) async {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => OrganizacaoHomePage(
+          organizacaoId: organizacao['organizacao_id'],
+          nomeOrganizacao: (organizacao['nmorganizacao'] ?? '').toString(),
+        ),
+      ),
+    );
+  }
+
   Future<void> _novaOrganizacao() async {
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -171,6 +183,7 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
                     onPressed: () => _editarOrganizacao(organizacao),
                     icon: const Icon(Icons.edit),
                   ),
+                  
                 ),
               ],
             );

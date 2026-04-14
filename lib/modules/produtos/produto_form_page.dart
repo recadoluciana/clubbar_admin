@@ -34,8 +34,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
   final _nomeController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _precoController = TextEditingController();
-  final _skuController = TextEditingController();
-
+  
   bool _salvando = false;
   bool _carregandoCategorias = true;
 
@@ -356,14 +355,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _skuController,
-                    decoration: const InputDecoration(
-                      labelText: 'SKU',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+                  
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: _statusSelecionado,

@@ -5,6 +5,8 @@ class StorageService {
   static const String _lojaIdKey = 'loja_id';
   static const String _organizacaoIdKey = 'organizacao_id';
   static const String _usuarioIdKey = 'usuario_id';
+  static const String _nomeUsuarioKey = 'nome_usuario';
+  static const String _nomeOrganizacaoKey = 'nome_organizacao';
 
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
@@ -44,6 +46,26 @@ class StorageService {
   static Future<int?> getUsuarioId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_usuarioIdKey);
+  }
+
+  static Future<void> saveNomeUsuario(String nome) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_nomeUsuarioKey, nome);
+  }
+
+  static Future<String?> getNomeUsuario() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_nomeUsuarioKey);
+  }
+
+  static Future<void> saveNomeOrganizacao(String nome) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_nomeOrganizacaoKey, nome);
+  }
+
+  static Future<String?> getNomeOrganizacao() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_nomeOrganizacaoKey);
   }
 
   static Future<void> clearToken() async {

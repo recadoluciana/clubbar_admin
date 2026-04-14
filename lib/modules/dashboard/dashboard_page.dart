@@ -1,16 +1,40 @@
 import 'package:flutter/material.dart';
 
-import '../../core/services/storage_service.dart';
-import '../auth/login_page.dart';
-import '../categorias/categoria_list_page.dart';
-import '../eventos/evento_list_page.dart';
-import '../lojas/loja_list_page.dart';
-import '../organizacoes/organizacao_list_page.dart';
-import '../produtos/produto_list_page.dart';
-import '../usuarios/usuario_list_page.dart';
+import 'package:clubbar_admin/core/services/storage_service.dart';
+import 'package:clubbar_admin/modules/auth/login_page.dart';
+import 'package:clubbar_admin/modules/eventos/evento_list_page.dart';
+import 'package:clubbar_admin/modules/lojas/loja_list_page.dart';
+import 'package:clubbar_admin/modules/organizacoes/organizacao_form_page.dart';
+import 'package:clubbar_admin/modules/produtos/produto_list_page.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  String _nomeUsuario = 'Usuário';
+  String _nomeOrganizacao = 'Organização';
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarDadosUsuario();
+  }
+
+  Future<void> _carregarDadosUsuario() async {
+    final nomeUsuario = await StorageService.getNomeUsuario();
+    final nomeOrganizacao = await StorageService.getNomeOrganizacao();
+
+    if (!mounted) return;
+
+    setState(() {
+      _nomeUsuario = nomeUsuario ?? 'Usuário';
+      _nomeOrganizacao = nomeOrganizacao ?? 'Organização';
+    });
+  }
 
   Future<void> _sair(BuildContext context) async {
     await StorageService.clearToken();
@@ -18,87 +42,53 @@ class DashboardPage extends StatelessWidget {
     if (!context.mounted) return;
 
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => const LoginPage(),
-      ),
+      MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
     );
   }
 
-  void _abrirModulo(BuildContext context, String nomeModulo) async {
-    Widget? destino;
+  Future<int?> _getOrganizacaoId() async {
+    return await StorageService.getOrganizacaoId();
+  }
 
-    if (nomeModulo == 'Organizações') {
-      destino = const OrganizacaoListPage();
-    } else if (nomeModulo == 'Lojas') {
-      destino = const LojaListPage();
+  Future<void> _abrirModulo(BuildContext context, String nomeModulo) async {
+    final organizacaoId = await _getOrganizacaoId();
 
-    } else if (nomeModulo == 'Produtos') {
-      final organizacaoId = await StorageService.getOrganizacaoId();
-
-      if (organizacaoId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Organização não encontrada no login')),
-        );
-        return;
-      }
-
-      destino = ProdutoListPage(
-        organizacaoId: organizacaoId,
-      );
-    } else if (nomeModulo == 'Categorias') {
-      final organizacaoId = await StorageService.getOrganizacaoId();
-
-      if (organizacaoId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Organização não encontrada no login')),
-        );
-        return;
-      }
-
-      destino = CategoriaListPage(
-        organizacaoId: organizacaoId,
-      );
-    }   else if (nomeModulo == 'Usuários') {
-      final organizacaoId = await StorageService.getOrganizacaoId();
-
-      if (organizacaoId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Organização não encontrada no login')),
-        );
-        return;
-      }
-
-      destino = UsuarioListPage(
-        organizacaoId: organizacaoId,
-      );
-
-    } else if (nomeModulo == 'Eventos / Lotes') {
-      final organizacaoId = await StorageService.getOrganizacaoId();
-
-      if (organizacaoId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Organização não encontrada no login')),
-        );
-        return;
-      }
-
-      destino = EventoListPage(
-        organizacaoId: organizacaoId,
-      );
-    }
-
-    if (destino != null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => destino!),
+    if (organizacaoId == null) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Organização não encontrada no login.'),
+        ),
       );
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Módulo "$nomeModulo" ainda não implementado.'),
-      ),
+    Widget? destino;
+
+    if (nomeModulo == 'Minha organização') {
+      destino = const OrganizacaoFormPage();
+    } else if (nomeModulo == 'Lojas') {
+      destino = LojaListPage(organizacaoId: organizacaoId);
+    } else if (nomeModulo == 'Produtos') {
+      destino = ProdutoListPage(organizacaoId: organizacaoId);
+    } else if (nomeModulo == 'Eventos') {
+      destino = EventoListPage(organizacaoId: organizacaoId);
+    }
+
+    if (destino == null) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Módulo "$nomeModulo" ainda não implementado.'),
+        ),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => destino!),
     );
   }
 
@@ -106,36 +96,25 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final modulos = [
       _DashboardItem(
-        titulo: 'Organizações',
-        subtitulo: 'Cadastro e gestão de organizações',
+        titulo: 'Minha organização',
+        subtitulo: 'Altere os dados da sua organização',
         icone: Icons.business,
       ),
       _DashboardItem(
         titulo: 'Lojas',
-        subtitulo: 'Cadastro e gestão das lojas',
+        subtitulo: 'Cadastre e gerencie as lojas da sua organização',
         icone: Icons.store,
       ),
       _DashboardItem(
-        titulo: 'Categorias',
-        subtitulo: 'Cadastro de categorias de produtos',
-        icone: Icons.category,
-      ),
-      _DashboardItem(
         titulo: 'Produtos',
-        subtitulo: 'Cadastro e listagem de produtos',
+        subtitulo: 'Cadastre e edite os produtos das lojas',
         icone: Icons.inventory_2,
       ),
       _DashboardItem(
-        titulo: 'Usuários',
-        subtitulo: 'Cadastro e controle de usuários',
-        icone: Icons.people,
-      ),
-      _DashboardItem(
-        titulo: 'Eventos / Lotes',
-        subtitulo: 'Cadastro de eventos e lotes',
+        titulo: 'Eventos',
+        subtitulo: 'Cadastre e gerencie eventos e lotes',
         icone: Icons.event,
       ),
-      
     ];
 
     return Scaffold(
@@ -158,20 +137,22 @@ class DashboardPage extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 color: Colors.orange.shade100,
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.admin_panel_settings, size: 42),
-                    SizedBox(height: 10),
+                    const Icon(Icons.account_circle, size: 42),
+                    const SizedBox(height: 10),
                     Text(
-                      'Clubbar Admin',
-                      style: TextStyle(
+                      _nomeUsuario,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text('Painel administrativo'),
+                    const SizedBox(height: 4),
+                    Text(_nomeOrganizacao),
+                    const SizedBox(height: 4),
+                    const Text('Administrador'),
                   ],
                 ),
               ),
@@ -180,17 +161,17 @@ class DashboardPage extends StatelessWidget {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.dashboard),
-                      title: const Text('Dashboard'),
+                      title: const Text('Início'),
                       onTap: () {
                         Navigator.pop(context);
                       },
                     ),
                     ListTile(
                       leading: const Icon(Icons.business),
-                      title: const Text('Organizações'),
+                      title: const Text('Minha organização'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Organizações');
+                        _abrirModulo(context, 'Minha organização');
                       },
                     ),
                     ListTile(
@@ -202,14 +183,6 @@ class DashboardPage extends StatelessWidget {
                       },
                     ),
                     ListTile(
-                      leading: const Icon(Icons.category),
-                      title: const Text('Categorias'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _abrirModulo(context, 'Categorias');
-                      },
-                    ),
-                    ListTile(
                       leading: const Icon(Icons.inventory_2),
                       title: const Text('Produtos'),
                       onTap: () {
@@ -218,22 +191,13 @@ class DashboardPage extends StatelessWidget {
                       },
                     ),
                     ListTile(
-                      leading: const Icon(Icons.people),
-                      title: const Text('Usuários'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _abrirModulo(context, 'Usuários');
-                      },
-                    ),
-                    ListTile(
                       leading: const Icon(Icons.event),
-                      title: const Text('Eventos / Lotes'),
+                      title: const Text('Eventos'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Eventos / Lotes');
+                        _abrirModulo(context, 'Eventos');
                       },
                     ),
-                    
                   ],
                 ),
               ),
@@ -254,7 +218,7 @@ class DashboardPage extends StatelessWidget {
           if (constraints.maxWidth >= 1200) {
             crossAxisCount = 4;
           } else if (constraints.maxWidth >= 800) {
-            crossAxisCount = 3;
+            crossAxisCount = 2;
           } else if (constraints.maxWidth < 600) {
             crossAxisCount = 1;
           }
@@ -264,6 +228,19 @@ class DashboardPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  'Olá, $_nomeUsuario 👋',
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Você está gerenciando: $_nomeOrganizacao',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
@@ -276,15 +253,15 @@ class DashboardPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Clubbar Administrator',
+                          'Primeiros passos',
                           style: TextStyle(
-                            fontSize: 26,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Gerencie organizações, lojas, categorias, produtos, usuários, eventos e lotes em um único painel.',
+                          'Revise sua organização, cadastre lojas, depois produtos e eventos.',
                           style: TextStyle(fontSize: 16),
                         ),
                       ],
@@ -292,14 +269,6 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Módulos do sistema',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
                 GridView.builder(
                   itemCount: modulos.length,
                   shrinkWrap: true,
@@ -308,7 +277,7 @@ class DashboardPage extends StatelessWidget {
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 1.35,
+                    childAspectRatio: 1.45,
                   ),
                   itemBuilder: (context, index) {
                     final item = modulos[index];
@@ -352,7 +321,7 @@ class DashboardPage extends StatelessWidget {
                               const Row(
                                 children: [
                                   Text(
-                                    'Abrir módulo',
+                                    'Abrir',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                     ),

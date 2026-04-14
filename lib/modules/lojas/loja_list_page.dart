@@ -8,7 +8,12 @@ import '../../models/loja.dart';
 import 'loja_form_page.dart';
 
 class LojaListPage extends StatefulWidget {
-  const LojaListPage({super.key});
+  final int organizacaoId;
+
+  const LojaListPage({
+    super.key,
+    required this.organizacaoId,
+  });
 
   @override
   State<LojaListPage> createState() => _LojaListPageState();
@@ -61,7 +66,7 @@ class _LojaListPageState extends State<LojaListPage> {
     });
 
     try {
-      final organizacaoId = await StorageService.getOrganizacaoId();
+      final organizacaoId = widget.organizacaoId;
 
       if (organizacaoId == null) {
         throw Exception('Organização não encontrada no login');

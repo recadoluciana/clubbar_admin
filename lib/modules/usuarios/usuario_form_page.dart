@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:clubbar_admin/models/usuario.dart';
-import 'package:clubbar_admin/core/repositories/usuario_repository.dart';
+
+import '../../core/repositories/loja_repository.dart';
+import '../../core/repositories/usuario_repository.dart';
+import '../../models/loja.dart';
+import '../../models/usuario.dart';
 
 class UsuarioFormPage extends StatefulWidget {
   final int organizacaoId;
@@ -18,33 +21,34 @@ class UsuarioFormPage extends StatefulWidget {
 
 class _UsuarioFormPageState extends State<UsuarioFormPage> {
   final _formKey = GlobalKey<FormState>();
+  final _usuarioRepository = UsuarioRepository();
+  final _lojaRepository = LojaRepository();
 
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
-  final _lojaIdController = TextEditingController();
-
-  final UsuarioRepository _repository = UsuarioRepository();
 
   bool _salvando = false;
-  String _situacao = 'ATIVO';
+  bool _carregandoLojas = true;
 
-  bool get _editando => widget.usuario != null;
+  List<Loja> _lojas = [];
+  int? _lojaIdSelecionada;
+  String _statusSelecionado = 'ATIVO';
+
+  bool get editando => widget.usuario != null;
 
   @override
   void initState() {
     super.initState();
 
-    if (_editando) {
-      final usuario = widget.usuario!;
-      _nomeController.text = usuario.nmusuario;
-      _emailController.text = usuario.emailuser;
-      _situacao = usuario.situsuario ?? 'ATIVO';
-
-      if (usuario.lojaId != null) {
-        _lojaIdController.text = usuario.lojaId.toString();
-      }
+    if (widget.usuario != null) {
+      _nomeController.text = widget.usuario!.nmusuario;
+      _emailController.text = widget.usuario!.emailuser;
+      _lojaIdSelecionada = widget.usuario!.lojaId;
+      _statusSelecionado = widget.usuario!.situsuario ?? 'ATIVO';
     }
+
+    _carregarLojas();
   }
 
   @override
@@ -52,8 +56,44 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
     _nomeController.dispose();
     _emailController.dispose();
     _senhaController.dispose();
-    _lojaIdController.dispose();
     super.dispose();
+  }
+
+  Future<void> _carregarLojas() async {
+    setState(() {
+      _carregandoLojas = true;
+    });
+
+    try {
+      final lista = await _lojaRepository.listar(widget.organizacaoId);
+
+      if (!mounted) return;
+
+      int? lojaSelecionada = _lojaIdSelecionada;
+
+      if (lista.isNotEmpty && lojaSelecionada != null) {
+        final existe = lista.any((loja) => loja.lojaId == lojaSelecionada);
+        if (!existe) {
+          lojaSelecionada = null;
+        }
+      }
+
+      setState(() {
+        _lojas = lista;
+        _lojaIdSelecionada = lojaSelecionada;
+        _carregandoLojas = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _carregandoLojas = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar lojas: $e')),
+      );
+    }
   }
 
   Future<void> _salvar() async {
@@ -64,31 +104,25 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
     });
 
     try {
-      final nome = _nomeController.text.trim();
-      final email = _emailController.text.trim();
-      final senha = _senhaController.text.trim();
-      final lojaIdTexto = _lojaIdController.text.trim();
-
-      final int? lojaId =
-          lojaIdTexto.isEmpty ? null : int.tryParse(lojaIdTexto);
-
-      if (_editando) {
-        await _repository.atualizar(
+      if (editando) {
+        await _usuarioRepository.atualizar(
           usuarioId: widget.usuario!.usuarioId,
-          nome: nome,
-          email: email,
-          senha: senha.isEmpty ? null : senha,
-          lojaId: lojaId,
-          situsuario: _situacao,
+          nome: _nomeController.text.trim(),
+          email: _emailController.text.trim(),
+          senha: _senhaController.text.trim().isEmpty
+              ? null
+              : _senhaController.text.trim(),
+          lojaId: _lojaIdSelecionada,
+          situsuario: _statusSelecionado,
         );
       } else {
-        await _repository.criar(
+        await _usuarioRepository.criar(
           organizacaoId: widget.organizacaoId,
-          nome: nome,
-          email: email,
-          senha: senha,
-          lojaId: lojaId,
-          situsuario: _situacao,
+          nome: _nomeController.text.trim(),
+          email: _emailController.text.trim(),
+          senha: _senhaController.text.trim(),
+          lojaId: _lojaIdSelecionada,
+          situsuario: _statusSelecionado,
         );
       }
 
@@ -97,14 +131,14 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _editando
+            editando
                 ? 'Usuário atualizado com sucesso'
                 : 'Usuário criado com sucesso',
           ),
         ),
       );
 
-      Navigator.pop(context, true);
+      Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
 
@@ -124,113 +158,128 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_editando ? 'Editar Usuário' : 'Novo Usuário'),
+        title: Text(editando ? 'Editar Usuário' : 'Novo Usuário'),
+        centerTitle: true,
       ),
-      body: AbsorbPointer(
-        absorbing: _salvando,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _nomeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Informe o nome';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'E-mail',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Informe o e-mail';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Informe um e-mail válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _senhaController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: _editando
-                        ? 'Senha (deixe em branco para não alterar)'
-                        : 'Senha',
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (!_editando && (value == null || value.trim().isEmpty)) {
-                      return 'Informe a senha';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _lojaIdController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Loja ID',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _situacao,
-                  decoration: const InputDecoration(
-                    labelText: 'Situação',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'ATIVO',
-                      child: Text('ATIVO'),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 650),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  TextFormField(
+                    controller: _nomeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome do usuário',
+                      border: OutlineInputBorder(),
                     ),
-                    DropdownMenuItem(
-                      value: 'INATIVO',
-                      child: Text('INATIVO'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _situacao = value;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _salvando ? null : _salvar,
-                    child: _salvando
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(_editando ? 'Atualizar' : 'Salvar'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Informe o nome do usuário';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'E-mail',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Informe o e-mail';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _senhaController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: editando ? 'Nova senha (opcional)' : 'Senha',
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (!editando && (value == null || value.trim().isEmpty)) {
+                        return 'Informe a senha';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _carregandoLojas
+                      ? const Center(child: CircularProgressIndicator())
+                      : DropdownButtonFormField<int?>(
+                          value: _lojaIdSelecionada,
+                          decoration: const InputDecoration(
+                            labelText: 'Loja',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text('Sem loja'),
+                            ),
+                            ..._lojas.map((loja) {
+                              return DropdownMenuItem<int?>(
+                                value: loja.lojaId,
+                                child: Text(loja.nmloja),
+                              );
+                            }),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _lojaIdSelecionada = value;
+                            });
+                          },
+                        ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: _statusSelecionado,
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'ATIVO',
+                        child: Text('ATIVO'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'INATIVO',
+                        child: Text('INATIVO'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _statusSelecionado = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _salvando ? null : _salvar,
+                      child: _salvando
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Salvar'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

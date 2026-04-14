@@ -32,10 +32,12 @@ class AuthService {
 
       if (usuarioId != null) {
         await StorageService.saveUsuarioId(usuarioId);
+        await StorageService.saveNomeUsuario(data['nmusuario']); // 👈 NOVO
       }
 
       if (organizacaoId != null) {
         await StorageService.saveOrganizacaoId(organizacaoId);
+        await StorageService.saveNomeOrganizacao(data['nmorganizacao']);
       }
     } else {
       throw Exception('Login inválido: ${response.body}');

@@ -26,20 +26,75 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
   final TextEditingController _telefoneController = TextEditingController();
 
   bool _salvando = false;
+  bool _carregando = true;
+  bool _editando = false;
   String _status = 'ATIVA';
 
-  bool get editando => widget.organizacao != null;
+  bool get editando => _editando;
 
   @override
   void initState() {
     super.initState();
+    _inicializarTela();
+  }
 
+  Future<void> _inicializarTela() async {
     if (widget.organizacao != null) {
-      _nomeController.text = widget.organizacao!.nmorganizacao;
-      _cnpjController.text = widget.organizacao!.cnpjorganizacao ?? '';
-      _emailController.text = widget.organizacao!.emailorganizacao ?? '';
-      _telefoneController.text = widget.organizacao!.telorganizacao ?? '';
-      _status = widget.organizacao!.sitorganizacao ?? 'ATIVA';
+      _preencherCampos(widget.organizacao!);
+      setState(() {
+        _editando = true;
+        _carregando = false;
+      });
+    } else {
+      await _carregarOrganizacao();
+    }
+  }
+
+  void _preencherCampos(Organizacao org) {
+    _nomeController.text = org.nmorganizacao;
+    _cnpjController.text = org.cnpjorganizacao ?? '';
+    _emailController.text = org.emailorganizacao ?? '';
+    _telefoneController.text = org.telorganizacao ?? '';
+    _status = org.sitorganizacao ?? 'ATIVA';
+  }
+
+  Future<void> _carregarOrganizacao() async {
+    try {
+      final usuarioId = await StorageService.getUsuarioId();
+
+      if (usuarioId == null) {
+        if (mounted) {
+          setState(() {
+            _carregando = false;
+            _editando = false;
+          });
+        }
+        return;
+      }
+
+      final org = await _repository.buscarPorUsuario(usuarioId);
+
+      if (!mounted) return;
+
+      _preencherCampos(org);
+
+      setState(() {
+        _editando = true;
+        _carregando = false;
+      });
+    } catch (e) {
+      debugPrint('Erro ao carregar organização: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        _carregando = false;
+        _editando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar organização: $e')),
+      );
     }
   }
 
@@ -116,9 +171,17 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_carregando) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(editando ? 'Editar Organização' : 'Nova Organização'),
+        title: Text(editando ? 'Minha Organização' : 'Nova Organização'),
         centerTitle: true,
       ),
       body: Center(
