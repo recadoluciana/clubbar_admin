@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/config/api_config.dart';
 import '../../core/repositories/categoria_repository.dart';
@@ -33,17 +34,23 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
   final _descricaoController = TextEditingController();
   final _precoController = TextEditingController();
 
+  final _vrDescontoController = TextEditingController();
+  final _dtIniDescontoController = TextEditingController();
+  final _dtFimDescontoController = TextEditingController();
+
   bool _salvando = false;
   bool _carregandoCategorias = true;
 
   List<Categoria> _categorias = [];
   int? _categoriaIdSelecionada;
   String _statusSelecionado = 'ATIVO';
+  String _tipoDescontoSelecionado = 'NENHUM';
 
   XFile? _imagemSelecionada;
   Uint8List? _imagemBytes;
 
   bool get editando => widget.produto != null;
+  bool get _descontoAtivo => _tipoDescontoSelecionado != 'NENHUM';
 
   @override
   void initState() {
@@ -51,13 +58,22 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
     if (widget.produto != null) {
       _nomeController.text = (widget.produto!['nmproduto'] ?? '').toString();
-      _descricaoController.text = (widget.produto!['dsproduto'] ?? '')
-          .toString();
+      _descricaoController.text = (widget.produto!['dsproduto'] ?? '').toString();
       _precoController.text = (widget.produto!['vrprecoprod'] ?? '').toString();
 
       _categoriaIdSelecionada = widget.produto!['categoria_id'];
-      _statusSelecionado = (widget.produto!['sitproduto'] ?? 'ATIVO')
-          .toString();
+      _statusSelecionado = (widget.produto!['sitproduto'] ?? 'ATIVO').toString();
+
+      _tipoDescontoSelecionado =
+          (widget.produto!['tipodesconto'] ?? 'NENHUM').toString();
+      _vrDescontoController.text =
+          (widget.produto!['vrdesconto'] ?? '0.00').toString();
+      _dtIniDescontoController.text =
+          _formatarDataTela(widget.produto!['dtinidesconto']);
+      _dtFimDescontoController.text =
+          _formatarDataTela(widget.produto!['dtfimdesconto']);
+    } else {
+      _vrDescontoController.text = '0';
     }
 
     _carregarCategorias();
@@ -68,8 +84,66 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     _nomeController.dispose();
     _descricaoController.dispose();
     _precoController.dispose();
-
+    _vrDescontoController.dispose();
+    _dtIniDescontoController.dispose();
+    _dtFimDescontoController.dispose();
     super.dispose();
+  }
+
+  String _somenteNumeroData(String valor) => valor.toString().trim();
+
+  String _formatarDataTela(dynamic valor) {
+    final texto = _somenteNumeroData(valor);
+    if (texto.isEmpty || texto == 'null') return '';
+
+    try {
+      final data = DateTime.parse(texto);
+      return DateFormat('dd/MM/yyyy HH:mm').format(data);
+    } catch (_) {
+      return texto;
+    }
+  }
+
+  String? _formatarDataApi(String texto) {
+    final valor = texto.trim();
+    if (valor.isEmpty) return null;
+
+    try {
+      final data = DateFormat('dd/MM/yyyy HH:mm').parseStrict(valor);
+      return DateFormat('yyyy-MM-dd HH:mm:ss').format(data);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _selecionarDataHora(TextEditingController controller) async {
+    final agora = DateTime.now();
+
+    final data = await showDatePicker(
+      context: context,
+      initialDate: agora,
+      firstDate: DateTime(2024),
+      lastDate: DateTime(2100),
+    );
+
+    if (data == null || !mounted) return;
+
+    final hora = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(agora),
+    );
+
+    if (hora == null) return;
+
+    final dataHora = DateTime(
+      data.year,
+      data.month,
+      data.day,
+      hora.hour,
+      hora.minute,
+    );
+
+    controller.text = DateFormat('dd/MM/yyyy HH:mm').format(dataHora);
   }
 
   Future<void> _carregarCategorias() async {
@@ -134,9 +208,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao selecionar imagem: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
+      );
     }
   }
 
@@ -159,9 +233,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_categoriaIdSelecionada == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Selecione uma categoria')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione uma categoria')),
+      );
       return;
     }
 
@@ -177,9 +251,34 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
           .trim();
 
       final preco = double.tryParse(precoTexto);
-
       if (preco == null) {
         throw Exception('Preço inválido');
+      }
+
+      final descontoTexto = _vrDescontoController.text
+          .replaceAll('R\$', '')
+          .replaceAll('%', '')
+          .replaceAll(' ', '')
+          .replaceAll(',', '.')
+          .trim();
+
+      final vrDesconto = descontoTexto.isEmpty
+          ? 0.0
+          : double.tryParse(descontoTexto);
+
+      if (vrDesconto == null) {
+        throw Exception('Valor de desconto inválido');
+      }
+
+      final dtIniDesconto = _formatarDataApi(_dtIniDescontoController.text);
+      final dtFimDesconto = _formatarDataApi(_dtFimDescontoController.text);
+
+      if (_dtIniDescontoController.text.trim().isNotEmpty && dtIniDesconto == null) {
+        throw Exception('Data início desconto inválida. Use dd/MM/yyyy HH:mm');
+      }
+
+      if (_dtFimDescontoController.text.trim().isNotEmpty && dtFimDesconto == null) {
+        throw Exception('Data fim desconto inválida. Use dd/MM/yyyy HH:mm');
       }
 
       if (editando) {
@@ -191,6 +290,10 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
           preco: preco,
           status: _statusSelecionado,
           imagem: _imagemSelecionada,
+          tipodesconto: _tipoDescontoSelecionado,
+          vrdesconto: _descontoAtivo ? vrDesconto : 0.0,
+          dtinidesconto: _descontoAtivo ? dtIniDesconto : '',
+          dtfimdesconto: _descontoAtivo ? dtFimDesconto : '',
         );
       } else {
         await _produtoRepository.criar(
@@ -202,6 +305,10 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
           preco: preco,
           sitproduto: _statusSelecionado,
           imagem: _imagemSelecionada,
+          tipodesconto: _tipoDescontoSelecionado,
+          vrdesconto: _descontoAtivo ? vrDesconto : 0.0,
+          dtinidesconto: _descontoAtivo ? dtIniDesconto : '',
+          dtfimdesconto: _descontoAtivo ? dtFimDesconto : '',
         );
       }
 
@@ -221,9 +328,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar: $e')),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -284,35 +391,35 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                                     ),
                             )
                           : (editando && imagemAtualUrl.isNotEmpty)
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                imagemAtualUrl,
-                                key: ValueKey(imagemAtualUrl),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                errorBuilder: (_, error, __) {
-                                  print('ERRO IMG PRODUTO: $imagemAtualUrl');
-                                  print('DETALHE: $error');
-                                  return const Center(
-                                    child: Icon(
-                                      Icons.image_not_supported,
-                                      size: 40,
-                                    ),
-                                  );
-                                },
-                              ),
-                            )
-                          : const Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.image_outlined, size: 40),
-                                  SizedBox(height: 8),
-                                  Text('Toque para selecionar uma imagem'),
-                                ],
-                              ),
-                            ),
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    imagemAtualUrl,
+                                    key: ValueKey(imagemAtualUrl),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder: (_, error, __) {
+                                      print('ERRO IMG PRODUTO: $imagemAtualUrl');
+                                      print('DETALHE: $error');
+                                      return const Center(
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          size: 40,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                )
+                              : const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.image_outlined, size: 40),
+                                      SizedBox(height: 8),
+                                      Text('Toque para selecionar uma imagem'),
+                                    ],
+                                  ),
+                                ),
                     ),
                   ),
                   TextFormField(
@@ -352,7 +459,6 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: _statusSelecionado,
@@ -402,6 +508,108 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                             return null;
                           },
                         ),
+                  const SizedBox(height: 24),
+
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Desconto',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  DropdownButtonFormField<String>(
+                    initialValue: _tipoDescontoSelecionado,
+                    decoration: const InputDecoration(
+                      labelText: 'Tipo de desconto',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'NENHUM', child: Text('NENHUM')),
+                      DropdownMenuItem(
+                        value: 'PERCENTUAL',
+                        child: Text('PERCENTUAL'),
+                      ),
+                      DropdownMenuItem(value: 'VALOR', child: Text('VALOR')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _tipoDescontoSelecionado = value;
+                          if (value == 'NENHUM') {
+                            _vrDescontoController.text = '0';
+                            _dtIniDescontoController.clear();
+                            _dtFimDescontoController.clear();
+                          }
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: _vrDescontoController,
+                    enabled: _descontoAtivo,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: _tipoDescontoSelecionado == 'PERCENTUAL'
+                          ? 'Valor do desconto (%)'
+                          : 'Valor do desconto',
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (!_descontoAtivo) return null;
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Informe o desconto';
+                      }
+                      final numero = double.tryParse(
+                        value
+                            .replaceAll('R\$', '')
+                            .replaceAll('%', '')
+                            .replaceAll(' ', '')
+                            .replaceAll(',', '.')
+                            .trim(),
+                      );
+                      if (numero == null) {
+                        return 'Desconto inválido';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: _dtIniDescontoController,
+                    readOnly: true,
+                    enabled: _descontoAtivo,
+                    decoration: const InputDecoration(
+                      labelText: 'Data início desconto',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    onTap: _descontoAtivo
+                        ? () => _selecionarDataHora(_dtIniDescontoController)
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: _dtFimDescontoController,
+                    readOnly: true,
+                    enabled: _descontoAtivo,
+                    decoration: const InputDecoration(
+                      labelText: 'Data fim desconto',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    onTap: _descontoAtivo
+                        ? () => _selecionarDataHora(_dtFimDescontoController)
+                        : null,
+                  ),
+
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,

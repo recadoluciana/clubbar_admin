@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/config/api_config.dart';
 import '../../core/repositories/loja_repository.dart';
@@ -63,6 +64,28 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
     } catch (_) {}
 
     return texto.replaceAll('Exception:', '').trim();
+  }
+
+  String _formatarData(dynamic valor) {
+    final texto = (valor ?? '').toString().trim();
+    if (texto.isEmpty || texto == 'null') return '-';
+
+    try {
+      final data = DateTime.parse(texto);
+      return DateFormat('dd/MM/yyyy HH:mm').format(data);
+    } catch (_) {
+      return texto;
+    }
+  }
+
+  String _formatarDesconto(dynamic tipo, dynamic valor) {
+    final tp = (tipo ?? 'NENHUM').toString();
+    final vr = double.tryParse((valor ?? '0').toString()) ?? 0;
+
+    if (tp == 'NENHUM' || vr <= 0) return '-';
+    if (tp == 'PERCENTUAL') return '${vr.toStringAsFixed(2)}%';
+    if (tp == 'VALOR') return 'R\$ ${vr.toStringAsFixed(2)}';
+    return vr.toStringAsFixed(2);
   }
 
   Future<void> _carregarLojas() async {
@@ -162,10 +185,13 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
           final categoria =
               (produto['nmcategoria'] ?? '').toString().toLowerCase();
           final id = (produto['produto_id'] ?? '').toString();
+          final tipoDesconto =
+              (produto['tipodesconto'] ?? '').toString().toLowerCase();
 
           return nome.contains(busca) ||
               categoria.contains(busca) ||
-              id.contains(busca);
+              id.contains(busca) ||
+              tipoDesconto.contains(busca);
         }).toList();
       }
     });
@@ -275,6 +301,10 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
               DataColumn(label: Text('Nome')),
               DataColumn(label: Text('Categoria')),
               DataColumn(label: Text('Preço')),
+              DataColumn(label: Text('Tipo Desc.')),
+              DataColumn(label: Text('Desconto')),
+              DataColumn(label: Text('Início Desc.')),
+              DataColumn(label: Text('Fim Desc.')),
               DataColumn(label: Text('Status')),
               DataColumn(label: Text('Ações')),
             ],
@@ -305,6 +335,17 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
                   DataCell(Text((produto['nmproduto'] ?? '').toString())),
                   DataCell(Text((produto['nmcategoria'] ?? '-').toString())),
                   DataCell(Text('R\$ ${produto['vrprecoprod'] ?? ''}')),
+                  DataCell(Text((produto['tipodesconto'] ?? 'NENHUM').toString())),
+                  DataCell(
+                    Text(
+                      _formatarDesconto(
+                        produto['tipodesconto'],
+                        produto['vrdesconto'],
+                      ),
+                    ),
+                  ),
+                  DataCell(Text(_formatarData(produto['dtinidesconto']))),
+                  DataCell(Text(_formatarData(produto['dtfimdesconto']))),
                   DataCell(Text((produto['sitproduto'] ?? '-').toString())),
                   DataCell(
                     Row(

@@ -6,6 +6,7 @@ import 'package:clubbar_admin/modules/eventos/evento_list_page.dart';
 import 'package:clubbar_admin/modules/lojas/loja_list_page.dart';
 import 'package:clubbar_admin/modules/organizacoes/organizacao_form_page.dart';
 import 'package:clubbar_admin/modules/produtos/produto_list_page.dart';
+import 'package:clubbar_admin/modules/painel_gerencial/painel_gerencial_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -74,6 +75,8 @@ class _DashboardPageState extends State<DashboardPage> {
       destino = ProdutoListPage(organizacaoId: organizacaoId);
     } else if (nomeModulo == 'Eventos') {
       destino = EventoListPage(organizacaoId: organizacaoId);
+    } else if (nomeModulo == 'Painel de Controle') {
+      destino = const PainelGerencialPage();
     }
 
     if (destino == null) {
@@ -114,6 +117,11 @@ class _DashboardPageState extends State<DashboardPage> {
         titulo: 'Eventos',
         subtitulo: 'Cadastre e gerencie eventos e lotes',
         icone: Icons.event,
+      ),
+      _DashboardItem(
+        titulo: 'Painel de Controle',
+        subtitulo: 'Indicadores e gráficos gerenciais',
+        icone: Icons.analytics,
       ),
     ];
 
@@ -196,6 +204,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       onTap: () {
                         Navigator.pop(context);
                         _abrirModulo(context, 'Eventos');
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.analytics),
+                      title: const Text('Painel de Controle'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _abrirModulo(context, 'Painel de Controle');
                       },
                     ),
                   ],

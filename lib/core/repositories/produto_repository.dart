@@ -59,6 +59,12 @@ class ProdutoRepository {
     required double preco,
     String sitproduto = 'ATIVO',
     XFile? imagem,
+
+    // NOVOS CAMPOS
+    String tipodesconto = 'NENHUM',
+    double vrdesconto = 0.0,
+    String? dtinidesconto,
+    String? dtfimdesconto,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/produtos');
 
@@ -77,6 +83,18 @@ class ProdutoRepository {
     request.fields['vrprecoprod'] = preco.toString();
     request.fields['sitproduto'] = sitproduto;
     request.fields['idtipoproduto'] = 'P';
+
+    // NOVOS CAMPOS
+    request.fields['tipodesconto'] = tipodesconto;
+    request.fields['vrdesconto'] = vrdesconto.toString();
+
+    if (dtinidesconto != null && dtinidesconto.trim().isNotEmpty) {
+      request.fields['dtinidesconto'] = dtinidesconto.trim();
+    }
+
+    if (dtfimdesconto != null && dtfimdesconto.trim().isNotEmpty) {
+      request.fields['dtfimdesconto'] = dtfimdesconto.trim();
+    }
 
     if (imagem != null) {
       request.files.add(await _montarArquivoImagem('urlfotoproduto', imagem));
@@ -98,6 +116,12 @@ class ProdutoRepository {
     double? preco,
     String? status,
     XFile? imagem,
+
+    // NOVOS CAMPOS
+    String? tipodesconto,
+    double? vrdesconto,
+    String? dtinidesconto,
+    String? dtfimdesconto,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/produtos/$produtoId');
 
@@ -122,6 +146,20 @@ class ProdutoRepository {
     }
     if (status != null) {
       request.fields['sitproduto'] = status;
+    }
+
+    // NOVOS CAMPOS
+    if (tipodesconto != null) {
+      request.fields['tipodesconto'] = tipodesconto;
+    }
+    if (vrdesconto != null) {
+      request.fields['vrdesconto'] = vrdesconto.toString();
+    }
+    if (dtinidesconto != null) {
+      request.fields['dtinidesconto'] = dtinidesconto.trim();
+    }
+    if (dtfimdesconto != null) {
+      request.fields['dtfimdesconto'] = dtfimdesconto.trim();
     }
 
     if (imagem != null) {
