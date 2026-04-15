@@ -272,36 +272,42 @@ class _LojaListPageState extends State<LojaListPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Row(
+            Column(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _buscaController,
-                    onChanged: _filtrar,
-                    decoration: const InputDecoration(
-                      labelText: 'Buscar loja',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.search),
+                TextField(
+                  controller: _buscaController,
+                  onChanged: _filtrar,
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar loja',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: _abrirNovaLoja,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Nova'),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _abrirNovaLoja,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Nova'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    onPressed: _carregarLojas,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Atualizar'),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: _carregarLojas,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Atualizar'),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

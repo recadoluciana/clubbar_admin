@@ -13,10 +13,7 @@ import 'evento_lote_list_page.dart';
 class EventoListPage extends StatefulWidget {
   final int organizacaoId;
 
-  const EventoListPage({
-    super.key,
-    required this.organizacaoId,
-  });
+  const EventoListPage({super.key, required this.organizacaoId});
 
   @override
   State<EventoListPage> createState() => _EventoListPageState();
@@ -115,9 +112,9 @@ class _EventoListPageState extends State<EventoListPage> {
         _carregando = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     }
   }
 
@@ -147,9 +144,9 @@ class _EventoListPageState extends State<EventoListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     } finally {
       if (mounted) {
         setState(() {
@@ -203,9 +200,9 @@ class _EventoListPageState extends State<EventoListPage> {
 
   Future<void> _abrirNovoEvento() async {
     if (_lojaIdSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma loja')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Selecione uma loja')));
       return;
     }
 
@@ -292,9 +289,9 @@ class _EventoListPageState extends State<EventoListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     }
   }
 
@@ -303,9 +300,7 @@ class _EventoListPageState extends State<EventoListPage> {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Center(
-            child: Text('Nenhum evento encontrado.'),
-          ),
+          child: Center(child: Text('Nenhum evento encontrado.')),
         ),
       );
     }
@@ -390,73 +385,80 @@ class _EventoListPageState extends State<EventoListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Eventos'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Eventos'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Row(
+            Column(
               children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: _buscaController,
-                    onChanged: _filtrar,
-                    decoration: const InputDecoration(
-                      labelText: 'Buscar evento',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.search),
-                    ),
+                // 🔎 BUSCA
+                TextField(
+                  controller: _buscaController,
+                  onChanged: _filtrar,
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar evento',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.search),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: _carregandoLojas
-                      ? const SizedBox(
-                          height: 50,
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      : DropdownButtonFormField<int>(
-                          initialValue: _lojaIdSelecionada,
-                          decoration: const InputDecoration(
-                            labelText: 'Loja',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: _lojas.map((loja) {
-                            return DropdownMenuItem<int>(
-                              value: loja.lojaId,
-                              child: Text(loja.nmloja),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _lojaIdSelecionada = value;
-                            });
-                            _carregarEventos();
-                          },
+                const SizedBox(height: 12),
+
+                // 🏪 LOJA
+                _carregandoLojas
+                    ? const SizedBox(
+                        height: 50,
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : DropdownButtonFormField<int>(
+                        initialValue: _lojaIdSelecionada,
+                        decoration: const InputDecoration(
+                          labelText: 'Loja',
+                          border: OutlineInputBorder(),
                         ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _abrirNovoEvento,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Novo'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    onPressed: _carregarEventos,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Atualizar'),
-                  ),
+                        items: _lojas.map((loja) {
+                          return DropdownMenuItem<int>(
+                            value: loja.lojaId,
+                            child: Text(
+                              loja.nmloja,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _lojaIdSelecionada = value;
+                          });
+                          _carregarEventos();
+                        },
+                      ),
+                const SizedBox(height: 12),
+
+                // 🔘 BOTÕES
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: _abrirNovoEvento,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Novo'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: _carregarEventos,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Atualizar'),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

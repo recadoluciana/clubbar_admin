@@ -11,10 +11,7 @@ import 'produto_form_page.dart';
 class ProdutoListPage extends StatefulWidget {
   final int organizacaoId;
 
-  const ProdutoListPage({
-    super.key,
-    required this.organizacaoId,
-  });
+  const ProdutoListPage({super.key, required this.organizacaoId});
 
   @override
   State<ProdutoListPage> createState() => _ProdutoListPageState();
@@ -133,9 +130,9 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
         _carregando = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     }
   }
 
@@ -163,9 +160,9 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     } finally {
       if (mounted) {
         setState(() => _carregando = false);
@@ -182,11 +179,13 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
       } else {
         _produtosFiltrados = _produtos.where((produto) {
           final nome = (produto['nmproduto'] ?? '').toString().toLowerCase();
-          final categoria =
-              (produto['nmcategoria'] ?? '').toString().toLowerCase();
+          final categoria = (produto['nmcategoria'] ?? '')
+              .toString()
+              .toLowerCase();
           final id = (produto['produto_id'] ?? '').toString();
-          final tipoDesconto =
-              (produto['tipodesconto'] ?? '').toString().toLowerCase();
+          final tipoDesconto = (produto['tipodesconto'] ?? '')
+              .toString()
+              .toLowerCase();
 
           return nome.contains(busca) ||
               categoria.contains(busca) ||
@@ -199,9 +198,9 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
 
   Future<void> _abrirCadastro() async {
     if (_lojaIdSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma loja')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Selecione uma loja')));
       return;
     }
 
@@ -271,9 +270,9 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     }
   }
 
@@ -282,9 +281,7 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Center(
-            child: Text('Nenhum produto encontrado.'),
-          ),
+          child: Center(child: Text('Nenhum produto encontrado.')),
         ),
       );
     }
@@ -335,7 +332,9 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
                   DataCell(Text((produto['nmproduto'] ?? '').toString())),
                   DataCell(Text((produto['nmcategoria'] ?? '-').toString())),
                   DataCell(Text('R\$ ${produto['vrprecoprod'] ?? ''}')),
-                  DataCell(Text((produto['tipodesconto'] ?? 'NENHUM').toString())),
+                  DataCell(
+                    Text((produto['tipodesconto'] ?? 'NENHUM').toString()),
+                  ),
                   DataCell(
                     Text(
                       _formatarDesconto(
@@ -375,73 +374,75 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Produtos'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Produtos'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Row(
+            Column(
               children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: _buscaController,
-                    onChanged: _filtrar,
-                    decoration: const InputDecoration(
-                      labelText: 'Buscar produto',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.search),
-                    ),
+                TextField(
+                  controller: _buscaController,
+                  onChanged: _filtrar,
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar produto',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.search),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: _carregandoLojas
-                      ? const SizedBox(
-                          height: 50,
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      : DropdownButtonFormField<int>(
-                          initialValue: _lojaIdSelecionada,
-                          decoration: const InputDecoration(
-                            labelText: 'Loja',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: _lojas.map((loja) {
-                            return DropdownMenuItem<int>(
-                              value: loja.lojaId,
-                              child: Text(loja.nmloja),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _lojaIdSelecionada = value;
-                            });
-                            _carregarProdutos();
-                          },
+                const SizedBox(height: 12),
+                _carregandoLojas
+                    ? const SizedBox(
+                        height: 50,
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : DropdownButtonFormField<int>(
+                        initialValue: _lojaIdSelecionada,
+                        decoration: const InputDecoration(
+                          labelText: 'Loja',
+                          border: OutlineInputBorder(),
                         ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _abrirCadastro,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Novo'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    onPressed: _carregarProdutos,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Atualizar'),
-                  ),
+                        items: _lojas.map((loja) {
+                          return DropdownMenuItem<int>(
+                            value: loja.lojaId,
+                            child: Text(
+                              loja.nmloja,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _lojaIdSelecionada = value;
+                          });
+                          _carregarProdutos();
+                        },
+                      ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: _abrirCadastro,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Novo'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: _carregarProdutos,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Atualizar'),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
