@@ -3,17 +3,13 @@ import 'package:flutter/material.dart';
 
 import '../../core/config/api_config.dart';
 import '../../core/repositories/loja_repository.dart';
-import '../../core/services/storage_service.dart';
 import '../../models/loja.dart';
 import 'loja_form_page.dart';
 
 class LojaListPage extends StatefulWidget {
   final int organizacaoId;
 
-  const LojaListPage({
-    super.key,
-    required this.organizacaoId,
-  });
+  const LojaListPage({super.key, required this.organizacaoId});
 
   @override
   State<LojaListPage> createState() => _LojaListPageState();
@@ -80,9 +76,9 @@ class _LojaListPageState extends State<LojaListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     } finally {
       if (mounted) {
         setState(() {
@@ -124,11 +120,9 @@ class _LojaListPageState extends State<LojaListPage> {
   }
 
   Future<void> _abrirNovaLoja() async {
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => const LojaFormPage(),
-      ),
-    );
+    final result = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => const LojaFormPage()));
 
     if (result == true) {
       _carregarLojas();
@@ -136,11 +130,9 @@ class _LojaListPageState extends State<LojaListPage> {
   }
 
   Future<void> _abrirEdicao(Loja loja) async {
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => LojaFormPage(loja: loja),
-      ),
-    );
+    final result = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => LojaFormPage(loja: loja)));
 
     if (result == true) {
       _carregarLojas();
@@ -181,9 +173,9 @@ class _LojaListPageState extends State<LojaListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     }
   }
 
@@ -275,10 +267,7 @@ class _LojaListPageState extends State<LojaListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lojas'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Lojas'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(

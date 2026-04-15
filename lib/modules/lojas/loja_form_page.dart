@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,10 +12,7 @@ import '../../models/loja.dart';
 class LojaFormPage extends StatefulWidget {
   final Loja? loja;
 
-  const LojaFormPage({
-    super.key,
-    this.loja,
-  });
+  const LojaFormPage({super.key, this.loja});
 
   @override
   State<LojaFormPage> createState() => _LojaFormPageState();
@@ -86,8 +81,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
       int? cidadeSelecionada = _cidadeIdSelecionada;
 
       if (lista.isNotEmpty) {
-        final existeNaLista =
-            lista.any((cidade) => cidade.cidadeId == cidadeSelecionada);
+        final existeNaLista = lista.any(
+          (cidade) => cidade.cidadeId == cidadeSelecionada,
+        );
 
         if (!existeNaLista) {
           cidadeSelecionada = lista.first.cidadeId;
@@ -110,9 +106,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
         _cidadeIdSelecionada = null;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao carregar cidades: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao carregar cidades: $e')));
     }
   }
 
@@ -136,9 +132,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao selecionar imagem: $e')));
     }
   }
 
@@ -146,9 +142,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_cidadeIdSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma cidade')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Selecione uma cidade')));
       return;
     }
 
@@ -213,9 +209,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -281,37 +277,37 @@ class _LojaFormPageState extends State<LojaFormPage> {
                                       width: double.infinity,
                                       errorBuilder: (_, __, ___) =>
                                           const Center(
-                                        child: Icon(Icons.store, size: 40),
-                                      ),
+                                            child: Icon(Icons.store, size: 40),
+                                          ),
                                     ),
                             )
                           : (editando && imagemAtualUrl.isNotEmpty)
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    imagemAtualUrl,
-                                    key: ValueKey(imagemAtualUrl),
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    errorBuilder: (_, error, __) {
-                                      print('ERRO IMG LOJA: $imagemAtualUrl');
-                                      print('DETALHE: $error');
-                                      return const Center(
-                                        child: Icon(Icons.store, size: 40),
-                                      );
-                                    },
-                                  ),
-                                )
-                              : const Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.image_outlined, size: 40),
-                                      SizedBox(height: 8),
-                                      Text('Toque para selecionar a logo'),
-                                    ],
-                                  ),
-                                ),
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                imagemAtualUrl,
+                                key: ValueKey(imagemAtualUrl),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (_, error, __) {
+                                  print('ERRO IMG LOJA: $imagemAtualUrl');
+                                  print('DETALHE: $error');
+                                  return const Center(
+                                    child: Icon(Icons.store, size: 40),
+                                  );
+                                },
+                              ),
+                            )
+                          : const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.image_outlined, size: 40),
+                                  SizedBox(height: 8),
+                                  Text('Toque para selecionar a logo'),
+                                ],
+                              ),
+                            ),
                     ),
                   ),
                   TextFormField(
