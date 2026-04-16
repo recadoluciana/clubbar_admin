@@ -54,7 +54,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return await StorageService.getOrganizacaoId();
   }
 
-  Future<void> _abrirModulo(BuildContext context, String nomeModulo) async {
+  Future<void> _abrirModulo(BuildContext context, String chaveModulo) async {
     final organizacaoId = await _getOrganizacaoId();
 
     if (organizacaoId == null) {
@@ -67,26 +67,28 @@ class _DashboardPageState extends State<DashboardPage> {
 
     Widget? destino;
 
-    if (nomeModulo == 'Minha organização') {
+    if (chaveModulo == 'organizacao') {
       destino = const OrganizacaoFormPage();
-    } else if (nomeModulo == 'Bares e casas noturnas') {
+    } else if (chaveModulo == 'lojas') {
       destino = LojaListPage(organizacaoId: organizacaoId);
-    } else if (nomeModulo == 'Categorias de produto') {
+    } else if (chaveModulo == 'categorias') {
       destino = CategoriaListPage(organizacaoId: organizacaoId);
-    } else if (nomeModulo == 'Produtos') {
+    } else if (chaveModulo == 'produtos') {
       destino = ProdutoListPage(organizacaoId: organizacaoId);
-    } else if (nomeModulo == 'Usuários') {
+    } else if (chaveModulo == 'usuarios') {
       destino = UsuarioListPage(organizacaoId: organizacaoId);
-    } else if (nomeModulo == 'Eventos') {
+    } else if (chaveModulo == 'eventos') {
       destino = EventoListPage(organizacaoId: organizacaoId);
-    } else if (nomeModulo == 'Painel gerencial') {
+    } else if (chaveModulo == 'painel') {
       destino = const PainelGerencialPage();
     }
 
     if (destino == null) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Módulo "$nomeModulo" ainda não implementado.')),
+        SnackBar(
+          content: Text('Módulo "$chaveModulo" ainda não implementado.'),
+        ),
       );
       return;
     }
@@ -99,37 +101,44 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     final modulos = [
       _DashboardItem(
+        chave: 'organizacao',
         titulo: 'Minha organização',
         subtitulo: 'Altere os dados da sua organização',
         icone: Icons.business,
       ),
       _DashboardItem(
-        titulo: 'Lojas',
-        subtitulo: 'Cadastre e gerencie as lojas da sua organização',
+        chave: 'lojas',
+        titulo: 'Bares',
+        subtitulo: 'Cadastre e gerencie os bares da sua organização',
         icone: Icons.store,
       ),
       _DashboardItem(
-        titulo: 'Categorias',
+        chave: 'categorias',
+        titulo: 'Categorias de produto',
         subtitulo: 'Cadastre e gerencie categorias de produtos',
         icone: Icons.category,
       ),
       _DashboardItem(
+        chave: 'produtos',
         titulo: 'Produtos',
-        subtitulo: 'Cadastre e edite os produtos das lojas',
+        subtitulo: 'Cadastre e gerencie os produtos',
         icone: Icons.inventory_2,
       ),
       _DashboardItem(
-        titulo: 'Usuários',
-        subtitulo: 'Cadastre e gerencie usuários da organização',
-        icone: Icons.people,
-      ),
-      _DashboardItem(
+        chave: 'eventos',
         titulo: 'Eventos',
         subtitulo: 'Cadastre e gerencie eventos e lotes',
         icone: Icons.event,
       ),
       _DashboardItem(
-        titulo: 'Painel de Controle',
+        chave: 'usuarios',
+        titulo: 'Usuários',
+        subtitulo: 'Cadastre e gerencie usuários da organização',
+        icone: Icons.people,
+      ),
+      _DashboardItem(
+        chave: 'painel',
+        titulo: 'Controle gerencial',
         subtitulo: 'Indicadores e gráficos gerenciais',
         icone: Icons.analytics,
       ),
@@ -189,23 +198,23 @@ class _DashboardPageState extends State<DashboardPage> {
                       title: const Text('Minha organização'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Minha organização');
+                        _abrirModulo(context, 'organizacao');
                       },
                     ),
                     ListTile(
                       leading: const Icon(Icons.store),
-                      title: const Text('Lojas'),
+                      title: const Text('Bares'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Lojas');
+                        _abrirModulo(context, 'lojas');
                       },
                     ),
                     ListTile(
                       leading: const Icon(Icons.category),
-                      title: const Text('Categorias'),
+                      title: const Text('Categorias de produto'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Categorias');
+                        _abrirModulo(context, 'categorias');
                       },
                     ),
                     ListTile(
@@ -213,15 +222,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       title: const Text('Produtos'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Produtos');
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.people),
-                      title: const Text('Usuários'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _abrirModulo(context, 'Usuários');
+                        _abrirModulo(context, 'produtos');
                       },
                     ),
                     ListTile(
@@ -229,15 +230,23 @@ class _DashboardPageState extends State<DashboardPage> {
                       title: const Text('Eventos'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Eventos');
+                        _abrirModulo(context, 'eventos');
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.people),
+                      title: const Text('Usuários'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _abrirModulo(context, 'usuarios');
                       },
                     ),
                     ListTile(
                       leading: const Icon(Icons.analytics),
-                      title: const Text('Painel de Controle'),
+                      title: const Text('Controle gerencial'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Painel de Controle');
+                        _abrirModulo(context, 'painel');
                       },
                     ),
                   ],
@@ -303,7 +312,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Revise sua organização, cadastre lojas, categorias, produtos, usuários e eventos.',
+                          'Revise sua organização, cadastre bares, categorias, produtos, usuários e eventos.',
                           style: TextStyle(fontSize: 16),
                         ),
                       ],
@@ -326,7 +335,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
                     return InkWell(
                       borderRadius: BorderRadius.circular(18),
-                      onTap: () => _abrirModulo(context, item.titulo),
+                      onTap: () => _abrirModulo(context, item.chave),
                       child: Card(
                         elevation: 3,
                         shape: RoundedRectangleBorder(
@@ -389,11 +398,13 @@ class _DashboardPageState extends State<DashboardPage> {
 }
 
 class _DashboardItem {
+  final String chave;
   final String titulo;
   final String subtitulo;
   final IconData icone;
 
   _DashboardItem({
+    required this.chave,
     required this.titulo,
     required this.subtitulo,
     required this.icone,
