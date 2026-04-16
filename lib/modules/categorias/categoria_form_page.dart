@@ -6,11 +6,7 @@ class CategoriaFormPage extends StatefulWidget {
   final Categoria? categoria;
   final int lojaId;
 
-  const CategoriaFormPage({
-    super.key,
-    this.categoria,
-    required this.lojaId,
-  });
+  const CategoriaFormPage({super.key, this.categoria, required this.lojaId});
 
   @override
   State<CategoriaFormPage> createState() => _CategoriaFormPageState();
@@ -19,6 +15,7 @@ class CategoriaFormPage extends StatefulWidget {
 class _CategoriaFormPageState extends State<CategoriaFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
+  final _ordemController = TextEditingController();
   final _repository = CategoriaRepository();
 
   bool _salvando = false;
@@ -34,12 +31,17 @@ class _CategoriaFormPageState extends State<CategoriaFormPage> {
     if (widget.categoria != null) {
       _nomeController.text = widget.categoria!.nmcategoria;
       _sitcategoria = widget.categoria!.sitcategoria ?? 'ATIVA';
+      _ordemController.text = (widget.categoria!.idordcategoria ?? 1)
+          .toString();
+    } else {
+      _ordemController.text = '1';
     }
   }
 
   @override
   void dispose() {
     _nomeController.dispose();
+    _ordemController.dispose();
     super.dispose();
   }
 
@@ -52,6 +54,7 @@ class _CategoriaFormPageState extends State<CategoriaFormPage> {
 
     try {
       final nome = _nomeController.text.trim();
+      final ordem = int.tryParse(_ordemController.text.trim()) ?? 1;
 
       if (editando) {
         await _repository.atualizar(
@@ -59,13 +62,10 @@ class _CategoriaFormPageState extends State<CategoriaFormPage> {
           widget.categoria!.categoriaId,
           nome,
           _sitcategoria,
+          ordem,
         );
       } else {
-        await _repository.criar(
-          widget.lojaId,
-          nome,
-          _sitcategoria,
-        );
+        await _repository.criar(widget.lojaId, nome, _sitcategoria, ordem);
       }
 
       if (!mounted) return;
@@ -82,9 +82,9 @@ class _CategoriaFormPageState extends State<CategoriaFormPage> {
 
       Navigator.of(context).pop(true);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -124,10 +124,32 @@ class _CategoriaFormPageState extends State<CategoriaFormPage> {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _ordemController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Ordem no cardápio',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Informe a ordem no cardápio';
+                      }
 
-                  // 🔥 NOVO: STATUS
+                      final numero = int.tryParse(value.trim());
+                      if (numero == null) {
+                        return 'Informe um número válido';
+                      }
+
+                      if (numero <= 0) {
+                        return 'A ordem deve ser maior que zero';
+                      }
+
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: _sitcategoria,
                     decoration: const InputDecoration(
@@ -135,10 +157,7 @@ class _CategoriaFormPageState extends State<CategoriaFormPage> {
                       border: OutlineInputBorder(),
                     ),
                     items: const [
-                      DropdownMenuItem(
-                        value: 'ATIVA',
-                        child: Text('ATIVA'),
-                      ),
+                      DropdownMenuItem(value: 'ATIVA', child: Text('ATIVA')),
                       DropdownMenuItem(
                         value: 'INATIVA',
                         child: Text('INATIVA'),
@@ -152,9 +171,7 @@ class _CategoriaFormPageState extends State<CategoriaFormPage> {
                       }
                     },
                   ),
-
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     height: 50,

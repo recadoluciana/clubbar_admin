@@ -10,10 +10,7 @@ import 'categoria_form_page.dart';
 class CategoriaListPage extends StatefulWidget {
   final int organizacaoId;
 
-  const CategoriaListPage({
-    super.key,
-    required this.organizacaoId,
-  });
+  const CategoriaListPage({super.key, required this.organizacaoId});
 
   @override
   State<CategoriaListPage> createState() => _CategoriaListPageState();
@@ -110,9 +107,9 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
         _carregando = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     }
   }
 
@@ -142,9 +139,9 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     } finally {
       if (mounted) {
         setState(() {
@@ -165,10 +162,12 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
           final id = categoria.categoriaId.toString();
           final nome = categoria.nmcategoria.toLowerCase();
           final status = (categoria.sitcategoria ?? '').toLowerCase();
+          final ordem = (categoria.idordcategoria ?? 0).toString();
 
           return id.contains(busca) ||
               nome.contains(busca) ||
-              status.contains(busca);
+              status.contains(busca) ||
+              ordem.contains(busca);
         }).toList();
       }
     });
@@ -176,17 +175,15 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
 
   Future<void> _abrirNovaCategoria() async {
     if (_lojaIdSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma loja')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Selecione uma loja')));
       return;
     }
 
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => CategoriaFormPage(
-          lojaId: _lojaIdSelecionada!,
-        ),
+        builder: (_) => CategoriaFormPage(lojaId: _lojaIdSelecionada!),
       ),
     );
 
@@ -250,9 +247,9 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     }
   }
 
@@ -261,9 +258,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Center(
-            child: Text('Nenhuma categoria encontrada.'),
-          ),
+          child: Center(child: Text('Nenhuma categoria encontrada.')),
         ),
       );
     }
@@ -275,6 +270,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
           columns: const [
             DataColumn(label: Text('ID')),
             DataColumn(label: Text('Nome')),
+            DataColumn(label: Text('Ordem no cardápio')),
             DataColumn(label: Text('Status')),
             DataColumn(label: Text('Ações')),
           ],
@@ -283,6 +279,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
               cells: [
                 DataCell(Text(categoria.categoriaId.toString())),
                 DataCell(Text(categoria.nmcategoria)),
+                DataCell(Text((categoria.idordcategoria ?? 0).toString())),
                 DataCell(Text(categoria.sitcategoria ?? '-')),
                 DataCell(
                   Row(
@@ -311,10 +308,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Categorias'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Categorias'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(

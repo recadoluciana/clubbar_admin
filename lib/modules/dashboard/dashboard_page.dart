@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:clubbar_admin/core/services/storage_service.dart';
 import 'package:clubbar_admin/modules/auth/login_page.dart';
+import 'package:clubbar_admin/modules/categorias/categoria_list_page.dart';
 import 'package:clubbar_admin/modules/eventos/evento_list_page.dart';
 import 'package:clubbar_admin/modules/lojas/loja_list_page.dart';
 import 'package:clubbar_admin/modules/organizacoes/organizacao_form_page.dart';
@@ -58,9 +59,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (organizacaoId == null) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Organização não encontrada no login.'),
-        ),
+        const SnackBar(content: Text('Organização não encontrada no login.')),
       );
       return;
     }
@@ -71,28 +70,26 @@ class _DashboardPageState extends State<DashboardPage> {
       destino = const OrganizacaoFormPage();
     } else if (nomeModulo == 'Lojas') {
       destino = LojaListPage(organizacaoId: organizacaoId);
+    } else if (nomeModulo == 'Categorias de produto') {
+      destino = CategoriaListPage(organizacaoId: organizacaoId);
     } else if (nomeModulo == 'Produtos') {
       destino = ProdutoListPage(organizacaoId: organizacaoId);
     } else if (nomeModulo == 'Eventos') {
       destino = EventoListPage(organizacaoId: organizacaoId);
-    } else if (nomeModulo == 'Painel de Controle') {
+    } else if (nomeModulo == 'Painel gerencial') {
       destino = const PainelGerencialPage();
     }
 
     if (destino == null) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Módulo "$nomeModulo" ainda não implementado.'),
-        ),
+        SnackBar(content: Text('Módulo "$nomeModulo" ainda não implementado.')),
       );
       return;
     }
 
     if (!context.mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => destino!),
-    );
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => destino!));
   }
 
   @override
@@ -109,8 +106,13 @@ class _DashboardPageState extends State<DashboardPage> {
         icone: Icons.store,
       ),
       _DashboardItem(
+        titulo: 'Categorias de Produto',
+        subtitulo: 'Cadastre e gerencie as categorias dos produtos das lojas',
+        icone: Icons.category,
+      ),
+      _DashboardItem(
         titulo: 'Produtos',
-        subtitulo: 'Cadastre e edite os produtos das lojas',
+        subtitulo: 'Cadastre e gerencie os produtos das lojas',
         icone: Icons.inventory_2,
       ),
       _DashboardItem(
@@ -188,6 +190,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       onTap: () {
                         Navigator.pop(context);
                         _abrirModulo(context, 'Lojas');
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.category),
+                      title: const Text('Categorias de Produto'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _abrirModulo(context, 'Categorias de Produto');
                       },
                     ),
                     ListTile(
@@ -277,7 +287,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Revise sua organização, cadastre lojas, depois produtos e eventos.',
+                          'Revise sua organização, cadastre lojas, depois categorias, produtos e eventos.',
                           style: TextStyle(fontSize: 16),
                         ),
                       ],

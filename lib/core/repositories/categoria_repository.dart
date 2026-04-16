@@ -20,15 +20,17 @@ class CategoriaRepository {
     throw Exception('Erro ao listar categorias: ${response.body}');
   }
 
-  Future<void> criar(int lojaId, String nome, String sitcategoria) async {
-    final response = await ApiService.post(
-      '/lojas/$lojaId/categorias',
-      {
-        'nmcategoria': nome,
-        'sitcategoria': sitcategoria,
-        'idordcategoria': 1,
-      },
-    );
+  Future<void> criar(
+    int lojaId,
+    String nome,
+    String sitcategoria,
+    int idordcategoria,
+  ) async {
+    final response = await ApiService.post('/lojas/$lojaId/categorias', {
+      'nmcategoria': nome,
+      'sitcategoria': sitcategoria,
+      'idordcategoria': idordcategoria,
+    });
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Erro ao criar categoria: ${response.body}');
@@ -40,14 +42,14 @@ class CategoriaRepository {
     int categoriaId,
     String nome,
     String sitcategoria,
+    int idordcategoria,
   ) async {
-    final response = await ApiService.put(
-      '/lojas/$lojaId/categorias/$categoriaId',
-      {
-        'nmcategoria': nome,
-        'sitcategoria': sitcategoria,
-      },
-    );
+    final response =
+        await ApiService.put('/lojas/$lojaId/categorias/$categoriaId', {
+          'nmcategoria': nome,
+          'sitcategoria': sitcategoria,
+          'idordcategoria': idordcategoria,
+        });
 
     if (response.statusCode != 200) {
       throw Exception('Erro ao atualizar categoria: ${response.body}');
