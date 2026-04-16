@@ -96,9 +96,14 @@ class _LojaListPageState extends State<LojaListPage> {
         _lojasFiltradas = _lojas;
       } else {
         _lojasFiltradas = _lojas.where((loja) {
+          final endereco = (loja.endloja ?? '').toLowerCase();
+          final instagram = (loja.dsinstaloja ?? '').toLowerCase();
+
           return loja.lojaId.toString().contains(busca) ||
               loja.nmloja.toLowerCase().contains(busca) ||
               (loja.dsbairroloja ?? '').toLowerCase().contains(busca) ||
+              endereco.contains(busca) ||
+              instagram.contains(busca) ||
               (loja.nrtelloja ?? '').toLowerCase().contains(busca) ||
               (loja.sitloja ?? '').toLowerCase().contains(busca);
         }).toList();
@@ -199,7 +204,9 @@ class _LojaListPageState extends State<LojaListPage> {
               DataColumn(label: Text('Logo')),
               DataColumn(label: Text('ID')),
               DataColumn(label: Text('Nome')),
+              DataColumn(label: Text('Endereço')),
               DataColumn(label: Text('Bairro')),
+              DataColumn(label: Text('Instagram')),
               DataColumn(label: Text('Telefone')),
               DataColumn(label: Text('Horário')),
               DataColumn(label: Text('Validade')),
@@ -234,7 +241,9 @@ class _LojaListPageState extends State<LojaListPage> {
                   ),
                   DataCell(Text(loja.lojaId.toString())),
                   DataCell(Text(loja.nmloja)),
+                  DataCell(Text(loja.endloja ?? '-')),
                   DataCell(Text(loja.dsbairroloja ?? '-')),
+                  DataCell(Text(loja.dsinstaloja ?? '-')),
                   DataCell(Text(loja.nrtelloja ?? '-')),
                   DataCell(Text(loja.dshorarioloja ?? '-')),
                   DataCell(Text(loja.nrdiavalidade?.toString() ?? '-')),

@@ -108,8 +108,9 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       _DashboardItem(
         chave: 'lojas',
-        titulo: 'Bares',
-        subtitulo: 'Cadastre e gerencie os bares da sua organização',
+        titulo: 'Bares e casas noturnas',
+        subtitulo:
+            'Cadastre e gerencie os bares e casas noturnas da sua organização',
         icone: Icons.store,
       ),
       _DashboardItem(
