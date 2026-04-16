@@ -5,8 +5,9 @@ import '../services/api_service.dart';
 
 class UsuarioRepository {
   Future<List<Usuario>> listar(int organizacaoId) async {
-    final response =
-        await ApiService.get('/organizacoes/$organizacaoId/usuarios');
+    final response = await ApiService.get(
+      '/organizacoes/$organizacaoId/usuarios',
+    );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -29,16 +30,14 @@ class UsuarioRepository {
     int? lojaId,
     String situsuario = 'ATIVO',
   }) async {
-    final response = await ApiService.post(
-      '/organizacoes/$organizacaoId/usuarios',
-      {
-        'nmusuario': nome,
-        'emailuser': email,
-        'senha': senha,
-        'loja_id': lojaId,
-        'situsuario': situsuario,
-      },
-    );
+    final response =
+        await ApiService.post('/organizacoes/$organizacaoId/usuarios', {
+          'nmusuario': nome,
+          'emailuser': email,
+          'senha': senha,
+          'loja_id': lojaId,
+          'situsuario': situsuario,
+        });
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Erro ao criar usuário: ${response.body}');
@@ -46,6 +45,7 @@ class UsuarioRepository {
   }
 
   Future<void> atualizar({
+    required int organizacaoId,
     required int usuarioId,
     String? nome,
     String? email,
@@ -54,7 +54,7 @@ class UsuarioRepository {
     String? situsuario,
   }) async {
     final response = await ApiService.put(
-      '/usuarios/$usuarioId',
+      '/organizacoes/$organizacaoId/usuarios/$usuarioId',
       {
         'nmusuario': nome,
         'emailuser': email,
@@ -69,8 +69,13 @@ class UsuarioRepository {
     }
   }
 
-  Future<void> excluir(int usuarioId) async {
-    final response = await ApiService.delete('/usuarios/$usuarioId');
+  Future<void> excluir({
+    required int organizacaoId,
+    required int usuarioId,
+  }) async {
+    final response = await ApiService.delete(
+      '/organizacoes/$organizacaoId/usuarios/$usuarioId',
+    );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Erro ao excluir usuário: ${response.body}');

@@ -8,6 +8,7 @@ import 'package:clubbar_admin/modules/lojas/loja_list_page.dart';
 import 'package:clubbar_admin/modules/organizacoes/organizacao_form_page.dart';
 import 'package:clubbar_admin/modules/produtos/produto_list_page.dart';
 import 'package:clubbar_admin/modules/painel_gerencial/painel_gerencial_page.dart';
+import 'package:clubbar_admin/modules/usuarios/usuario_list_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -68,12 +69,14 @@ class _DashboardPageState extends State<DashboardPage> {
 
     if (nomeModulo == 'Minha organização') {
       destino = const OrganizacaoFormPage();
-    } else if (nomeModulo == 'Lojas') {
+    } else if (nomeModulo == 'Bares e casas noturnas') {
       destino = LojaListPage(organizacaoId: organizacaoId);
     } else if (nomeModulo == 'Categorias de produto') {
       destino = CategoriaListPage(organizacaoId: organizacaoId);
     } else if (nomeModulo == 'Produtos') {
       destino = ProdutoListPage(organizacaoId: organizacaoId);
+    } else if (nomeModulo == 'Usuários') {
+      destino = UsuarioListPage(organizacaoId: organizacaoId);
     } else if (nomeModulo == 'Eventos') {
       destino = EventoListPage(organizacaoId: organizacaoId);
     } else if (nomeModulo == 'Painel gerencial') {
@@ -106,14 +109,19 @@ class _DashboardPageState extends State<DashboardPage> {
         icone: Icons.store,
       ),
       _DashboardItem(
-        titulo: 'Categorias de Produto',
-        subtitulo: 'Cadastre e gerencie as categorias dos produtos das lojas',
+        titulo: 'Categorias',
+        subtitulo: 'Cadastre e gerencie categorias de produtos',
         icone: Icons.category,
       ),
       _DashboardItem(
         titulo: 'Produtos',
-        subtitulo: 'Cadastre e gerencie os produtos das lojas',
+        subtitulo: 'Cadastre e edite os produtos das lojas',
         icone: Icons.inventory_2,
+      ),
+      _DashboardItem(
+        titulo: 'Usuários',
+        subtitulo: 'Cadastre e gerencie usuários da organização',
+        icone: Icons.people,
       ),
       _DashboardItem(
         titulo: 'Eventos',
@@ -194,10 +202,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     ListTile(
                       leading: const Icon(Icons.category),
-                      title: const Text('Categorias de Produto'),
+                      title: const Text('Categorias'),
                       onTap: () {
                         Navigator.pop(context);
-                        _abrirModulo(context, 'Categorias de Produto');
+                        _abrirModulo(context, 'Categorias');
                       },
                     ),
                     ListTile(
@@ -206,6 +214,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       onTap: () {
                         Navigator.pop(context);
                         _abrirModulo(context, 'Produtos');
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.people),
+                      title: const Text('Usuários'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _abrirModulo(context, 'Usuários');
                       },
                     ),
                     ListTile(
@@ -287,7 +303,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Revise sua organização, cadastre lojas, depois categorias, produtos e eventos.',
+                          'Revise sua organização, cadastre lojas, categorias, produtos, usuários e eventos.',
                           style: TextStyle(fontSize: 16),
                         ),
                       ],

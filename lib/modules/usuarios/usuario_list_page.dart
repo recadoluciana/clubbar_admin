@@ -10,10 +10,7 @@ import 'usuario_form_page.dart';
 class UsuarioListPage extends StatefulWidget {
   final int organizacaoId;
 
-  const UsuarioListPage({
-    super.key,
-    required this.organizacaoId,
-  });
+  const UsuarioListPage({super.key, required this.organizacaoId});
 
   @override
   State<UsuarioListPage> createState() => _UsuarioListPageState();
@@ -81,9 +78,9 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     } finally {
       if (mounted) {
         setState(() {
@@ -125,9 +122,7 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
   Future<void> _abrirNovoUsuario() async {
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => UsuarioFormPage(
-          organizacaoId: widget.organizacaoId,
-        ),
+        builder: (_) => UsuarioFormPage(organizacaoId: widget.organizacaoId),
       ),
     );
 
@@ -173,7 +168,10 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
     if (confirmar != true) return;
 
     try {
-      await _repository.excluir(usuario.usuarioId);
+      await _repository.excluir(
+        organizacaoId: widget.organizacaoId,
+        usuarioId: usuario.usuarioId,
+      );
 
       if (!mounted) return;
 
@@ -185,9 +183,9 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_extrairMensagemErro(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_extrairMensagemErro(e))));
     }
   }
 
@@ -196,9 +194,7 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Center(
-            child: Text('Nenhum usuário encontrado.'),
-          ),
+          child: Center(child: Text('Nenhum usuário encontrado.')),
         ),
       );
     }
@@ -250,10 +246,7 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Usuários'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Usuários'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(

@@ -9,11 +9,7 @@ class UsuarioFormPage extends StatefulWidget {
   final int organizacaoId;
   final Usuario? usuario;
 
-  const UsuarioFormPage({
-    super.key,
-    required this.organizacaoId,
-    this.usuario,
-  });
+  const UsuarioFormPage({super.key, required this.organizacaoId, this.usuario});
 
   @override
   State<UsuarioFormPage> createState() => _UsuarioFormPageState();
@@ -90,9 +86,9 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
         _carregandoLojas = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao carregar lojas: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao carregar lojas: $e')));
     }
   }
 
@@ -106,6 +102,7 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
     try {
       if (editando) {
         await _usuarioRepository.atualizar(
+          organizacaoId: widget.organizacaoId,
           usuarioId: widget.usuario!.usuarioId,
           nome: _nomeController.text.trim(),
           email: _emailController.text.trim(),
@@ -142,9 +139,9 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar usuário: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao salvar usuário: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -206,7 +203,8 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
-                      if (!editando && (value == null || value.trim().isEmpty)) {
+                      if (!editando &&
+                          (value == null || value.trim().isEmpty)) {
                         return 'Informe a senha';
                       }
                       return null;
@@ -247,10 +245,7 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                       border: OutlineInputBorder(),
                     ),
                     items: const [
-                      DropdownMenuItem(
-                        value: 'ATIVO',
-                        child: Text('ATIVO'),
-                      ),
+                      DropdownMenuItem(value: 'ATIVO', child: Text('ATIVO')),
                       DropdownMenuItem(
                         value: 'INATIVO',
                         child: Text('INATIVO'),
