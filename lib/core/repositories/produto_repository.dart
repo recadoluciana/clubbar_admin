@@ -175,7 +175,7 @@ class ProdutoRepository {
   }
 
   Future<void> excluir(int produtoId) async {
-    final response = await ApiService.delete('/produto/$produtoId');
+    final response = await ApiService.delete('/produtos/$produtoId');
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Erro ao excluir produto: ${response.body}');

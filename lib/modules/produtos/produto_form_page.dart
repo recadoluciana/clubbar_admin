@@ -58,20 +58,24 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
     if (widget.produto != null) {
       _nomeController.text = (widget.produto!['nmproduto'] ?? '').toString();
-      _descricaoController.text = (widget.produto!['dsproduto'] ?? '').toString();
+      _descricaoController.text = (widget.produto!['dsproduto'] ?? '')
+          .toString();
       _precoController.text = (widget.produto!['vrprecoprod'] ?? '').toString();
 
       _categoriaIdSelecionada = widget.produto!['categoria_id'];
-      _statusSelecionado = (widget.produto!['sitproduto'] ?? 'ATIVO').toString();
+      _statusSelecionado = (widget.produto!['sitproduto'] ?? 'ATIVO')
+          .toString();
 
-      _tipoDescontoSelecionado =
-          (widget.produto!['tipodesconto'] ?? 'NENHUM').toString();
-      _vrDescontoController.text =
-          (widget.produto!['vrdesconto'] ?? '0.00').toString();
-      _dtIniDescontoController.text =
-          _formatarDataTela(widget.produto!['dtinidesconto']);
-      _dtFimDescontoController.text =
-          _formatarDataTela(widget.produto!['dtfimdesconto']);
+      _tipoDescontoSelecionado = (widget.produto!['tipodesconto'] ?? 'NENHUM')
+          .toString();
+      _vrDescontoController.text = (widget.produto!['vrdesconto'] ?? '0.00')
+          .toString();
+      _dtIniDescontoController.text = _formatarDataTela(
+        widget.produto!['dtinidesconto'],
+      );
+      _dtFimDescontoController.text = _formatarDataTela(
+        widget.produto!['dtfimdesconto'],
+      );
     } else {
       _vrDescontoController.text = '0';
     }
@@ -90,7 +94,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     super.dispose();
   }
 
-  String _somenteNumeroData(String valor) => valor.toString().trim();
+  String _somenteNumeroData(Object? valor) => (valor ?? '').toString().trim();
 
   String _formatarDataTela(dynamic valor) {
     final texto = _somenteNumeroData(valor);
@@ -208,9 +212,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao selecionar imagem: $e')));
     }
   }
 
@@ -233,9 +237,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_categoriaIdSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma categoria')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Selecione uma categoria')));
       return;
     }
 
@@ -273,11 +277,13 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
       final dtIniDesconto = _formatarDataApi(_dtIniDescontoController.text);
       final dtFimDesconto = _formatarDataApi(_dtFimDescontoController.text);
 
-      if (_dtIniDescontoController.text.trim().isNotEmpty && dtIniDesconto == null) {
+      if (_dtIniDescontoController.text.trim().isNotEmpty &&
+          dtIniDesconto == null) {
         throw Exception('Data início desconto inválida. Use dd/MM/yyyy HH:mm');
       }
 
-      if (_dtFimDescontoController.text.trim().isNotEmpty && dtFimDesconto == null) {
+      if (_dtFimDescontoController.text.trim().isNotEmpty &&
+          dtFimDesconto == null) {
         throw Exception('Data fim desconto inválida. Use dd/MM/yyyy HH:mm');
       }
 
@@ -328,9 +334,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -391,35 +397,35 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                                     ),
                             )
                           : (editando && imagemAtualUrl.isNotEmpty)
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    imagemAtualUrl,
-                                    key: ValueKey(imagemAtualUrl),
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    errorBuilder: (_, error, __) {
-                                      print('ERRO IMG PRODUTO: $imagemAtualUrl');
-                                      print('DETALHE: $error');
-                                      return const Center(
-                                        child: Icon(
-                                          Icons.image_not_supported,
-                                          size: 40,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                )
-                              : const Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.image_outlined, size: 40),
-                                      SizedBox(height: 8),
-                                      Text('Toque para selecionar uma imagem'),
-                                    ],
-                                  ),
-                                ),
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                imagemAtualUrl,
+                                key: ValueKey(imagemAtualUrl),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (_, error, __) {
+                                  print('ERRO IMG PRODUTO: $imagemAtualUrl');
+                                  print('DETALHE: $error');
+                                  return const Center(
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      size: 40,
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.image_outlined, size: 40),
+                                  SizedBox(height: 8),
+                                  Text('Toque para selecionar uma imagem'),
+                                ],
+                              ),
+                            ),
                     ),
                   ),
                   TextFormField(
@@ -514,10 +520,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                   const SizedBox(height: 8),
                   const Text(
                     'Desconto',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
 

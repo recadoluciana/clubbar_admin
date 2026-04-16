@@ -221,18 +221,30 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
   Future<void> _abrirEdicao(dynamic produto) async {
     if (_lojaIdSelecionada == null) return;
 
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => ProdutoFormPage(
-          lojaId: _lojaIdSelecionada!,
-          organizacaoId: widget.organizacaoId,
-          produto: Map<String, dynamic>.from(produto),
-        ),
-      ),
-    );
+    try {
+      debugPrint('Produto para editar: ${jsonEncode(produto)}');
 
-    if (result == true) {
-      _carregarProdutos();
+      final produtoMap = Map<String, dynamic>.from(produto as Map);
+
+      final result = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => ProdutoFormPage(
+            lojaId: _lojaIdSelecionada!,
+            organizacaoId: widget.organizacaoId,
+            produto: produtoMap,
+          ),
+        ),
+      );
+
+      if (result == true) {
+        _carregarProdutos();
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao abrir edição: $e')));
     }
   }
 
