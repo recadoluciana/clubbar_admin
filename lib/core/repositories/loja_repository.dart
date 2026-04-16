@@ -11,8 +11,9 @@ import '../services/storage_service.dart';
 
 class LojaRepository {
   Future<List<Loja>> listar(int organizacaoId) async {
-    final response =
-        await ApiService.get('/lojas/organizacoes/$organizacaoId/lojas_todas');
+    final response = await ApiService.get(
+      '/lojas/organizacoes/$organizacaoId/lojas_todas',
+    );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -39,10 +40,7 @@ class LojaRepository {
         filename: imagem.name,
       );
     } else {
-      return await http.MultipartFile.fromPath(
-        fieldName,
-        imagem.path,
-      );
+      return await http.MultipartFile.fromPath(fieldName, imagem.path);
     }
   }
 
@@ -54,6 +52,8 @@ class LojaRepository {
     String? telefone,
     String? horario,
     int? diasValidade,
+    String? endereco,
+    String? instagram,
     XFile? imagem,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/lojas');
@@ -72,14 +72,15 @@ class LojaRepository {
     request.fields['nrtelloja'] = telefone ?? '';
     request.fields['dshorarioloja'] = horario ?? '';
 
+    request.fields['endloja'] = endereco ?? '';
+    request.fields['dsinstaloja'] = instagram ?? '';
+
     if (diasValidade != null) {
       request.fields['nrdiavalidade'] = diasValidade.toString();
     }
 
     if (imagem != null) {
-      request.files.add(
-        await _montarArquivoImagem('urllogoloja', imagem),
-      );
+      request.files.add(await _montarArquivoImagem('urllogoloja', imagem));
     }
 
     final response = await request.send();
@@ -99,6 +100,8 @@ class LojaRepository {
     String? telefone,
     String? horario,
     int? diasValidade,
+    String? endereco,
+    String? instagram,
     XFile? imagem,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/lojas/$lojaId');
@@ -117,14 +120,15 @@ class LojaRepository {
     request.fields['nrtelloja'] = telefone ?? '';
     request.fields['dshorarioloja'] = horario ?? '';
 
+    request.fields['endloja'] = endereco ?? '';
+    request.fields['dsinstaloja'] = instagram ?? '';
+
     if (diasValidade != null) {
       request.fields['nrdiavalidade'] = diasValidade.toString();
     }
 
     if (imagem != null) {
-      request.files.add(
-        await _montarArquivoImagem('urllogoloja', imagem),
-      );
+      request.files.add(await _montarArquivoImagem('urllogoloja', imagem));
     }
 
     final response = await request.send();

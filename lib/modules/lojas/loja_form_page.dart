@@ -30,6 +30,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
   final TextEditingController _horarioController = TextEditingController();
   final TextEditingController _diasValidadeController = TextEditingController();
 
+  final TextEditingController _enderecoController = TextEditingController();
+  final TextEditingController _instagramController = TextEditingController();
+
   bool _salvando = false;
   bool _carregandoCidades = true;
 
@@ -53,6 +56,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
       _diasValidadeController.text =
           widget.loja!.nrdiavalidade?.toString() ?? '';
       _cidadeIdSelecionada = widget.loja!.cidadeId;
+
+      _enderecoController.text = widget.loja!.endloja ?? '';
+      _instagramController.text = widget.loja!.dsinstaloja ?? '';
     }
 
     _carregarCidades();
@@ -65,6 +71,8 @@ class _LojaFormPageState extends State<LojaFormPage> {
     _telefoneController.dispose();
     _horarioController.dispose();
     _diasValidadeController.dispose();
+    _enderecoController.dispose();
+    _instagramController.dispose();
     super.dispose();
   }
 
@@ -178,6 +186,8 @@ class _LojaFormPageState extends State<LojaFormPage> {
           telefone: _telefoneController.text.trim(),
           horario: _horarioController.text.trim(),
           diasValidade: diasValidade,
+          endereco: _enderecoController.text.trim(),
+          instagram: _instagramController.text.trim(),
           imagem: _imagemSelecionada,
         );
       } else {
@@ -189,6 +199,8 @@ class _LojaFormPageState extends State<LojaFormPage> {
           telefone: _telefoneController.text.trim(),
           horario: _horarioController.text.trim(),
           diasValidade: diasValidade,
+          endereco: _enderecoController.text.trim(),
+          instagram: _instagramController.text.trim(),
           imagem: _imagemSelecionada,
         );
       }
@@ -355,6 +367,22 @@ class _LojaFormPageState extends State<LojaFormPage> {
                     controller: _bairroController,
                     decoration: const InputDecoration(
                       labelText: 'Bairro',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _enderecoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Endereço da loja',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _instagramController,
+                    decoration: const InputDecoration(
+                      labelText: 'Instagram da loja',
                       border: OutlineInputBorder(),
                     ),
                   ),

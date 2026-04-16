@@ -10,6 +10,9 @@ class Loja {
   final String? sitloja;
   final String? urllogoloja;
 
+  final String? endloja;
+  final String? dsinstaloja;
+
   Loja({
     required this.lojaId,
     required this.organizacaoId,
@@ -21,6 +24,8 @@ class Loja {
     this.nrdiavalidade,
     this.sitloja,
     this.urllogoloja,
+    this.endloja,
+    this.dsinstaloja,
   });
 
   factory Loja.fromJson(Map<String, dynamic> json) {
@@ -35,6 +40,8 @@ class Loja {
       nrdiavalidade: json['nrdiavalidade'],
       sitloja: json['sitloja']?.toString(),
       urllogoloja: json['urllogoloja']?.toString(),
+      endloja: json['endloja']?.toString(),
+      dsinstaloja: json['dsinstaloja']?.toString(),
     );
   }
 
@@ -50,6 +57,8 @@ class Loja {
       'nrdiavalidade': nrdiavalidade,
       'sitloja': sitloja,
       'urllogoloja': urllogoloja,
+      'endloja': endloja,
+      'dsinstaloja': dsinstaloja,
     };
   }
 }
