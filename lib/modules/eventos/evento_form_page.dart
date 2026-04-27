@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/repositories/evento_repository.dart';
 import '../../models/evento.dart';
@@ -31,9 +32,10 @@ class _EventoFormPageState extends State<EventoFormPage> {
   final _tituloController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _dataInicioController = TextEditingController();
-  final _dataFimController = TextEditingController();
   final _localController = TextEditingController();
   final _enderecoController = TextEditingController();
+
+  DateTime? _dataEventoSelecionada;
 
   XFile? _imagemSelecionada;
   Uint8List? _imagemBytes;
@@ -48,10 +50,16 @@ class _EventoFormPageState extends State<EventoFormPage> {
     if (widget.evento != null) {
       _tituloController.text = widget.evento!.nmtituloevento;
       _descricaoController.text = widget.evento!.dsdescevento ?? '';
-      _dataInicioController.text = widget.evento!.dtinicioevento ?? '';
-      _dataFimController.text = widget.evento!.dtfimevento ?? '';
       _localController.text = widget.evento!.nmlocalevento ?? '';
       _enderecoController.text = widget.evento!.dsendlocevento ?? '';
+
+      final data = DateTime.tryParse(widget.evento!.dtinicioevento ?? '');
+      if (data != null) {
+        _dataEventoSelecionada = data;
+        _dataInicioController.text = DateFormat(
+          'dd/MM/yyyy HH:mm',
+        ).format(data);
+      }
     }
   }
 
@@ -60,10 +68,53 @@ class _EventoFormPageState extends State<EventoFormPage> {
     _tituloController.dispose();
     _descricaoController.dispose();
     _dataInicioController.dispose();
-    _dataFimController.dispose();
     _localController.dispose();
     _enderecoController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selecionarDataHoraEvento() async {
+    final agora = DateTime.now();
+
+    final dataSelecionada = await showDatePicker(
+      context: context,
+      initialDate: _dataEventoSelecionada ?? agora,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+
+    if (dataSelecionada == null) return;
+
+    if (!mounted) return;
+
+    final horaSelecionada = await showTimePicker(
+      context: context,
+      initialTime: _dataEventoSelecionada != null
+          ? TimeOfDay.fromDateTime(_dataEventoSelecionada!)
+          : TimeOfDay.now(),
+    );
+
+    if (horaSelecionada == null) return;
+
+    final dataHora = DateTime(
+      dataSelecionada.year,
+      dataSelecionada.month,
+      dataSelecionada.day,
+      horaSelecionada.hour,
+      horaSelecionada.minute,
+    );
+
+    setState(() {
+      _dataEventoSelecionada = dataHora;
+      _dataInicioController.text = DateFormat(
+        'dd/MM/yyyy HH:mm',
+      ).format(dataHora);
+    });
+  }
+
+  String _dataParaApi() {
+    if (_dataEventoSelecionada == null) return '';
+    return DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(_dataEventoSelecionada!);
   }
 
   Future<void> _pickImagem() async {
@@ -84,14 +135,16 @@ class _EventoFormPageState extends State<EventoFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao selecionar imagem: $e')));
     }
   }
 
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final dataApi = _dataParaApi();
 
     setState(() => _salvando = true);
 
@@ -101,8 +154,8 @@ class _EventoFormPageState extends State<EventoFormPage> {
           eventoId: widget.evento!.eventoId,
           titulo: _tituloController.text.trim(),
           descricao: _descricaoController.text.trim(),
-          dataInicio: _dataInicioController.text.trim(),
-          dataFim: _dataFimController.text.trim(),
+          dataInicio: dataApi,
+          dataFim: dataApi,
           local: _localController.text.trim(),
           endereco: _enderecoController.text.trim(),
           status: 'ATIVO',
@@ -115,8 +168,8 @@ class _EventoFormPageState extends State<EventoFormPage> {
           produtoIdIngresso: 1,
           titulo: _tituloController.text.trim(),
           descricao: _descricaoController.text.trim(),
-          dataInicio: _dataInicioController.text.trim(),
-          dataFim: _dataFimController.text.trim(),
+          dataInicio: dataApi,
+          dataFim: dataApi,
           local: _localController.text.trim(),
           endereco: _enderecoController.text.trim(),
           status: 'ATIVO',
@@ -140,9 +193,9 @@ class _EventoFormPageState extends State<EventoFormPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro: $e')));
     } finally {
       if (mounted) {
         setState(() => _salvando = false);
@@ -155,9 +208,7 @@ class _EventoFormPageState extends State<EventoFormPage> {
     final bannerAtual = widget.evento?.urlbannerevento ?? '';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(editando ? 'Editar Evento' : 'Novo Evento'),
-      ),
+      appBar: AppBar(title: Text(editando ? 'Editar Evento' : 'Novo Evento')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -188,28 +239,27 @@ class _EventoFormPageState extends State<EventoFormPage> {
                                 ),
                         )
                       : (editando && bannerAtual.isNotEmpty)
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                bannerAtual,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                errorBuilder: (_, __, ___) => const Center(
-                                  child: Icon(Icons.image_not_supported,
-                                      size: 50),
-                                ),
-                              ),
-                            )
-                          : const Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.image, size: 40),
-                                  SizedBox(height: 8),
-                                  Text('Selecionar banner'),
-                                ],
-                              ),
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            bannerAtual,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Icon(Icons.image_not_supported, size: 50),
                             ),
+                          ),
+                        )
+                      : const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.image, size: 40),
+                              SizedBox(height: 8),
+                              Text('Selecionar banner'),
+                            ],
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -233,18 +283,16 @@ class _EventoFormPageState extends State<EventoFormPage> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _dataInicioController,
+                readOnly: true,
+                onTap: _selecionarDataHoraEvento,
                 decoration: const InputDecoration(
-                  labelText: 'Data início (ISO)',
+                  labelText: 'Data e hora do evento',
+                  hintText: 'dd/mm/aaaa hh:mm',
                   border: OutlineInputBorder(),
+                  suffixIcon: Icon(Icons.calendar_month),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _dataFimController,
-                decoration: const InputDecoration(
-                  labelText: 'Data fim (ISO)',
-                  border: OutlineInputBorder(),
-                ),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Informe a data e hora' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
