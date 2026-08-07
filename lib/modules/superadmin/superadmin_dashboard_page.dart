@@ -7,8 +7,6 @@ import '../../core/widgets/clubbar_page_header.dart';
 
 import '../auth/login_page.dart';
 import '../leads/pages/leadparceiro_list_page.dart';
-import '../organizacoes/organizacao_form_page.dart';
-import '../usuarios/usuario_list_page.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -25,10 +23,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
 
   Map<String, dynamic> _dados = {};
 
-  String _nomeOrganizacao = '';
-  String _nomeUsuario = '';
-  String _cargo = '';
-
   @override
   void initState() {
     super.initState();
@@ -42,29 +36,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   }
 
   Future<void> _inicializar() async {
-    await _carregarDadosSessao();
     await _carregarDashboard();
-  }
-
-  int? _organizacaoId;
-
-  Future<void> _carregarDadosSessao() async {
-    final nomeOrganizacao = await StorageService.getNomeOrganizacao() ?? '';
-
-    final nomeUsuario = await StorageService.getNomeUsuario() ?? '';
-
-    final cargo = await StorageService.getCargo() ?? '';
-
-    final organizacaoId = await StorageService.getOrganizacaoId();
-
-    if (!mounted) return;
-
-    setState(() {
-      _nomeOrganizacao = nomeOrganizacao;
-      _nomeUsuario = nomeUsuario;
-      _cargo = cargo;
-      _organizacaoId = organizacaoId;
-    });
   }
 
   Future<void> _carregarDashboard() async {
@@ -86,7 +58,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
       if (!mounted) return;
 
       _mostrarMensagem(
-        'Não foi possível carregar o painel administrativo.',
+        'NÃ£o foi possÃ­vel carregar o painel administrativo.',
         erro: true,
       );
     } finally {
@@ -117,7 +89,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   }
 
   Future<void> _atualizar() async {
-    await _carregarDadosSessao();
     await _carregarDashboard();
 
     if (!mounted) return;
@@ -134,10 +105,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             borderRadius: BorderRadius.circular(18),
           ),
           title: const Text(
-            'Encerrar sessão',
+            'Encerrar sessÃ£o',
             style: TextStyle(fontWeight: FontWeight.w800),
           ),
-          content: const Text('Deseja realmente sair do Clubbar Parceiro?'),
+          content: const Text('Deseja realmente sair do Clubbar Admin?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -176,32 +147,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     );
   }
 
-  void _abrirUsuarios() {
-    if (_organizacaoId == null) {
-      _mostrarMensagem(
-        'Não foi possível identificar a organização do usuário.',
-        erro: true,
-      );
-      return;
-    }
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => UsuarioListPage(organizacaoId: _organizacaoId!),
-      ),
-    );
-  }
-
-  Future<void> _abrirOrganizacao() async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const OrganizacaoFormPage()));
-
-    if (!mounted) return;
-    await _carregarDadosSessao();
-    await _carregarDashboard();
-  }
-
   int _valorInteiro(String chave) {
     final valor = _dados[chave];
 
@@ -211,8 +156,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   }
 
   int _totalParceiros() {
-    final total = _valorInteiro('organizacoes');
-    return total > 0 ? total - 1 : 0;
+    return _valorInteiro('parceiros_ativos');
   }
 
   double _valorVendasHoje() {
@@ -229,92 +173,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
 
   String _formatarMoeda(double valor) {
     return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
-  }
-
-  Widget _cardOrganizacao() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.amber.shade200),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 7, offset: Offset(0, 3)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.amber.shade100,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.business_rounded,
-              size: 27,
-              color: Colors.black87,
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Organização',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-
-                const SizedBox(height: 2),
-
-                Text(
-                  _nomeOrganizacao.isEmpty ? 'Clubbar' : _nomeOrganizacao,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 10),
-
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              OutlinedButton.icon(
-                onPressed: _abrirOrganizacao,
-                icon: const Icon(Icons.edit_rounded, size: 18),
-                label: const Text('Editar'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.black87,
-                  side: BorderSide(color: Colors.amber.shade600),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _cardIndicador({
@@ -423,7 +281,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             ),
 
             _cardIndicador(
-              titulo: 'Usuários',
+              titulo: 'UsuÃ¡rios',
               valor: '${_dados['usuarios'] ?? 0}',
               icone: Icons.manage_accounts_rounded,
             ),
@@ -467,7 +325,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
           children: [
             const ClubbarPageHeader(
               titulo: 'Painel Administrativo',
-              subtitulo: 'Visão geral e administração do app',
+              subtitulo: 'VisÃ£o geral e administraÃ§Ã£o do app',
               icone: Icons.dashboard_rounded,
               mostrarDataHora: false,
             ),

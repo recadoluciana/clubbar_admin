@@ -54,7 +54,7 @@ android {
             resValue(
                 type = "string",
                 name = "app_name",
-                value = "Clubbar Gest\u00e3o DEV",
+                value = "Clubbar Admin Dev",
             )
         }
 
@@ -64,7 +64,7 @@ android {
             resValue(
                 type = "string",
                 name = "app_name",
-                value = "Clubbar Gest\u00e3o",
+                value = "Clubbar Admin",
             )
         }
     }

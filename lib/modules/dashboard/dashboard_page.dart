@@ -25,8 +25,6 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  String _nomeOrganizacao = 'Organização';
-
   bool _carregando = true;
 
   @override
@@ -45,15 +43,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _carregarDadosUsuario() async {
     try {
-      final nomeOrganizacao = await StorageService.getNomeOrganizacao();
-
       if (!mounted) return;
 
       setState(() {
-        _nomeOrganizacao = nomeOrganizacao?.trim().isNotEmpty == true
-            ? nomeOrganizacao!.trim()
-            : 'Organização';
-
         _carregando = false;
       });
     } catch (e) {
@@ -65,7 +57,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
       AppSnackBar.erro(
         context,
-        'Não foi possível carregar os dados do usuário.',
+        'NÃ£o foi possÃ­vel carregar os dados do usuÃ¡rio.',
       );
     }
   }
@@ -80,7 +72,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (organizacaoId == null || organizacaoId == 0) {
       if (!context.mounted) return;
 
-      AppSnackBar.erro(context, 'Organização não encontrada no login.');
+      AppSnackBar.erro(context, 'OrganizaÃ§Ã£o nÃ£o encontrada no login.');
 
       return;
     }
@@ -120,7 +112,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (destino == null) {
       if (!context.mounted) return;
 
-      AppSnackBar.aviso(context, 'Este módulo ainda não está disponível.');
+      AppSnackBar.aviso(context, 'Este mÃ³dulo ainda nÃ£o estÃ¡ disponÃ­vel.');
 
       return;
     }
@@ -145,13 +137,13 @@ class _DashboardPageState extends State<DashboardPage> {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Sair do Clubbar Gestão',
+                  'Sair do Clubbar Admin',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
             ],
           ),
-          content: const Text('Deseja realmente encerrar sua sessão?'),
+          content: const Text('Deseja realmente encerrar sua sessÃ£o?'),
           actions: [
             OutlinedButton.icon(
               onPressed: () {
@@ -192,7 +184,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final modulos = <_DashboardItem>[
       const _DashboardItem(
         chave: 'organizacao',
-        titulo: 'Organização',
+        titulo: 'OrganizaÃ§Ã£o',
         subtitulo: 'Dados da empresa',
         icone: Icons.business_rounded,
       ),
@@ -205,13 +197,13 @@ class _DashboardPageState extends State<DashboardPage> {
       const _DashboardItem(
         chave: 'categorias',
         titulo: 'Categorias',
-        subtitulo: 'Organização do menu',
+        subtitulo: 'OrganizaÃ§Ã£o do menu',
         icone: Icons.category_rounded,
       ),
       const _DashboardItem(
         chave: 'produtos',
         titulo: 'Produtos',
-        subtitulo: 'Cardápio',
+        subtitulo: 'CardÃ¡pio',
         icone: Icons.inventory_2_rounded,
       ),
       const _DashboardItem(
@@ -222,7 +214,7 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       const _DashboardItem(
         chave: 'usuarios',
-        titulo: 'Usuários',
+        titulo: 'UsuÃ¡rios',
         subtitulo: 'Acessos',
         icone: Icons.people_alt_rounded,
       ),
@@ -287,7 +279,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 2),
 
             const Text(
-              'Escolha uma opção para continuar.',
+              'Escolha uma opÃ§Ã£o para continuar.',
               style: TextStyle(
                 fontSize: 11,
                 color: ClubbarColors.textoSecundario,
@@ -315,7 +307,7 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             ClubbarPageHeader(
               titulo: 'Painel Administrativo',
-              subtitulo: 'Gerencia a sua organição',
+              subtitulo: 'Gerencia a sua organiÃ§Ã£o',
               icone: Icons.dashboard_rounded,
             ),
 
