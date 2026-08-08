@@ -7,6 +7,7 @@ import '../../core/widgets/clubbar_page_header.dart';
 
 import '../auth/login_page.dart';
 import '../leads/pages/leadparceiro_list_page.dart';
+import '../financeiro/financeiro_admin_page.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -34,6 +35,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
       context,
     ).push(MaterialPageRoute(builder: (_) => const LeadParceiroListPage()));
   }
+
+  void _abrirFinanceiro() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const FinanceiroAdminPage()));
 
   Future<void> _inicializar() async {
     await _carregarDashboard();
@@ -296,6 +301,12 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               titulo: 'Faturamento hoje',
               valor: _formatarMoeda(_valorVendasHoje()),
               icone: Icons.monetization_on_rounded,
+            ),
+            _cardIndicador(
+              titulo: 'Financeiro e repasses',
+              valor: 'Gerenciar',
+              icone: Icons.account_balance_wallet_rounded,
+              onTap: _abrirFinanceiro,
             ),
           ],
         );
