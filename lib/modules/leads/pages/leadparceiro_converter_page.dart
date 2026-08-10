@@ -13,18 +13,14 @@ import '../repositories/leadparceiro_repository.dart';
 class LeadParceiroConverterPage extends StatefulWidget {
   final LeadParceiro lead;
 
-  const LeadParceiroConverterPage({
-    super.key,
-    required this.lead,
-  });
+  const LeadParceiroConverterPage({super.key, required this.lead});
 
   @override
   State<LeadParceiroConverterPage> createState() =>
       _LeadParceiroConverterPageState();
 }
 
-class _LeadParceiroConverterPageState
-    extends State<LeadParceiroConverterPage> {
+class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   final _formKey = GlobalKey<FormState>();
   final _repository = LeadParceiroRepository();
 
@@ -35,6 +31,9 @@ class _LeadParceiroConverterPageState
   final _numeroController = TextEditingController();
   final _complementoController = TextEditingController();
   final _bairroController = TextEditingController();
+  final _senhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
+  bool _ocultarSenha = true;
 
   bool _convertendo = false;
 
@@ -47,6 +46,8 @@ class _LeadParceiroConverterPageState
     _numeroController.dispose();
     _complementoController.dispose();
     _bairroController.dispose();
+    _senhaController.dispose();
+    _confirmarSenhaController.dispose();
     super.dispose();
   }
 
@@ -75,10 +76,7 @@ class _LeadParceiroConverterPageState
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(
-          color: ClubbarColors.ambar,
-          width: 2,
-        ),
+        borderSide: const BorderSide(color: ClubbarColors.ambar, width: 2),
       ),
     );
   }
@@ -101,10 +99,7 @@ class _LeadParceiroConverterPageState
           ),
           title: const Row(
             children: [
-              Icon(
-                Icons.handshake_rounded,
-                color: ClubbarColors.ambarEscuro,
-              ),
+              Icon(Icons.handshake_rounded, color: ClubbarColors.ambarEscuro),
               SizedBox(width: 9),
               Expanded(
                 child: Text(
@@ -162,14 +157,12 @@ class _LeadParceiroConverterPageState
         numero: _numeroController.text,
         complemento: _complementoController.text,
         bairro: _bairroController.text,
+        senhaSuperadmin: _senhaController.text,
       );
 
       if (!mounted) return;
 
-      AppSnackBar.sucesso(
-        context,
-        'Lead convertido em parceiro com sucesso.',
-      );
+      AppSnackBar.sucesso(context, 'Lead convertido em parceiro com sucesso.');
 
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -316,10 +309,8 @@ class _LeadParceiroConverterPageState
                                     icone: Icons.signpost_outlined,
                                     hint: 'Rua das Flores',
                                   ),
-                                  validator: (valor) => _validarObrigatorio(
-                                    valor,
-                                    'o endereço',
-                                  ),
+                                  validator: (valor) =>
+                                      _validarObrigatorio(valor, 'o endereço'),
                                 ),
                                 const SizedBox(height: 14),
                                 Row(
@@ -366,6 +357,47 @@ class _LeadParceiroConverterPageState
                                     icone: Icons.map_outlined,
                                     hint: 'Centro',
                                   ),
+                                ),
+                                const SizedBox(height: 14),
+                                TextFormField(
+                                  controller: _senhaController,
+                                  obscureText: _ocultarSenha,
+                                  decoration:
+                                      _decoracao(
+                                        label: 'Senha inicial do Superadmin',
+                                        icone: Icons.lock_outline_rounded,
+                                      ).copyWith(
+                                        suffixIcon: IconButton(
+                                          onPressed: () => setState(
+                                            () =>
+                                                _ocultarSenha = !_ocultarSenha,
+                                          ),
+                                          icon: Icon(
+                                            _ocultarSenha
+                                                ? Icons.visibility_rounded
+                                                : Icons.visibility_off_rounded,
+                                          ),
+                                        ),
+                                      ),
+                                  validator: (valor) {
+                                    if ((valor ?? '').length < 6) {
+                                      return 'Informe uma senha com pelo menos 6 caracteres.';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 14),
+                                TextFormField(
+                                  controller: _confirmarSenhaController,
+                                  obscureText: _ocultarSenha,
+                                  decoration: _decoracao(
+                                    label: 'Confirmar senha do Superadmin',
+                                    icone: Icons.lock_reset_rounded,
+                                  ),
+                                  validator: (valor) =>
+                                      valor != _senhaController.text
+                                      ? 'As senhas não conferem.'
+                                      : null,
                                 ),
                               ],
                             ),

@@ -69,6 +69,7 @@ class LeadParceiroRepository {
     required String numero,
     required String complemento,
     required String bairro,
+    required String senhaSuperadmin,
   }) async {
     final response = await ApiService.post(
       '/parceiros/$leadparceiroId/converter-em-parceiro',
@@ -78,10 +79,9 @@ class LeadParceiroRepository {
         'cep': cep.trim().isEmpty ? null : cep.trim(),
         'endereco': endereco.trim(),
         'numero': numero.trim(),
-        'complemento': complemento.trim().isEmpty
-            ? null
-            : complemento.trim(),
+        'complemento': complemento.trim().isEmpty ? null : complemento.trim(),
         'bairro': bairro.trim().isEmpty ? null : bairro.trim(),
+        'senha_superadmin': senhaSuperadmin,
       },
     );
 
