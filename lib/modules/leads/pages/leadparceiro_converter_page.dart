@@ -31,10 +31,6 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   final _numeroController = TextEditingController();
   final _complementoController = TextEditingController();
   final _bairroController = TextEditingController();
-  final _senhaController = TextEditingController();
-  final _confirmarSenhaController = TextEditingController();
-  bool _ocultarSenha = true;
-
   bool _convertendo = false;
 
   @override
@@ -46,8 +42,6 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
     _numeroController.dispose();
     _complementoController.dispose();
     _bairroController.dispose();
-    _senhaController.dispose();
-    _confirmarSenhaController.dispose();
     super.dispose();
   }
 
@@ -111,7 +105,8 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
           ),
           content: Text(
             'Deseja converter "${widget.lead.nmestabelecimento}" em parceiro?\n\n'
-            'Essa operação criará uma organização e um estabelecimento.',
+            'Essa operação criará a organização, a loja padrão, sete categorias '
+            'e o acesso inicial do SUPERADMIN.',
           ),
           actions: [
             TextButton(
@@ -148,7 +143,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
     });
 
     try {
-      await _repository.converterEmParceiro(
+      final resultado = await _repository.converterEmParceiro(
         leadparceiroId: widget.lead.leadparceiroId,
         razaoSocial: _razaoSocialController.text,
         cnpj: _cnpjController.text,
@@ -157,13 +152,35 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
         numero: _numeroController.text,
         complemento: _complementoController.text,
         bairro: _bairroController.text,
-        senhaSuperadmin: _senhaController.text,
       );
 
       if (!mounted) return;
 
-      AppSnackBar.sucesso(context, 'Lead convertido em parceiro com sucesso.');
+      final superadmin = resultado['superadmin'];
+      final email = superadmin is Map
+          ? superadmin['email']?.toString() ?? ''
+          : '';
+      final senha = superadmin is Map
+          ? superadmin['senha_inicial']?.toString() ?? ''
+          : '';
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Parceiro criado com sucesso'),
+          content: SelectableText(
+            'Acesso inicial do SUPERADMIN:\n\nE-mail: $email\nSenha: $senha',
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Concluir'),
+            ),
+          ],
+        ),
+      );
 
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
@@ -294,7 +311,10 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                                   ),
                                   validator: (valor) {
                                     final cep = _somenteNumeros(valor ?? '');
-                                    if (cep.isNotEmpty && cep.length != 8) {
+                                    if (cep.isEmpty) {
+                                      return 'Informe o CEP.';
+                                    }
+                                    if (cep.length != 8) {
                                       return 'O CEP deve possuir 8 números.';
                                     }
                                     return null;
@@ -357,47 +377,8 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                                     icone: Icons.map_outlined,
                                     hint: 'Centro',
                                   ),
-                                ),
-                                const SizedBox(height: 14),
-                                TextFormField(
-                                  controller: _senhaController,
-                                  obscureText: _ocultarSenha,
-                                  decoration:
-                                      _decoracao(
-                                        label: 'Senha inicial do Superadmin',
-                                        icone: Icons.lock_outline_rounded,
-                                      ).copyWith(
-                                        suffixIcon: IconButton(
-                                          onPressed: () => setState(
-                                            () =>
-                                                _ocultarSenha = !_ocultarSenha,
-                                          ),
-                                          icon: Icon(
-                                            _ocultarSenha
-                                                ? Icons.visibility_rounded
-                                                : Icons.visibility_off_rounded,
-                                          ),
-                                        ),
-                                      ),
-                                  validator: (valor) {
-                                    if ((valor ?? '').length < 6) {
-                                      return 'Informe uma senha com pelo menos 6 caracteres.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 14),
-                                TextFormField(
-                                  controller: _confirmarSenhaController,
-                                  obscureText: _ocultarSenha,
-                                  decoration: _decoracao(
-                                    label: 'Confirmar senha do Superadmin',
-                                    icone: Icons.lock_reset_rounded,
-                                  ),
                                   validator: (valor) =>
-                                      valor != _senhaController.text
-                                      ? 'As senhas não conferem.'
-                                      : null,
+                                      _validarObrigatorio(valor, 'o bairro'),
                                 ),
                               ],
                             ),

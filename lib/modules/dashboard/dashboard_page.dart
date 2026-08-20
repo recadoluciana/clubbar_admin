@@ -14,6 +14,7 @@ import 'package:clubbar_gestao/modules/usuarios/usuario_list_page.dart';
 import 'package:clubbar_gestao/modules/organizacoes/organizacao_list_page.dart';
 
 import '../../core/widgets/clubbar_app_bar.dart';
+import '../../core/widgets/api_status_indicator.dart';
 import '../../core/widgets/clubbar_page_header.dart';
 import '../../core/widgets/clubbar_footer.dart';
 
@@ -300,7 +301,11 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       backgroundColor: ClubbarColors.fundo,
 
-      appBar: ClubbarAppBar(mostrarSair: true, onSair: _sair),
+      appBar: ClubbarAppBar(
+        mostrarSair: true,
+        onSair: _sair,
+        actions: const [ApiStatusIndicator(versao: '1.0.1')],
+      ),
 
       body: SafeArea(
         child: Column(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/repositories/superadmin_repository.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/widgets/clubbar_app_bar.dart';
+import '../../core/widgets/api_status_indicator.dart';
 import '../../core/widgets/clubbar_page_header.dart';
 
 import '../auth/login_page.dart';
@@ -323,6 +324,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
         mostrarSair: true,
         onSair: _sair,
         actions: [
+          const ApiStatusIndicator(versao: '1.0.1'),
           IconButton(
             tooltip: 'Atualizar',
             onPressed: _carregando ? null : _atualizar,
