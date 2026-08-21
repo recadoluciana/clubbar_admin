@@ -27,10 +27,10 @@ class ClubbarAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
       elevation: 0,
-      centerTitle: true,
+      centerTitle: false,
       toolbarHeight: 60,
       automaticallyImplyLeading: false,
-      titleSpacing: 0,
+      titleSpacing: 10,
 
       leading: mostrarVoltar
           ? IconButton(
@@ -45,26 +45,29 @@ class ClubbarAppBar extends StatelessWidget implements PreferredSizeWidget {
           : null,
 
       title: SizedBox(
-        height: 54,
+        height: 56,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Image.asset(
-            logoPath,
-            height: 50,
-            fit: BoxFit.contain,
-            errorBuilder: (_, _, _) {
-              return const Center(
-                child: Text(
-                  'CLUBBAR',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Image.asset(
+              logoPath,
+              height: 52,
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) {
+                return const Center(
+                  child: Text(
+                    'CLUBBAR',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -73,10 +76,13 @@ class ClubbarAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (actions != null) ...actions!,
 
         if (mostrarSair)
-          IconButton(
-            tooltip: 'Sair',
-            icon: const Icon(Icons.logout_rounded, size: 24),
-            onPressed: onSair,
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: IconButton(
+              tooltip: 'Sair',
+              icon: const Icon(Icons.logout_rounded, size: 24),
+              onPressed: onSair,
+            ),
           ),
       ],
     );

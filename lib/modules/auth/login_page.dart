@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
+import '../../core/services/app_exit_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/storage_service.dart';
 import '../superadmin/superadmin_dashboard_page.dart';
@@ -101,19 +100,11 @@ class _LoginPageState extends State<LoginPage> {
 
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sair',
+            icon: const Icon(Icons.close_rounded),
+            tooltip: 'Fechar aplicativo',
             onPressed: () async {
               await StorageService.clearToken();
-
-              if (kIsWeb) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                  (route) => false,
-                );
-              } else {
-                SystemNavigator.pop();
-              }
+              await AppExitService.fechar();
             },
           ),
         ],
