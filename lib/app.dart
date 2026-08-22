@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/services/storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'modules/auth/login_page.dart';
@@ -12,6 +13,13 @@ class ClubbarAdminApp extends StatelessWidget {
     debugShowCheckedModeBanner: false,
     title: 'Clubbar Admin',
     theme: AppTheme.light,
+    locale: const Locale('pt', 'BR'),
+    supportedLocales: const [Locale('pt', 'BR')],
+    localizationsDelegates: const [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
     home: const _AdminSession(),
   );
 }

@@ -9,6 +9,7 @@ import '../../core/widgets/clubbar_page_header.dart';
 import '../auth/login_page.dart';
 import '../leads/pages/leadparceiro_list_page.dart';
 import '../financeiro/financeiro_admin_page.dart';
+import 'admin_modules_pages.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -41,6 +42,26 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     context,
   ).push(MaterialPageRoute(builder: (_) => const FinanceiroAdminPage()));
 
+  void _abrirParceiros() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const ParceirosAdminPage()));
+
+  void _abrirEstabelecimentos() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const EstabelecimentosAdminPage()));
+
+  void _abrirUsuarios() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const UsuariosAdminPage()));
+
+  void _abrirVendasHoje() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const VendasHojeAdminPage()));
+
+  void _abrirFaturamentoHoje() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const FaturamentoHojeAdminPage()));
+
   Future<void> _inicializar() async {
     await _carregarDashboard();
   }
@@ -64,7 +85,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
       if (!mounted) return;
 
       _mostrarMensagem(
-        'NÃ£o foi possÃ­vel carregar o painel administrativo.',
+        'Não foi possível carregar o painel administrativo.',
         erro: true,
       );
     } finally {
@@ -111,7 +132,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             borderRadius: BorderRadius.circular(18),
           ),
           title: const Text(
-            'Encerrar sessÃ£o',
+            'Encerrar sessão',
             style: TextStyle(fontWeight: FontWeight.w800),
           ),
           content: const Text('Deseja realmente sair do Clubbar Admin?'),
@@ -165,8 +186,8 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     return _valorInteiro('parceiros_ativos');
   }
 
-  double _valorVendasHoje() {
-    final valor = _dados['valor_vendas_hoje'];
+  double _valorFaturamentoHoje() {
+    final valor = _dados['faturamento_total'];
 
     if (valor == null) return 0;
 
@@ -196,27 +217,35 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Container(
-          height: 145,
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 22),
+          height: 132,
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade100,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icone, size: 25, color: Colors.black87),
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade100,
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: Icon(icone, size: 23, color: Colors.black87),
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 20,
+                    color: Colors.black45,
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 10),
-
+              const Spacer(),
               Text(
                 valor,
                 maxLines: 1,
@@ -228,11 +257,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 ),
               ),
 
-              const SizedBox(height: 4),
-
+              const SizedBox(height: 2),
               Text(
                 titulo,
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -259,56 +287,82 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
           colunas = 3;
         }
 
-        return GridView.count(
+        Widget grade(List<Widget> itens) => GridView.count(
           crossAxisCount: colunas,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
-          childAspectRatio: 1.35,
+          childAspectRatio: 1.45,
+          children: itens,
+        );
+        Widget titulo(String texto) => Padding(
+          padding: const EdgeInsets.only(bottom: 10, top: 4),
+          child: Text(
+            texto,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+          ),
+        );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _cardIndicador(
-              titulo: 'Leads novos',
-              valor: '${_dados['leads_novos'] ?? 0}',
-              icone: Icons.handshake_rounded,
-              onTap: _abrirLeads,
-            ),
+            titulo('Cadastros da plataforma'),
+            grade([
+              _cardIndicador(
+                titulo: 'Leads novos',
+                valor: '${_dados['leads_novos'] ?? 0}',
+                icone: Icons.handshake_rounded,
+                onTap: _abrirLeads,
+              ),
 
-            _cardIndicador(
-              titulo: 'Parceiros',
-              valor: '${_totalParceiros()}',
-              icone: Icons.business_rounded,
-            ),
+              _cardIndicador(
+                titulo: 'Parceiros',
+                valor: '${_totalParceiros()}',
+                icone: Icons.business_rounded,
+                onTap: _abrirParceiros,
+              ),
 
-            _cardIndicador(
-              titulo: 'Estabelecimentos',
-              valor: '${_dados['lojas'] ?? 0}',
-              icone: Icons.storefront_rounded,
-            ),
+              _cardIndicador(
+                titulo: 'Estabelecimentos',
+                valor: '${_dados['total_estabelecimentos'] ?? 0}',
+                icone: Icons.storefront_rounded,
+                onTap: _abrirEstabelecimentos,
+              ),
 
-            _cardIndicador(
-              titulo: 'UsuÃ¡rios',
-              valor: '${_dados['usuarios'] ?? 0}',
-              icone: Icons.manage_accounts_rounded,
-            ),
+              _cardIndicador(
+                titulo: 'Usuários',
+                valor: '${_dados['usuarios'] ?? 0}',
+                icone: Icons.manage_accounts_rounded,
+                onTap: _abrirUsuarios,
+              ),
+            ]),
+            const SizedBox(height: 18),
+            titulo('Movimento de hoje'),
+            grade([
+              _cardIndicador(
+                titulo: 'Vendas hoje',
+                valor: '${_dados['vendas_hoje'] ?? 0}',
+                icone: Icons.shopping_cart_rounded,
+                onTap: _abrirVendasHoje,
+              ),
 
-            _cardIndicador(
-              titulo: 'Vendas hoje',
-              valor: '${_dados['vendas_hoje'] ?? 0}',
-              icone: Icons.shopping_cart_rounded,
-            ),
-
-            _cardIndicador(
-              titulo: 'Faturamento hoje',
-              valor: _formatarMoeda(_valorVendasHoje()),
-              icone: Icons.monetization_on_rounded,
-            ),
-            _cardIndicador(
-              titulo: 'Financeiro e repasses',
-              valor: 'Gerenciar',
-              icone: Icons.account_balance_wallet_rounded,
-              onTap: _abrirFinanceiro,
-            ),
+              _cardIndicador(
+                titulo: 'Faturamento hoje',
+                valor: _formatarMoeda(_valorFaturamentoHoje()),
+                icone: Icons.monetization_on_rounded,
+                onTap: _abrirFaturamentoHoje,
+              ),
+            ]),
+            const SizedBox(height: 18),
+            titulo('Gestão financeira'),
+            grade([
+              _cardIndicador(
+                titulo: 'Financeiro e repasses',
+                valor: 'Gerenciar',
+                icone: Icons.account_balance_wallet_rounded,
+                onTap: _abrirFinanceiro,
+              ),
+            ]),
           ],
         );
       },
@@ -338,7 +392,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
           children: [
             const ClubbarPageHeader(
               titulo: 'Painel Administrativo',
-              subtitulo: 'VisÃ£o geral e administraÃ§Ã£o do app',
+              subtitulo: 'Visão geral e administração do app',
               icone: Icons.dashboard_rounded,
               mostrarDataHora: false,
             ),
@@ -354,33 +408,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                         child: Center(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 1100),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.insights_rounded,
-                                      size: 22,
-                                      color: Colors.black87,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Indicadores',
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 12),
-
-                                _dashboard(),
-                              ],
-                            ),
+                            child: _dashboard(),
                           ),
                         ),
                       ),

@@ -58,7 +58,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
       AppSnackBar.erro(
         context,
-        'NÃ£o foi possÃ­vel carregar os dados do usuÃ¡rio.',
+        'Não foi possível carregar os dados do usuário.',
       );
     }
   }
@@ -73,7 +73,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (organizacaoId == null || organizacaoId == 0) {
       if (!context.mounted) return;
 
-      AppSnackBar.erro(context, 'OrganizaÃ§Ã£o nÃ£o encontrada no login.');
+      AppSnackBar.erro(context, 'Organização não encontrada no login.');
 
       return;
     }
@@ -113,7 +113,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (destino == null) {
       if (!context.mounted) return;
 
-      AppSnackBar.aviso(context, 'Este mÃ³dulo ainda nÃ£o estÃ¡ disponÃ­vel.');
+      AppSnackBar.aviso(context, 'Este módulo ainda não está disponível.');
 
       return;
     }
@@ -144,7 +144,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ],
           ),
-          content: const Text('Deseja realmente encerrar sua sessÃ£o?'),
+          content: const Text('Deseja realmente encerrar sua sessão?'),
           actions: [
             OutlinedButton.icon(
               onPressed: () {
@@ -185,7 +185,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final modulos = <_DashboardItem>[
       const _DashboardItem(
         chave: 'organizacao',
-        titulo: 'OrganizaÃ§Ã£o',
+        titulo: 'Organização',
         subtitulo: 'Dados da empresa',
         icone: Icons.business_rounded,
       ),
@@ -198,13 +198,13 @@ class _DashboardPageState extends State<DashboardPage> {
       const _DashboardItem(
         chave: 'categorias',
         titulo: 'Categorias',
-        subtitulo: 'OrganizaÃ§Ã£o do menu',
+        subtitulo: 'Organização do menu',
         icone: Icons.category_rounded,
       ),
       const _DashboardItem(
         chave: 'produtos',
         titulo: 'Produtos',
-        subtitulo: 'CardÃ¡pio',
+        subtitulo: 'Cardápio',
         icone: Icons.inventory_2_rounded,
       ),
       const _DashboardItem(
@@ -215,7 +215,7 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       const _DashboardItem(
         chave: 'usuarios',
-        titulo: 'UsuÃ¡rios',
+        titulo: 'Usuários',
         subtitulo: 'Acessos',
         icone: Icons.people_alt_rounded,
       ),
@@ -280,7 +280,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 2),
 
             const Text(
-              'Escolha uma opÃ§Ã£o para continuar.',
+              'Escolha uma opção para continuar.',
               style: TextStyle(
                 fontSize: 11,
                 color: ClubbarColors.textoSecundario,
@@ -312,7 +312,7 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             ClubbarPageHeader(
               titulo: 'Painel Administrativo',
-              subtitulo: 'Gerencia a sua organiÃ§Ã£o',
+              subtitulo: 'Gerencie a sua organização',
               icone: Icons.dashboard_rounded,
             ),
 

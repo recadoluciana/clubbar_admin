@@ -1,0 +1,933 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../../core/repositories/superadmin_repository.dart';
+import '../../core/theme/clubbar_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
+import '../../core/widgets/clubbar_app_bar.dart';
+import '../../core/widgets/clubbar_card.dart';
+import '../../core/widgets/clubbar_page_header.dart';
+
+String _texto(dynamic valor) => valor?.toString().trim() ?? '';
+int _inteiro(dynamic valor) =>
+    valor is num ? valor.toInt() : int.tryParse('$valor') ?? 0;
+double _decimal(dynamic valor) =>
+    valor is num ? valor.toDouble() : double.tryParse('$valor') ?? 0;
+
+class ParceirosAdminPage extends StatefulWidget {
+  const ParceirosAdminPage({super.key});
+
+  @override
+  State<ParceirosAdminPage> createState() => _ParceirosAdminPageState();
+}
+
+class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
+  final _repo = SuperAdminRepository();
+  final _busca = TextEditingController();
+  List<Map<String, dynamic>> _itens = [];
+  bool _carregando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregar();
+  }
+
+  @override
+  void dispose() {
+    _busca.dispose();
+    super.dispose();
+  }
+
+  Future<void> _carregar() async {
+    setState(() => _carregando = true);
+    try {
+      final itens = await _repo.listarOrganizacoes();
+      if (mounted) setState(() => _itens = itens);
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  List<Map<String, dynamic>> get _filtrados {
+    final busca = _busca.text.trim().toLowerCase();
+    if (busca.isEmpty) return _itens;
+    return _itens
+        .where(
+          (item) => item.values.any(
+            (valor) => _texto(valor).toLowerCase().contains(busca),
+          ),
+        )
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) => _EstruturaModulo(
+    titulo: 'Parceiros',
+    subtitulo: _carregando
+        ? 'Carregando organizações...'
+        : '${_itens.length} organizações parceiras',
+    icone: Icons.business_rounded,
+    onAtualizar: _carregar,
+    child: _carregando
+        ? const Center(
+            child: CircularProgressIndicator(color: ClubbarColors.ambar),
+          )
+        : ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _CampoBusca(
+                controller: _busca,
+                dica: 'Buscar organização, CNPJ ou e-mail',
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 14),
+              ..._filtrados.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ClubbarCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _TituloStatus(
+                          titulo: _texto(item['nmorganizacao']),
+                          status: _texto(item['sitorganizacao']),
+                          icone: Icons.business_rounded,
+                        ),
+                        const Divider(height: 24),
+                        Text(
+                          _texto(item['rzsocialorganizacao']),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 6),
+                        Text('CNPJ: ${_texto(item['cnpjorganizacao'])}'),
+                        Text('E-mail: ${_texto(item['emailorganizacao'])}'),
+                        Text('Telefone: ${_texto(item['telorganizacao'])}'),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _Pill(
+                              '${_inteiro(item['quantidade_lojas'])} lojas',
+                              Icons.storefront_rounded,
+                            ),
+                            _Pill(
+                              '${_inteiro(item['quantidade_usuarios'])} usuários',
+                              Icons.people_alt_rounded,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (_filtrados.isEmpty)
+                const _Vazio('Nenhuma organização encontrada.'),
+            ],
+          ),
+  );
+}
+
+class EstabelecimentosAdminPage extends StatefulWidget {
+  const EstabelecimentosAdminPage({super.key});
+  @override
+  State<EstabelecimentosAdminPage> createState() =>
+      _EstabelecimentosAdminPageState();
+}
+
+class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
+  final _repo = SuperAdminRepository();
+  final _busca = TextEditingController();
+  List<Map<String, dynamic>> _organizacoes = [], _lojas = [];
+  int? _organizacaoId;
+  bool _carregando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _inicializar();
+  }
+
+  @override
+  void dispose() {
+    _busca.dispose();
+    super.dispose();
+  }
+
+  Future<void> _inicializar() async {
+    setState(() => _carregando = true);
+    try {
+      _organizacoes = await _repo.listarOrganizacoes();
+      _organizacaoId ??= _organizacoes.isEmpty
+          ? null
+          : _inteiro(_organizacoes.first['organizacao_id']);
+      _lojas = _organizacaoId == null
+          ? []
+          : await _repo.listarLojas(_organizacaoId!);
+      if (mounted) setState(() {});
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  Future<void> _trocarOrganizacao(int? id) async {
+    if (id == null) return;
+    setState(() {
+      _organizacaoId = id;
+      _carregando = true;
+    });
+    try {
+      _lojas = await _repo.listarLojas(id);
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  List<Map<String, dynamic>> get _filtradas {
+    final busca = _busca.text.trim().toLowerCase();
+    if (busca.isEmpty) return _lojas;
+    return _lojas
+        .where(
+          (item) =>
+              item.values.any((v) => _texto(v).toLowerCase().contains(busca)),
+        )
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) => _EstruturaModulo(
+    titulo: 'Estabelecimentos',
+    subtitulo: '${_lojas.length} lojas na organização selecionada',
+    icone: Icons.storefront_rounded,
+    onAtualizar: _inicializar,
+    child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _SeletorOrganizacao(
+                itens: _organizacoes,
+                valor: _organizacaoId,
+                onChanged: _trocarOrganizacao,
+              ),
+              const SizedBox(height: 12),
+              _CampoBusca(
+                controller: _busca,
+                dica: 'Buscar estabelecimento',
+                onChanged: (_) => setState(() {}),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _carregando
+              ? const Center(
+                  child: CircularProgressIndicator(color: ClubbarColors.ambar),
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  children: [
+                    ..._filtradas.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ClubbarCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _TituloStatus(
+                                titulo: _texto(item['nmloja']),
+                                status: _texto(item['sitloja']),
+                                icone: Icons.store_rounded,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                '${_texto(item['endloja'])}, ${_texto(item['nrendeloja'])}',
+                              ),
+                              Text(
+                                _texto(item['dsbairroloja']),
+                                style: const TextStyle(
+                                  color: ClubbarColors.textoSecundario,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text('Telefone: ${_texto(item['nrtelloja'])}'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_filtradas.isEmpty)
+                      const _Vazio('Nenhum estabelecimento encontrado.'),
+                  ],
+                ),
+        ),
+      ],
+    ),
+  );
+}
+
+class UsuariosAdminPage extends StatefulWidget {
+  const UsuariosAdminPage({super.key});
+  @override
+  State<UsuariosAdminPage> createState() => _UsuariosAdminPageState();
+}
+
+class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
+  final _repo = SuperAdminRepository();
+  final _busca = TextEditingController();
+  List<Map<String, dynamic>> _organizacoes = [], _usuarios = [];
+  int? _organizacaoId;
+  bool _carregando = true;
+  @override
+  void initState() {
+    super.initState();
+    _inicializar();
+  }
+
+  @override
+  void dispose() {
+    _busca.dispose();
+    super.dispose();
+  }
+
+  Future<void> _inicializar() async {
+    setState(() => _carregando = true);
+    try {
+      _organizacoes = await _repo.listarOrganizacoes();
+      _organizacaoId ??= _organizacoes.isEmpty
+          ? null
+          : _inteiro(_organizacoes.first['organizacao_id']);
+      _usuarios = _organizacaoId == null
+          ? []
+          : await _repo.listarUsuarios(_organizacaoId!);
+      if (mounted) setState(() {});
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  Future<void> _trocarOrganizacao(int? id) async {
+    if (id == null) return;
+    setState(() {
+      _organizacaoId = id;
+      _carregando = true;
+    });
+    try {
+      _usuarios = await _repo.listarUsuarios(id);
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  List<Map<String, dynamic>> get _filtrados {
+    final busca = _busca.text.trim().toLowerCase();
+    if (busca.isEmpty) return _usuarios;
+    return _usuarios
+        .where(
+          (item) =>
+              item.values.any((v) => _texto(v).toLowerCase().contains(busca)),
+        )
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) => _EstruturaModulo(
+    titulo: 'Usuários',
+    subtitulo: '${_usuarios.length} usuários na organização selecionada',
+    icone: Icons.manage_accounts_rounded,
+    onAtualizar: _inicializar,
+    child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _SeletorOrganizacao(
+                itens: _organizacoes,
+                valor: _organizacaoId,
+                onChanged: _trocarOrganizacao,
+              ),
+              const SizedBox(height: 12),
+              _CampoBusca(
+                controller: _busca,
+                dica: 'Buscar usuário, e-mail, cargo ou loja',
+                onChanged: (_) => setState(() {}),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _carregando
+              ? const Center(
+                  child: CircularProgressIndicator(color: ClubbarColors.ambar),
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  children: [
+                    ..._filtrados.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ClubbarCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _TituloStatus(
+                                titulo: _texto(item['nmusuario']),
+                                status: _texto(item['situsuario']),
+                                icone: Icons.person_rounded,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                _texto(item['emailuser']),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _Pill(
+                                    _texto(item['dscargo']),
+                                    Icons.badge_outlined,
+                                  ),
+                                  if (_texto(item['nmloja']).isNotEmpty)
+                                    _Pill(
+                                      _texto(item['nmloja']),
+                                      Icons.storefront_rounded,
+                                    ),
+                                  if (_texto(item['nmloja']).isEmpty)
+                                    const _Pill(
+                                      'Sem loja',
+                                      Icons.public_rounded,
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_filtrados.isEmpty)
+                      const _Vazio('Nenhum usuário encontrado.'),
+                  ],
+                ),
+        ),
+      ],
+    ),
+  );
+}
+
+class VendasHojeAdminPage extends StatelessWidget {
+  const VendasHojeAdminPage({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const _MovimentoHojePage(focoFaturamento: false);
+}
+
+class FaturamentoHojeAdminPage extends StatelessWidget {
+  const FaturamentoHojeAdminPage({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const _MovimentoHojePage(focoFaturamento: true);
+}
+
+class _MovimentoHojePage extends StatefulWidget {
+  final bool focoFaturamento;
+  const _MovimentoHojePage({required this.focoFaturamento});
+  @override
+  State<_MovimentoHojePage> createState() => _MovimentoHojePageState();
+}
+
+class _MovimentoHojePageState extends State<_MovimentoHojePage> {
+  final _repo = SuperAdminRepository();
+  final _moeda = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+  Map<String, dynamic> _dados = {};
+  List<Map<String, dynamic>> _organizacoes = [];
+  int? _organizacaoId, _lojaId;
+  bool _carregando = true;
+  Future<void> _carregar() async {
+    setState(() => _carregando = true);
+    try {
+      final resultados = await Future.wait([
+        _repo.vendasHoje(),
+        _repo.listarOrganizacoes(),
+      ]);
+      _dados = Map<String, dynamic>.from(resultados[0] as Map);
+      _organizacoes = (resultados[1] as List).cast<Map<String, dynamic>>();
+      if (mounted) setState(() {});
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _carregar();
+  }
+
+  List<Map<String, dynamic>> get _detalhes =>
+      ((_dados['detalhes'] as List?) ?? const [])
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .where(
+            (e) =>
+                (_organizacaoId == null ||
+                    _inteiro(e['organizacao_id']) == _organizacaoId) &&
+                (_lojaId == null || _inteiro(e['loja_id']) == _lojaId),
+          )
+          .toList();
+  List<Map<String, dynamic>> get _lojasFiltro {
+    final vistos = <int>{};
+    return (((_dados['detalhes'] as List?) ?? const []).map(
+          (e) => Map<String, dynamic>.from(e as Map),
+        ))
+        .where(
+          (e) =>
+              _organizacaoId == null ||
+              _inteiro(e['organizacao_id']) == _organizacaoId,
+        )
+        .where((e) => vistos.add(_inteiro(e['loja_id'])))
+        .toList();
+  }
+
+  int get _vendas =>
+      _detalhes.fold(0, (s, e) => s + _inteiro(e['quantidade_vendas']));
+  double get _taxasProdutos =>
+      _detalhes.fold(0, (s, e) => s + _decimal(e['taxa_produtos']));
+  double get _taxasIngressos =>
+      _detalhes.fold(0, (s, e) => s + _decimal(e['taxa_ingressos']));
+  @override
+  Widget build(BuildContext context) => _EstruturaModulo(
+    titulo: widget.focoFaturamento ? 'Faturamento de hoje' : 'Vendas de hoje',
+    subtitulo: DateFormat("EEEE, dd 'de' MMMM", 'pt_BR').format(DateTime.now()),
+    icone: widget.focoFaturamento
+        ? Icons.paid_rounded
+        : Icons.shopping_cart_checkout_rounded,
+    onAtualizar: _carregar,
+    child: _carregando
+        ? const Center(
+            child: CircularProgressIndicator(color: ClubbarColors.ambar),
+          )
+        : ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _Resumo(
+                      titulo: 'Vendas',
+                      valor: '$_vendas',
+                      icone: Icons.receipt_long_rounded,
+                      cor: ClubbarColors.info,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _Resumo(
+                      titulo: 'Taxas Clubbar',
+                      valor: _moeda.format(_taxasProdutos + _taxasIngressos),
+                      icone: Icons.paid_rounded,
+                      cor: ClubbarColors.sucesso,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _Resumo(
+                      titulo: 'Produtos',
+                      valor: _moeda.format(_taxasProdutos),
+                      icone: Icons.shopping_bag_rounded,
+                      cor: ClubbarColors.ambarEscuro,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _Resumo(
+                      titulo: 'Ingressos',
+                      valor: _moeda.format(_taxasIngressos),
+                      icone: Icons.confirmation_number_rounded,
+                      cor: Colors.purple,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _SeletorOrganizacao(
+                itens: _organizacoes,
+                valor: _organizacaoId,
+                permitirTodos: true,
+                onChanged: (id) => setState(() {
+                  _organizacaoId = id;
+                  _lojaId = null;
+                }),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<int?>(
+                initialValue: _lojaId,
+                decoration: const InputDecoration(
+                  labelText: 'Loja',
+                  prefixIcon: Icon(Icons.storefront_rounded),
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  const DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text('Todas as lojas'),
+                  ),
+                  ..._lojasFiltro.map(
+                    (e) => DropdownMenuItem<int?>(
+                      value: _inteiro(e['loja_id']),
+                      child: Text(_texto(e['nmloja'])),
+                    ),
+                  ),
+                ],
+                onChanged: (id) => setState(() => _lojaId = id),
+              ),
+              const SizedBox(height: 16),
+              ..._detalhes.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ClubbarCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _texto(item['nmorganizacao']),
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          _texto(item['nmloja']),
+                          style: const TextStyle(
+                            color: ClubbarColors.textoSecundario,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Divider(height: 22),
+                        _LinhaValor(
+                          'Vendas realizadas',
+                          '${_inteiro(item['quantidade_vendas'])}',
+                        ),
+                        _LinhaValor(
+                          'Taxas de produtos',
+                          _moeda.format(_decimal(item['taxa_produtos'])),
+                        ),
+                        _LinhaValor(
+                          'Taxas de ingressos',
+                          _moeda.format(_decimal(item['taxa_ingressos'])),
+                        ),
+                        const Divider(height: 18),
+                        _LinhaValor(
+                          'Faturamento Clubbar',
+                          _moeda.format(_decimal(item['faturamento_total'])),
+                          destaque: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (_detalhes.isEmpty)
+                const _Vazio('Nenhuma venda paga encontrada hoje.'),
+            ],
+          ),
+  );
+}
+
+class _EstruturaModulo extends StatelessWidget {
+  final String titulo, subtitulo;
+  final IconData icone;
+  final Future<void> Function() onAtualizar;
+  final Widget child;
+  const _EstruturaModulo({
+    required this.titulo,
+    required this.subtitulo,
+    required this.icone,
+    required this.onAtualizar,
+    required this.child,
+  });
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: ClubbarColors.fundo,
+    appBar: const ClubbarAppBar(mostrarVoltar: true),
+    body: SafeArea(
+      child: Column(
+        children: [
+          ClubbarPageHeader(
+            titulo: titulo,
+            subtitulo: subtitulo,
+            icone: icone,
+            mostrarDadosSessao: false,
+            trailing: IconButton(
+              onPressed: onAtualizar,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ),
+          Expanded(child: child),
+        ],
+      ),
+    ),
+  );
+}
+
+class _CampoBusca extends StatelessWidget {
+  final TextEditingController controller;
+  final String dica;
+  final ValueChanged<String> onChanged;
+  const _CampoBusca({
+    required this.controller,
+    required this.dica,
+    required this.onChanged,
+  });
+  @override
+  Widget build(BuildContext context) => TextField(
+    controller: controller,
+    onChanged: onChanged,
+    decoration: InputDecoration(
+      hintText: dica,
+      prefixIcon: const Icon(Icons.search_rounded),
+      suffixIcon: controller.text.isEmpty
+          ? null
+          : IconButton(
+              onPressed: () {
+                controller.clear();
+                onChanged('');
+              },
+              icon: const Icon(Icons.close_rounded),
+            ),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+    ),
+  );
+}
+
+class _SeletorOrganizacao extends StatelessWidget {
+  final List<Map<String, dynamic>> itens;
+  final int? valor;
+  final ValueChanged<int?> onChanged;
+  final bool permitirTodos;
+  const _SeletorOrganizacao({
+    required this.itens,
+    required this.valor,
+    required this.onChanged,
+    this.permitirTodos = false,
+  });
+  @override
+  Widget build(BuildContext context) => DropdownButtonFormField<int?>(
+    initialValue: valor,
+    isExpanded: true,
+    decoration: const InputDecoration(
+      labelText: 'Organização',
+      prefixIcon: Icon(Icons.business_rounded),
+      border: OutlineInputBorder(),
+    ),
+    items: [
+      if (permitirTodos)
+        const DropdownMenuItem<int?>(
+          value: null,
+          child: Text('Todas as organizações'),
+        ),
+      ...itens.map(
+        (e) => DropdownMenuItem<int?>(
+          value: _inteiro(e['organizacao_id']),
+          child: Text(
+            _texto(e['nmorganizacao']),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    ],
+    onChanged: onChanged,
+  );
+}
+
+class _TituloStatus extends StatelessWidget {
+  final String titulo, status;
+  final IconData icone;
+  const _TituloStatus({
+    required this.titulo,
+    required this.status,
+    required this.icone,
+  });
+  @override
+  Widget build(BuildContext context) {
+    final ativo = {'ATIVA', 'ATIVO'}.contains(status.toUpperCase());
+    final cor = ativo ? ClubbarColors.sucesso : ClubbarColors.erro;
+    return Row(
+      children: [
+        CircleAvatar(
+          backgroundColor: ClubbarColors.ambarClaro,
+          foregroundColor: Colors.black,
+          child: Icon(icone),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            titulo,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          decoration: BoxDecoration(
+            color: cor.withValues(alpha: .1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            status,
+            style: TextStyle(
+              color: cor,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  final String texto;
+  final IconData icone;
+  const _Pill(this.texto, this.icone);
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+    decoration: BoxDecoration(
+      color: ClubbarColors.ambarClaro,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icone, size: 15),
+        const SizedBox(width: 5),
+        Text(
+          texto,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+        ),
+      ],
+    ),
+  );
+}
+
+class _Resumo extends StatelessWidget {
+  final String titulo, valor;
+  final IconData icone;
+  final Color cor;
+  const _Resumo({
+    required this.titulo,
+    required this.valor,
+    required this.icone,
+    required this.cor,
+  });
+  @override
+  Widget build(BuildContext context) => ClubbarCard(
+    padding: const EdgeInsets.all(13),
+    child: Column(
+      children: [
+        Icon(icone, color: cor, size: 26),
+        const SizedBox(height: 7),
+        FittedBox(
+          child: Text(
+            valor,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+        ),
+        Text(
+          titulo,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 11,
+            color: ClubbarColors.textoSecundario,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _LinhaValor extends StatelessWidget {
+  final String titulo, valor;
+  final bool destaque;
+  const _LinhaValor(this.titulo, this.valor, {this.destaque = false});
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            titulo,
+            style: TextStyle(
+              fontWeight: destaque ? FontWeight.w900 : FontWeight.w600,
+            ),
+          ),
+        ),
+        Text(
+          valor,
+          style: TextStyle(
+            fontWeight: destaque ? FontWeight.w900 : FontWeight.w700,
+            color: destaque ? ClubbarColors.sucesso : null,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _Vazio extends StatelessWidget {
+  final String texto;
+  const _Vazio(this.texto);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(30),
+    child: Center(
+      child: Text(
+        texto,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: ClubbarColors.textoSecundario),
+      ),
+    ),
+  );
+}

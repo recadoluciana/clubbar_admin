@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   shared_preferences: ^2.2.3
   cupertino_icons: ^1.0.8
@@ -54,4 +56,3 @@ flutter:
     - assets/sounds/
     - assets/icons/
 
-  
