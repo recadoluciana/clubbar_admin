@@ -58,10 +58,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     context,
   ).push(MaterialPageRoute(builder: (_) => const VendasHojeAdminPage()));
 
-  void _abrirFaturamentoHoje() => Navigator.of(
-    context,
-  ).push(MaterialPageRoute(builder: (_) => const FaturamentoHojeAdminPage()));
-
   Future<void> _inicializar() async {
     await _carregarDashboard();
   }
@@ -207,6 +203,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     required String valor,
     required IconData icone,
     VoidCallback? onTap,
+    int valorMaxLines = 1,
   }) {
     return Material(
       color: Colors.white,
@@ -248,10 +245,11 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               const Spacer(),
               Text(
                 valor,
-                maxLines: 1,
+                maxLines: valorMaxLines,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 21,
+                style: TextStyle(
+                  fontSize: valorMaxLines > 1 ? 17 : 21,
+                  height: 1.05,
                   fontWeight: FontWeight.w900,
                   color: Colors.black87,
                 ),
@@ -340,17 +338,13 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             titulo('Movimento de hoje'),
             grade([
               _cardIndicador(
-                titulo: 'Vendas hoje',
-                valor: '${_dados['vendas_hoje'] ?? 0}',
-                icone: Icons.shopping_cart_rounded,
+                titulo: 'Vendas e faturamento hoje',
+                valor:
+                    '${_dados['vendas_hoje'] ?? 0} vendas\n'
+                    '${_formatarMoeda(_valorFaturamentoHoje())}',
+                valorMaxLines: 2,
+                icone: Icons.point_of_sale_rounded,
                 onTap: _abrirVendasHoje,
-              ),
-
-              _cardIndicador(
-                titulo: 'Faturamento hoje',
-                valor: _formatarMoeda(_valorFaturamentoHoje()),
-                icone: Icons.monetization_on_rounded,
-                onTap: _abrirFaturamentoHoje,
               ),
             ]),
             const SizedBox(height: 18),
