@@ -203,8 +203,15 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     required String valor,
     required IconData icone,
     VoidCallback? onTap,
-    int valorMaxLines = 1,
   }) {
+    final corIcone = switch (icone) {
+      Icons.handshake_rounded => Colors.blue,
+      Icons.business_rounded => Colors.deepPurple,
+      Icons.storefront_rounded => Colors.deepOrange,
+      Icons.manage_accounts_rounded => Colors.teal,
+      Icons.point_of_sale_rounded => Colors.green,
+      _ => Colors.indigo,
+    };
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
@@ -214,58 +221,58 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Container(
-          height: 132,
-          padding: const EdgeInsets.all(15),
+          height: 82,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Colors.grey.shade200),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade100,
-                      borderRadius: BorderRadius.circular(13),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: corIcone.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icone, size: 25, color: corIcone),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      titulo,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    child: Icon(icone, size: 23, color: Colors.black87),
-                  ),
-                  const Spacer(),
-                  const Icon(
-                    Icons.arrow_forward_rounded,
-                    size: 20,
-                    color: Colors.black45,
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Text(
-                valor,
-                maxLines: valorMaxLines,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: valorMaxLines > 1 ? 17 : 21,
-                  height: 1.05,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black87,
+                    const SizedBox(height: 3),
+                    Text(
+                      valor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 2),
-              Text(
-                titulo,
-                textAlign: TextAlign.left,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade700,
-                  fontWeight: FontWeight.w600,
-                ),
+              const SizedBox(width: 10),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 18,
+                color: Colors.black45,
               ),
             ],
           ),
@@ -277,22 +284,13 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   Widget _dashboard() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        int colunas = 2;
-
-        if (constraints.maxWidth >= 1000) {
-          colunas = 4;
-        } else if (constraints.maxWidth >= 700) {
-          colunas = 3;
-        }
-
-        Widget grade(List<Widget> itens) => GridView.count(
-          crossAxisCount: colunas,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
-          childAspectRatio: 1.45,
-          children: itens,
+        Widget grade(List<Widget> itens) => Column(
+          children: [
+            for (int indice = 0; indice < itens.length; indice++) ...[
+              itens[indice],
+              if (indice < itens.length - 1) const SizedBox(height: 10),
+            ],
+          ],
         );
         Widget titulo(String texto) => Padding(
           padding: const EdgeInsets.only(bottom: 10, top: 4),
@@ -314,7 +312,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               ),
 
               _cardIndicador(
-                titulo: 'Parceiros',
+                titulo: 'Organizações Parceiras',
                 valor: '${_totalParceiros()}',
                 icone: Icons.business_rounded,
                 onTap: _abrirParceiros,
@@ -328,7 +326,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               ),
 
               _cardIndicador(
-                titulo: 'Usuários',
+                titulo: 'Usuários do Clubbar',
                 valor: '${_dados['usuarios'] ?? 0}',
                 icone: Icons.manage_accounts_rounded,
                 onTap: _abrirUsuarios,
@@ -340,9 +338,8 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               _cardIndicador(
                 titulo: 'Vendas e faturamento hoje',
                 valor:
-                    '${_dados['vendas_hoje'] ?? 0} vendas\n'
+                    '${_dados['vendas_hoje'] ?? 0} vendas  •  '
                     '${_formatarMoeda(_valorFaturamentoHoje())}',
-                valorMaxLines: 2,
                 icone: Icons.point_of_sale_rounded,
                 onTap: _abrirVendasHoje,
               ),
@@ -351,8 +348,8 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             titulo('Gestão financeira'),
             grade([
               _cardIndicador(
-                titulo: 'Financeiro e repasses',
-                valor: 'Gerenciar',
+                titulo: 'Gerenciar repasses ao parceiro',
+                valor: 'Financeiro',
                 icone: Icons.account_balance_wallet_rounded,
                 onTap: _abrirFinanceiro,
               ),
@@ -386,9 +383,9 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
           children: [
             const ClubbarPageHeader(
               titulo: 'Painel Administrativo',
-              subtitulo: 'Visão geral e administração do app',
+              subtitulo: 'Visão geral e administração do Clubbar',
               icone: Icons.dashboard_rounded,
-              mostrarDataHora: false,
+              mostrarDataHora: true,
             ),
 
             Expanded(

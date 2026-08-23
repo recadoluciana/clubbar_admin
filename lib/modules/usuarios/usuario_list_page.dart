@@ -144,6 +144,18 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
     }
   }
 
+  Color _corCargo(String cargo) => switch (cargo.trim().toUpperCase()) {
+    'SUPERADMIN' => Colors.deepPurple,
+    'ADMIN' => Colors.blue,
+    'GERENTE' => Colors.deepOrange,
+    'CAIXA' => Colors.green,
+    'BARMAN' => Colors.amber.shade800,
+    'GARCOM' => Colors.teal,
+    'PORTEIRO' => Colors.brown,
+    'TOTEM' => Colors.cyan.shade800,
+    _ => Colors.blueGrey,
+  };
+
   List<Usuario> _aplicarFiltro(List<Usuario> usuarios, String texto) {
     final busca = texto.trim().toLowerCase();
 
@@ -343,22 +355,19 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
 
   Widget _badgeCargo(Usuario usuario) {
     final principal = usuario.usuarioId == 1;
+    final corCargo = _corCargo(usuario.dscargo);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: principal ? ClubbarColors.ambarClaro : ClubbarColors.infoClaro,
+        color: corCargo.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (principal) ...[
-            const Icon(
-              Icons.lock_rounded,
-              size: 13,
-              color: ClubbarColors.preto,
-            ),
+            Icon(Icons.lock_rounded, size: 13, color: corCargo),
             const SizedBox(width: 4),
           ],
 
@@ -367,7 +376,7 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
               _nomeCargo(usuario.dscargo),
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: principal ? ClubbarColors.preto : ClubbarColors.info,
+                color: corCargo,
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
               ),

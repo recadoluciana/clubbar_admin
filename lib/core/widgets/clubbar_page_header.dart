@@ -22,6 +22,9 @@ class ClubbarPageHeader extends StatefulWidget {
   /// Permite esconder organização, usuário, cargo, data e hora.
   final bool mostrarDadosSessao;
 
+  /// Permite esconder a organização sem remover usuário, cargo, data e hora.
+  final bool mostrarOrganizacao;
+
   /// Permite esconder somente a data e a hora.
   final bool mostrarDataHora;
 
@@ -33,6 +36,7 @@ class ClubbarPageHeader extends StatefulWidget {
     this.imagemUrl,
     this.trailing,
     this.mostrarDadosSessao = true,
+    this.mostrarOrganizacao = false,
     this.mostrarDataHora = true,
   });
 
@@ -289,10 +293,11 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
       children: [
         const SizedBox(height: 7),
 
-        _linhaInformacao(
-          icone: Icons.business_rounded,
-          texto: _nomeOrganizacao,
-        ),
+        if (widget.mostrarOrganizacao)
+          _linhaInformacao(
+            icone: Icons.business_rounded,
+            texto: _nomeOrganizacao,
+          ),
 
         _linhaInformacao(
           icone: Icons.person_rounded,

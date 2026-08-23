@@ -13,6 +13,17 @@ int _inteiro(dynamic valor) =>
     valor is num ? valor.toInt() : int.tryParse('$valor') ?? 0;
 double _decimal(dynamic valor) =>
     valor is num ? valor.toDouble() : double.tryParse('$valor') ?? 0;
+Color _corCargo(dynamic cargo) => switch (_texto(cargo).toUpperCase()) {
+  'SUPERADMIN' => Colors.deepPurple,
+  'ADMIN' => Colors.blue,
+  'GERENTE' => Colors.deepOrange,
+  'CAIXA' => Colors.green,
+  'BARMAN' => Colors.amber.shade800,
+  'GARCOM' => Colors.teal,
+  'PORTEIRO' => Colors.brown,
+  'TOTEM' => Colors.cyan.shade800,
+  _ => Colors.blueGrey,
+};
 
 class ParceirosAdminPage extends StatefulWidget {
   const ParceirosAdminPage({super.key});
@@ -414,6 +425,7 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
                                   _Pill(
                                     _texto(item['dscargo']),
                                     Icons.badge_outlined,
+                                    cor: _corCargo(item['dscargo']),
                                   ),
                                   if (_texto(item['nmloja']).isNotEmpty)
                                     _Pill(
@@ -469,12 +481,13 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
   Map<String, dynamic> _dados = {};
   List<Map<String, dynamic>> _organizacoes = [];
   int? _organizacaoId, _lojaId;
+  DateTime _dataConsulta = DateTime.now();
   bool _carregando = true;
   Future<void> _carregar() async {
     setState(() => _carregando = true);
     try {
       final resultados = await Future.wait([
-        _repo.vendasHoje(),
+        _repo.vendasHoje(data: _dataConsulta),
         _repo.listarOrganizacoes(),
       ]);
       _dados = Map<String, dynamic>.from(resultados[0] as Map);
@@ -493,6 +506,26 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
   void initState() {
     super.initState();
     _carregar();
+  }
+
+  Future<void> _selecionarData() async {
+    final data = await showDatePicker(
+      context: context,
+      initialDate: _dataConsulta,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      locale: const Locale('pt', 'BR'),
+      helpText: 'Selecione a data das vendas',
+      cancelText: 'Cancelar',
+      confirmText: 'Consultar',
+    );
+    if (data == null || !mounted) return;
+    setState(() {
+      _dataConsulta = data;
+      _organizacaoId = null;
+      _lojaId = null;
+    });
+    await _carregar();
   }
 
   List<Map<String, dynamic>> get _detalhes =>
@@ -527,12 +560,16 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
       _detalhes.fold(0, (s, e) => s + _decimal(e['taxa_ingressos']));
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
-    titulo: widget.focoFaturamento ? 'Faturamento de hoje' : 'Vendas de hoje',
-    subtitulo: DateFormat("EEEE, dd 'de' MMMM", 'pt_BR').format(DateTime.now()),
+    titulo: widget.focoFaturamento ? 'Faturamento Clubbar' : 'Vendas Clubbar',
+    subtitulo: DateFormat(
+      "EEEE, dd 'de' MMMM 'de' yyyy",
+      'pt_BR',
+    ).format(_dataConsulta),
     icone: widget.focoFaturamento
         ? Icons.paid_rounded
         : Icons.shopping_cart_checkout_rounded,
     onAtualizar: _carregar,
+    onCalendario: _selecionarData,
     child: _carregando
         ? const Center(
             child: CircularProgressIndicator(color: ClubbarColors.ambar),
@@ -544,7 +581,7 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
                 children: [
                   Expanded(
                     child: _Resumo(
-                      titulo: 'Vendas',
+                      titulo: 'Qtde. Vendas',
                       valor: '$_vendas',
                       icone: Icons.receipt_long_rounded,
                       cor: ClubbarColors.info,
@@ -553,7 +590,7 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _Resumo(
-                      titulo: 'Taxas Clubbar',
+                      titulo: 'Total faturado',
                       valor: _moeda.format(_taxasProdutos + _taxasIngressos),
                       icone: Icons.paid_rounded,
                       cor: ClubbarColors.sucesso,
@@ -566,7 +603,7 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
                 children: [
                   Expanded(
                     child: _Resumo(
-                      titulo: 'Produtos',
+                      titulo: 'Taxa de Produtos',
                       valor: _moeda.format(_taxasProdutos),
                       icone: Icons.shopping_bag_rounded,
                       cor: ClubbarColors.ambarEscuro,
@@ -575,7 +612,7 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _Resumo(
-                      titulo: 'Ingressos',
+                      titulo: 'Taxa de Ingressos',
                       valor: _moeda.format(_taxasIngressos),
                       icone: Icons.confirmation_number_rounded,
                       cor: Colors.purple,
@@ -662,7 +699,7 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
                 ),
               ),
               if (_detalhes.isEmpty)
-                const _Vazio('Nenhuma venda paga encontrada hoje.'),
+                const _Vazio('Nenhuma venda paga encontrada nesta data.'),
             ],
           ),
   );
@@ -672,12 +709,14 @@ class _EstruturaModulo extends StatelessWidget {
   final String titulo, subtitulo;
   final IconData icone;
   final Future<void> Function() onAtualizar;
+  final VoidCallback? onCalendario;
   final Widget child;
   const _EstruturaModulo({
     required this.titulo,
     required this.subtitulo,
     required this.icone,
     required this.onAtualizar,
+    this.onCalendario,
     required this.child,
   });
   @override
@@ -692,9 +731,21 @@ class _EstruturaModulo extends StatelessWidget {
             subtitulo: subtitulo,
             icone: icone,
             mostrarDadosSessao: false,
-            trailing: IconButton(
-              onPressed: onAtualizar,
-              icon: const Icon(Icons.refresh_rounded),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (onCalendario != null)
+                  IconButton(
+                    tooltip: 'Selecionar data',
+                    onPressed: onCalendario,
+                    icon: const Icon(Icons.calendar_month_rounded),
+                  ),
+                IconButton(
+                  tooltip: 'Atualizar',
+                  onPressed: onAtualizar,
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+              ],
             ),
           ),
           Expanded(child: child),
@@ -828,26 +879,34 @@ class _TituloStatus extends StatelessWidget {
 class _Pill extends StatelessWidget {
   final String texto;
   final IconData icone;
-  const _Pill(this.texto, this.icone);
+  final Color? cor;
+  const _Pill(this.texto, this.icone, {this.cor});
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-    decoration: BoxDecoration(
-      color: ClubbarColors.ambarClaro,
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icone, size: 15),
-        const SizedBox(width: 5),
-        Text(
-          texto,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final corBadge = cor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: corBadge?.withValues(alpha: 0.14) ?? ClubbarColors.ambarClaro,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icone, size: 15, color: corBadge),
+          const SizedBox(width: 5),
+          Text(
+            texto,
+            style: TextStyle(
+              color: corBadge,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Resumo extends StatelessWidget {

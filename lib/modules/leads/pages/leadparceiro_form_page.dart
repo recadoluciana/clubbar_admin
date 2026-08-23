@@ -208,6 +208,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
               titulo: 'Atendimento do Lead',
               subtitulo: 'Atualize os dados de contato e a situação comercial',
               icone: Icons.handshake_rounded,
+              mostrarDadosSessao: false,
             ),
             Expanded(
               child: Form(

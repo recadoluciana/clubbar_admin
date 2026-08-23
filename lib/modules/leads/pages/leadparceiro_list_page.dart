@@ -723,6 +723,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                   ? 'Carregando fila comercial...'
                   : '${_leads.length} lead(s) cadastrado(s)',
               icone: Icons.handshake_rounded,
+              mostrarDadosSessao: false,
             ),
             Expanded(
               child: RefreshIndicator(

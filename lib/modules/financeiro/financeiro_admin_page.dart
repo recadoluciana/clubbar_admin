@@ -152,6 +152,7 @@ class _FinanceiroAdminPageState extends State<FinanceiroAdminPage> {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFF6F6F6),
     appBar: ClubbarAppBar(
+      mostrarVoltar: true,
       actions: [
         IconButton(onPressed: _carregar, icon: const Icon(Icons.refresh)),
       ],
@@ -160,7 +161,7 @@ class _FinanceiroAdminPageState extends State<FinanceiroAdminPage> {
       children: [
         const ClubbarPageHeader(
           titulo: 'Financeiro',
-          subtitulo: 'Controle de repasses aos parceiros',
+          subtitulo: 'Gerenciar repasses ao parceiro',
           icone: Icons.account_balance_wallet,
           mostrarDataHora: false,
         ),
