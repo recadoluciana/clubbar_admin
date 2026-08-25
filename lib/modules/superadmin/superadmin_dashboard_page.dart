@@ -368,24 +368,22 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
       appBar: ClubbarAppBar(
         mostrarSair: true,
         onSair: _sair,
-        actions: [
-          const ApiStatusIndicator(versao: '1.0.1'),
-          IconButton(
-            tooltip: 'Atualizar',
-            onPressed: _carregando ? null : _atualizar,
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-        ],
+        actions: [const ApiStatusIndicator(versao: '1.0.1')],
       ),
 
       body: SafeArea(
         child: Column(
           children: [
-            const ClubbarPageHeader(
+            ClubbarPageHeader(
               titulo: 'Painel Administrativo',
               subtitulo: 'Visão geral e administração do Clubbar',
               icone: Icons.dashboard_rounded,
               mostrarDataHora: true,
+              trailing: IconButton(
+                tooltip: 'Atualizar painel',
+                onPressed: _carregando ? null : _atualizar,
+                icon: const Icon(Icons.refresh_rounded),
+              ),
             ),
 
             Expanded(

@@ -11,6 +11,7 @@ import '../repositories/leadparceiro_repository.dart';
 
 import 'leadparceiro_form_page.dart';
 import 'leadparceiro_converter_page.dart';
+import 'leadatendimento_page.dart';
 
 class LeadParceiroListPage extends StatefulWidget {
   const LeadParceiroListPage({super.key});
@@ -137,11 +138,11 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
   void _filtrar() => setState(_aplicarFiltros);
 
   Future<void> _abrirEdicao(LeadParceiro lead) async {
-    final resultado = await Navigator.of(context).push<bool>(
+    await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => LeadParceiroFormPage(lead: lead)),
     );
 
-    if (resultado == true) await _carregar();
+    if (mounted) await _carregar();
   }
 
   Future<void> _abrirConversao(LeadParceiro lead) async {
@@ -150,6 +151,13 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
     );
 
     if (resultado == true) await _carregar();
+  }
+
+  Future<void> _abrirAtendimento(LeadParceiro lead) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => LeadAtendimentoPage(lead: lead)),
+    );
+    if (mounted) await _carregar();
   }
 
   int _quantidadeStatus(String status) =>
@@ -171,6 +179,25 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         return 'Novos';
       default:
         return 'Todos';
+    }
+  }
+
+  String _nomeStatusBadge(String status) {
+    switch (status) {
+      case 'CONTATADO':
+        return 'Contatado';
+      case 'NEGOCIANDO':
+        return 'Negociando';
+      case 'APROVADO_CADASTRO':
+        return 'Aprovado para cadastro';
+      case 'CONVERTIDO':
+        return 'Convertido';
+      case 'PERDIDO':
+        return 'Perdido';
+      case 'NOVO':
+        return 'Novo';
+      default:
+        return status;
     }
   }
 
@@ -512,7 +539,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            _nomeStatus(lead.status),
+                            _nomeStatusBadge(lead.status),
                             style: TextStyle(
                               color: _corStatus(lead.status),
                               fontSize: 10,
@@ -590,13 +617,28 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _abrirEdicao(lead),
-              icon: const Icon(Icons.edit_rounded),
-              label: const Text('Ver e editar atendimento'),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _abrirEdicao(lead),
+                  icon: const Icon(Icons.edit_rounded),
+                  label: const Text('Editar lead'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _abrirAtendimento(lead),
+                  icon: const Icon(Icons.forum_rounded),
+                  label: const Text('Atender lead'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ClubbarColors.info,
+                    foregroundColor: ClubbarColors.branco,
+                  ),
+                ),
+              ),
+            ],
           ),
           if (lead.status == 'APROVADO_CADASTRO') ...[
             const SizedBox(height: 10),
@@ -741,6 +783,11 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                   : '${_leads.length} lead(s) cadastrado(s)',
               icone: Icons.handshake_rounded,
               mostrarDadosSessao: false,
+              trailing: IconButton(
+                tooltip: 'Atualizar leads',
+                onPressed: _carregando ? null : _carregar,
+                icon: const Icon(Icons.refresh_rounded),
+              ),
             ),
             Expanded(
               child: RefreshIndicator(
