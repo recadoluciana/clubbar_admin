@@ -1,4 +1,9 @@
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import '../../../core/config/api_config.dart';
+import '../../../core/services/storage_service.dart';
 
 import '../../../core/services/api_service.dart';
 import '../models/leadparceiro.dart';
@@ -43,6 +48,51 @@ class LeadParceiroRepository {
     final r = await ApiService.post('/lead-atendimento/$id/materiais', dados);
     if (r.statusCode != 201)
       throw Exception(_extrairErro(r.body, 'Erro ao incluir material.'));
+  }
+
+  Future<void> uploadMaterial({
+    required int id,
+    required String titulo,
+    required String tipo,
+    String? descricao,
+    required PlatformFile arquivo,
+  }) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse(
+        ApiConfig.baseUrl +
+            '/lead-atendimento/' +
+            id.toString() +
+            '/materiais-upload',
+      ),
+    );
+    final token = await StorageService.getToken();
+    if (token != null && token.isNotEmpty)
+      request.headers['Authorization'] = 'Bearer $token';
+    request.fields['titulo'] = titulo;
+    request.fields['tipo'] = tipo;
+    if (descricao != null && descricao.isNotEmpty)
+      request.fields['descricao'] = descricao;
+    if (kIsWeb || arquivo.path == null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'arquivo',
+          arquivo.bytes!,
+          filename: arquivo.name,
+        ),
+      );
+    } else {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'arquivo',
+          arquivo.path!,
+          filename: arquivo.name,
+        ),
+      );
+    }
+    final response = await http.Response.fromStream(await request.send());
+    if (response.statusCode != 201)
+      throw Exception(_extrairErro(response.body, 'Erro ao enviar arquivo.'));
   }
 
   Future<void> excluirMaterial(int leadId, int itemId) async {

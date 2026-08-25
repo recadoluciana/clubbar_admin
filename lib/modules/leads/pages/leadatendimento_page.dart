@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/clubbar_colors.dart';
 import '../../../core/widgets/app_snackbar.dart';
@@ -100,7 +102,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       );
   }
 
-  Future<void> _material() async {
+  Future<void> materialLegado() async {
     final t = await _texto('Novo material', 'Título');
     if (t == null || t.isEmpty) return;
     final u = await _texto('Link do material', 'https://...');
@@ -114,6 +116,179 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         }),
         'Material incluído.',
       );
+  }
+
+  Future<void> _materialNovo() async {
+    final titulo = TextEditingController();
+    final descricao = TextEditingController();
+    final link = TextEditingController();
+    String modo = 'ARQUIVO';
+    String tipo = 'APRESENTACAO';
+    PlatformFile? arquivo;
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('Novo material'),
+          content: SizedBox(
+            width: 520,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(
+                        value: 'ARQUIVO',
+                        icon: Icon(Icons.upload_file),
+                        label: Text('Enviar arquivo'),
+                      ),
+                      ButtonSegment(
+                        value: 'LINK',
+                        icon: Icon(Icons.link),
+                        label: Text('Link externo'),
+                      ),
+                    ],
+                    selected: {modo},
+                    onSelectionChanged: (v) => setLocal(() => modo = v.first),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: titulo,
+                    decoration: const InputDecoration(
+                      labelText: 'Título',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descricao,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Descrição (opcional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: tipo,
+                    decoration: const InputDecoration(
+                      labelText: 'Tipo',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'APRESENTACAO',
+                        child: Text('Apresentação'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'PROPOSTA',
+                        child: Text('Proposta'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'CONTRATO',
+                        child: Text('Contrato'),
+                      ),
+                      DropdownMenuItem(value: 'VIDEO', child: Text('Vídeo')),
+                      DropdownMenuItem(value: 'OUTRO', child: Text('Outro')),
+                    ],
+                    onChanged: (v) => tipo = v!,
+                  ),
+                  const SizedBox(height: 12),
+                  if (modo == 'LINK')
+                    TextField(
+                      controller: link,
+                      keyboardType: TextInputType.url,
+                      decoration: const InputDecoration(
+                        labelText: 'Link do YouTube, Canva ou outro HTTPS',
+                        border: OutlineInputBorder(),
+                      ),
+                    )
+                  else
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final r = await FilePicker.platform.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: const [
+                            'pdf',
+                            'png',
+                            'jpg',
+                            'jpeg',
+                            'webp',
+                            'doc',
+                            'docx',
+                            'ppt',
+                            'pptx',
+                            'xls',
+                            'xlsx',
+                          ],
+                          withData: kIsWeb,
+                        );
+                        if (r != null) setLocal(() => arquivo = r.files.single);
+                      },
+                      icon: const Icon(Icons.attach_file),
+                      label: Text(
+                        arquivo?.name ?? 'Selecionar PDF, imagem ou documento',
+                      ),
+                    ),
+                  if (modo == 'ARQUIVO')
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text('Tamanho máximo: 20 MB'),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final uri = Uri.tryParse(link.text.trim());
+                if (titulo.text.trim().isEmpty) return;
+                if (modo == 'ARQUIVO' && arquivo == null) return;
+                if (modo == 'LINK' && (uri == null || uri.scheme != 'https'))
+                  return;
+                Navigator.pop(ctx, true);
+              },
+              child: const Text('Disponibilizar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmar == true) {
+      if (modo == 'ARQUIVO') {
+        await _acao(
+          () => _repo.uploadMaterial(
+            id: widget.lead.leadparceiroId,
+            titulo: titulo.text.trim(),
+            descricao: descricao.text.trim(),
+            tipo: tipo,
+            arquivo: arquivo!,
+          ),
+          'Arquivo enviado e disponibilizado.',
+        );
+      } else {
+        await _acao(
+          () => _repo.criarMaterial(widget.lead.leadparceiroId, {
+            'titulo': titulo.text.trim(),
+            'descricao': descricao.text.trim().isEmpty
+                ? null
+                : descricao.text.trim(),
+            'tipo': tipo,
+            'urlarquivo': link.text.trim(),
+          }),
+          'Link disponibilizado.',
+        );
+      }
+    }
+    titulo.dispose();
+    descricao.dispose();
+    link.dispose();
   }
 
   Future<void> _agendamento() async {
@@ -340,7 +515,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                         _secao(
                           'Materiais',
                           Icons.folder_open,
-                          _material,
+                          _materialNovo,
                           materiais
                               .map(
                                 (x) => ListTile(
