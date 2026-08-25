@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../core/theme/clubbar_colors.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/clubbar_app_bar.dart';
-import '../../../core/widgets/clubbar_card.dart';
 import '../../../core/widgets/clubbar_page_header.dart';
-
 import '../models/leadparceiro.dart';
 import '../repositories/leadparceiro_repository.dart';
 
 class LeadParceiroConverterPage extends StatefulWidget {
   final LeadParceiro lead;
-
   const LeadParceiroConverterPage({super.key, required this.lead});
 
   @override
@@ -23,408 +19,231 @@ class LeadParceiroConverterPage extends StatefulWidget {
 class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   final _formKey = GlobalKey<FormState>();
   final _repository = LeadParceiroRepository();
-
-  final _razaoSocialController = TextEditingController();
-  final _cnpjController = TextEditingController();
-  final _cepController = TextEditingController();
-  final _enderecoController = TextEditingController();
-  final _numeroController = TextEditingController();
-  final _complementoController = TextEditingController();
-  final _bairroController = TextEditingController();
+  late final TextEditingController _organizacao;
+  late final TextEditingController _loja;
+  late final TextEditingController _email;
+  final _taxaProdutos = TextEditingController(text: '5,00');
+  final _taxaIngressos = TextEditingController(text: '5,00');
+  late String _tipoLoja;
   bool _convertendo = false;
 
   @override
+  void initState() {
+    super.initState();
+    _organizacao = TextEditingController(text: widget.lead.nmestabelecimento);
+    _loja = TextEditingController(text: widget.lead.nmestabelecimento);
+    _email = TextEditingController(text: widget.lead.email);
+    _tipoLoja = widget.lead.tipo;
+  }
+
+  @override
   void dispose() {
-    _razaoSocialController.dispose();
-    _cnpjController.dispose();
-    _cepController.dispose();
-    _enderecoController.dispose();
-    _numeroController.dispose();
-    _complementoController.dispose();
-    _bairroController.dispose();
+    _organizacao.dispose();
+    _loja.dispose();
+    _email.dispose();
+    _taxaProdutos.dispose();
+    _taxaIngressos.dispose();
     super.dispose();
   }
 
-  String _somenteNumeros(String valor) {
-    return valor.replaceAll(RegExp(r'\D'), '');
-  }
+  double? _percentual(TextEditingController c) =>
+      double.tryParse(c.text.trim().replaceAll(',', '.'));
 
-  InputDecoration _decoracao({
-    required String label,
-    required IconData icone,
-    String? hint,
-  }) {
-    return InputDecoration(
-      labelText: label,
-      hintText: hint,
-      prefixIcon: Icon(icone),
-      filled: true,
-      fillColor: ClubbarColors.branco,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: ClubbarColors.borda),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: ClubbarColors.borda),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: ClubbarColors.ambar, width: 2),
-      ),
-    );
-  }
-
-  String? _validarObrigatorio(String? valor, String campo) {
-    if ((valor ?? '').trim().isEmpty) {
-      return 'Informe $campo.';
-    }
-    return null;
-  }
-
-  Future<bool> _confirmarConversao() async {
-    final confirmado = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.handshake_rounded, color: ClubbarColors.ambarEscuro),
-              SizedBox(width: 9),
-              Expanded(
-                child: Text(
-                  'Confirmar conversão',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'Deseja converter "${widget.lead.nmestabelecimento}" em parceiro?\n\n'
-            'Essa operação criará a organização, a loja padrão, sete categorias '
-            'e o acesso inicial do SUPERADMIN.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.pop(context, true),
-              icon: const Icon(Icons.check_rounded),
-              label: const Text('Confirmar'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ClubbarColors.ambar,
-                foregroundColor: ClubbarColors.preto,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    return confirmado == true;
-  }
+  String? _obrigatorio(String? valor) =>
+      valor == null || valor.trim().isEmpty ? 'Campo obrigatório' : null;
 
   Future<void> _converter() async {
-    FocusScope.of(context).unfocus();
-
     if (!_formKey.currentState!.validate()) return;
-
-    final confirmado = await _confirmarConversao();
-    if (!confirmado || !mounted) return;
-
-    setState(() {
-      _convertendo = true;
-    });
-
+    final produtos = _percentual(_taxaProdutos);
+    final ingressos = _percentual(_taxaIngressos);
+    if (produtos == null ||
+        produtos < 0 ||
+        produtos > 100 ||
+        ingressos == null ||
+        ingressos < 0 ||
+        ingressos > 100) {
+      AppSnackBar.aviso(context, 'Informe taxas entre 0% e 100%.');
+      return;
+    }
+    setState(() => _convertendo = true);
     try {
       final resultado = await _repository.converterEmParceiro(
         leadparceiroId: widget.lead.leadparceiroId,
-        razaoSocial: _razaoSocialController.text,
-        cnpj: _cnpjController.text,
-        cep: _cepController.text,
-        endereco: _enderecoController.text,
-        numero: _numeroController.text,
-        complemento: _complementoController.text,
-        bairro: _bairroController.text,
+        nomeOrganizacao: _organizacao.text,
+        nomeLoja: _loja.text,
+        tipoLoja: _tipoLoja,
+        emailResponsavel: _email.text,
+        taxaProdutos: produtos,
+        taxaIngressos: ingressos,
       );
-
       if (!mounted) return;
-
-      final superadmin = resultado['superadmin'];
-      final email = superadmin is Map
-          ? superadmin['email']?.toString() ?? ''
-          : '';
-      final senha = superadmin is Map
-          ? superadmin['senha_inicial']?.toString() ?? ''
-          : '';
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Parceiro criado com sucesso'),
-          content: SelectableText(
-            'Acesso inicial do SUPERADMIN:\n\nE-mail: $email\nSenha: $senha',
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Concluir'),
-            ),
-          ],
-        ),
+      final convite = resultado['superadmin']?['convite_enviado'] == true;
+      AppSnackBar.sucesso(
+        context,
+        convite
+            ? 'Parceiro criado e convite enviado por e-mail.'
+            : 'Parceiro criado. O convite não pôde ser enviado; informe a senha inicial ao responsável.',
       );
-
-      if (!mounted) return;
-      Navigator.of(context).pop(true);
+      Navigator.pop(context, true);
     } catch (e) {
-      if (!mounted) return;
-
-      final mensagem = e.toString().replaceFirst('Exception: ', '').trim();
-      AppSnackBar.erro(context, mensagem);
+      if (mounted) AppSnackBar.erro(context, e.toString());
     } finally {
-      if (mounted) {
-        setState(() {
-          _convertendo = false;
-        });
-      }
+      if (mounted) setState(() => _convertendo = false);
     }
   }
+
+  InputDecoration _decoracao(String label, IconData icon, {String? suffix}) =>
+      InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        suffixText: suffix,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ClubbarColors.fundo,
       appBar: const ClubbarAppBar(mostrarVoltar: true),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const ClubbarPageHeader(
-              titulo: 'Converter em parceiro',
-              subtitulo: 'Complete os dados cadastrais da organização',
-              icone: Icons.handshake_rounded,
-              mostrarDadosSessao: false,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 760),
-                    child: Form(
-                      key: _formKey,
+      body: Column(
+        children: [
+          const ClubbarPageHeader(
+            titulo: 'Converter em parceiro',
+            subtitulo: 'Criação inicial com documentação pendente',
+          ),
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ClubbarCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Lead selecionado',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: ClubbarColors.textoSecundario,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  widget.lead.nmestabelecimento,
-                                  style: const TextStyle(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${widget.lead.tipo} • '
-                                  '${widget.lead.nmcidade}/${widget.lead.sgestado}',
-                                  style: const TextStyle(
-                                    color: ClubbarColors.textoSecundario,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                          TextFormField(
+                            controller: _organizacao,
+                            validator: _obrigatorio,
+                            decoration: _decoracao(
+                              'Nome da organização',
+                              Icons.business_rounded,
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          ClubbarCard(
-                            child: Column(
-                              children: [
-                                TextFormField(
-                                  controller: _razaoSocialController,
-                                  textCapitalization: TextCapitalization.words,
-                                  decoration: _decoracao(
-                                    label: 'Razão social',
-                                    icone: Icons.business_rounded,
-                                    hint: 'Bar do Crispim Ltda',
-                                  ),
-                                  validator: (valor) => _validarObrigatorio(
-                                    valor,
-                                    'a razão social',
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                TextFormField(
-                                  controller: _cnpjController,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(14),
-                                  ],
-                                  decoration: _decoracao(
-                                    label: 'CNPJ',
-                                    icone: Icons.badge_outlined,
-                                    hint: 'Somente os 14 números',
-                                  ),
-                                  validator: (valor) {
-                                    final cnpj = _somenteNumeros(valor ?? '');
-                                    if (cnpj.isEmpty) {
-                                      return 'Informe o CNPJ.';
-                                    }
-                                    if (cnpj.length != 14) {
-                                      return 'O CNPJ deve possuir 14 números.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 14),
-                                TextFormField(
-                                  controller: _cepController,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(8),
-                                  ],
-                                  decoration: _decoracao(
-                                    label: 'CEP',
-                                    icone: Icons.location_on_outlined,
-                                    hint: 'Somente os 8 números',
-                                  ),
-                                  validator: (valor) {
-                                    final cep = _somenteNumeros(valor ?? '');
-                                    if (cep.isEmpty) {
-                                      return 'Informe o CEP.';
-                                    }
-                                    if (cep.length != 8) {
-                                      return 'O CEP deve possuir 8 números.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 14),
-                                TextFormField(
-                                  controller: _enderecoController,
-                                  textCapitalization: TextCapitalization.words,
-                                  decoration: _decoracao(
-                                    label: 'Endereço',
-                                    icone: Icons.signpost_outlined,
-                                    hint: 'Rua das Flores',
-                                  ),
-                                  validator: (valor) =>
-                                      _validarObrigatorio(valor, 'o endereço'),
-                                ),
-                                const SizedBox(height: 14),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 2,
-                                      child: TextFormField(
-                                        controller: _numeroController,
-                                        decoration: _decoracao(
-                                          label: 'Número',
-                                          icone: Icons.numbers_rounded,
-                                          hint: '120',
-                                        ),
-                                        validator: (valor) =>
-                                            _validarObrigatorio(
-                                              valor,
-                                              'o número',
-                                            ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      flex: 3,
-                                      child: TextFormField(
-                                        controller: _complementoController,
-                                        textCapitalization:
-                                            TextCapitalization.words,
-                                        decoration: _decoracao(
-                                          label: 'Complemento',
-                                          icone: Icons.apartment_rounded,
-                                          hint: 'Sala 2',
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 14),
-                                TextFormField(
-                                  controller: _bairroController,
-                                  textCapitalization: TextCapitalization.words,
-                                  decoration: _decoracao(
-                                    label: 'Bairro',
-                                    icone: Icons.map_outlined,
-                                    hint: 'Centro',
-                                  ),
-                                  validator: (valor) =>
-                                      _validarObrigatorio(valor, 'o bairro'),
-                                ),
-                              ],
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: _loja,
+                            validator: _obrigatorio,
+                            decoration: _decoracao(
+                              'Nome da loja inicial',
+                              Icons.storefront_rounded,
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton.icon(
-                              onPressed: _convertendo ? null : _converter,
-                              icon: _convertendo
-                                  ? const SizedBox(
-                                      width: 21,
-                                      height: 21,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.handshake_rounded),
-                              label: Text(
-                                _convertendo
-                                    ? 'Convertendo...'
-                                    : 'Confirmar conversão',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: ClubbarColors.ambar,
-                                foregroundColor: ClubbarColors.preto,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
+                          const SizedBox(height: 14),
+                          DropdownButtonFormField<String>(
+                            initialValue: _tipoLoja,
+                            decoration: _decoracao(
+                              'Tipo da loja',
+                              Icons.category_outlined,
                             ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'BAR',
+                                child: Text('Bar'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'CASA_NOTURNA',
+                                child: Text('Casa noturna'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'PRODUTOR_EVENTOS',
+                                child: Text('Produtor de eventos'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'CASA_EVENTOS',
+                                child: Text('Casa de eventos'),
+                              ),
+                            ],
+                            onChanged: (v) => setState(() => _tipoLoja = v!),
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: _email,
+                            validator: (v) =>
+                                _obrigatorio(v) ??
+                                (v!.contains('@') ? null : 'E-mail inválido'),
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: _decoracao(
+                              'E-mail do responsável',
+                              Icons.alternate_email_rounded,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _taxaProdutos,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  decoration: _decoracao(
+                                    'Taxa de produtos',
+                                    Icons.percent,
+                                    suffix: '%',
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _taxaIngressos,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  decoration: _decoracao(
+                                    'Taxa de ingressos',
+                                    Icons.percent,
+                                    suffix: '%',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  const Card(
+                    color: ClubbarColors.infoClaro,
+                    child: Padding(
+                      padding: EdgeInsets.all(14),
+                      child: Text(
+                        'CPF/CNPJ, razão social, endereço cadastral e documentos serão preenchidos pelo parceiro no onboarding financeiro.',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _convertendo ? null : _converter,
+                    icon: _convertendo
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.handshake_rounded),
+                    label: Text(
+                      _convertendo ? 'Convertendo...' : 'Converter em parceiro',
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

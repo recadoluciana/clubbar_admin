@@ -37,11 +37,18 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
     'NOVO',
     'CONTATADO',
     'NEGOCIANDO',
+    'APROVADO_CADASTRO',
     'CONVERTIDO',
     'PERDIDO',
   ];
 
-  static const _tipos = ['TODOS', 'BAR', 'CASA_NOTURNA', 'PRODUTOR_EVENTOS'];
+  static const _tipos = [
+    'TODOS',
+    'BAR',
+    'CASA_NOTURNA',
+    'PRODUTOR_EVENTOS',
+    'CASA_EVENTOS',
+  ];
   IconData _iconeStatus(String status) {
     switch (status) {
       case 'CONTATADO':
@@ -49,6 +56,8 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
 
       case 'NEGOCIANDO':
         return Icons.handshake_rounded;
+      case 'APROVADO_CADASTRO':
+        return Icons.task_alt_rounded;
 
       case 'CONVERTIDO':
         return Icons.verified_rounded;
@@ -152,6 +161,8 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         return 'Contatados';
       case 'NEGOCIANDO':
         return 'Negociando';
+      case 'APROVADO_CADASTRO':
+        return 'Aprovados para cadastro';
       case 'CONVERTIDO':
         return 'Convertidos';
       case 'PERDIDO':
@@ -170,6 +181,8 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
 
       case 'PRODUTOR_EVENTOS':
         return 'Produtor de Eventos';
+      case 'CASA_EVENTOS':
+        return 'Casa de eventos';
 
       case 'BAR':
         return 'Bar';
@@ -185,6 +198,8 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         return ClubbarColors.info;
       case 'NEGOCIANDO':
         return Colors.orange.shade800;
+      case 'APROVADO_CADASTRO':
+        return Colors.teal.shade700;
       case 'CONVERTIDO':
         return ClubbarColors.sucesso;
       case 'PERDIDO':
@@ -200,6 +215,8 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         return ClubbarColors.infoClaro;
       case 'NEGOCIANDO':
         return Colors.orange.shade50;
+      case 'APROVADO_CADASTRO':
+        return Colors.teal.shade50;
       case 'CONVERTIDO':
         return ClubbarColors.sucessoClaro;
       case 'PERDIDO':
@@ -581,7 +598,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
               label: const Text('Ver e editar atendimento'),
             ),
           ),
-          if (lead.status != 'CONVERTIDO' && lead.status != 'PERDIDO') ...[
+          if (lead.status == 'APROVADO_CADASTRO') ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,

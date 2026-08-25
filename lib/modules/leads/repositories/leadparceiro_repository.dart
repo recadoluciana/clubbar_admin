@@ -62,24 +62,22 @@ class LeadParceiroRepository {
 
   Future<Map<String, dynamic>> converterEmParceiro({
     required int leadparceiroId,
-    required String razaoSocial,
-    required String cnpj,
-    required String cep,
-    required String endereco,
-    required String numero,
-    required String complemento,
-    required String bairro,
+    required String nomeOrganizacao,
+    required String nomeLoja,
+    required String tipoLoja,
+    required String emailResponsavel,
+    required double taxaProdutos,
+    required double taxaIngressos,
   }) async {
     final response = await ApiService.post(
       '/parceiros/$leadparceiroId/converter-em-parceiro',
       {
-        'razao_social': razaoSocial.trim(),
-        'cnpj': cnpj.trim(),
-        'cep': cep.trim().isEmpty ? null : cep.trim(),
-        'endereco': endereco.trim(),
-        'numero': numero.trim(),
-        'complemento': complemento.trim().isEmpty ? null : complemento.trim(),
-        'bairro': bairro.trim().isEmpty ? null : bairro.trim(),
+        'nome_organizacao': nomeOrganizacao.trim(),
+        'nome_loja': nomeLoja.trim(),
+        'tipo_loja': tipoLoja,
+        'email_responsavel': emailResponsavel.trim().toLowerCase(),
+        'taxa_produtos': taxaProdutos,
+        'taxa_ingressos': taxaIngressos,
       },
     );
 

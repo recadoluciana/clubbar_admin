@@ -35,11 +35,17 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
   late String _statusSelecionado;
   bool _salvando = false;
 
-  static const _tipos = ['BAR', 'CASA_NOTURNA', 'PRODUTOR_EVENTOS'];
+  static const _tipos = [
+    'BAR',
+    'CASA_NOTURNA',
+    'PRODUTOR_EVENTOS',
+    'CASA_EVENTOS',
+  ];
   static const _status = [
     'NOVO',
     'CONTATADO',
     'NEGOCIANDO',
+    'APROVADO_CADASTRO',
     'CONVERTIDO',
     'PERDIDO',
   ];
@@ -81,6 +87,8 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         return 'Casa noturna';
       case 'PRODUTOS_EVENTOS':
         return 'Produtor de Eventos';
+      case 'CASA_EVENTOS':
+        return 'Casa de eventos';
       default:
         return 'Bar';
     }
@@ -92,6 +100,8 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         return 'Contatado';
       case 'NEGOCIANDO':
         return 'Negociando';
+      case 'APROVADO_CADASTRO':
+        return 'Aprovado para cadastro';
       case 'CONVERTIDO':
         return 'Convertido';
       case 'PERDIDO':
