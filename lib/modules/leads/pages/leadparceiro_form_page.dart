@@ -9,6 +9,7 @@ import '../../../core/widgets/clubbar_card.dart';
 import '../../../core/widgets/clubbar_page_header.dart';
 import '../models/leadparceiro.dart';
 import '../repositories/leadparceiro_repository.dart';
+import 'leadatendimento_page.dart';
 
 class LeadParceiroFormPage extends StatefulWidget {
   final LeadParceiro lead;
@@ -466,6 +467,23 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                LeadAtendimentoPage(lead: widget.lead),
+                          ),
+                        ),
+                        icon: const Icon(Icons.forum_rounded),
+                        label: const Text(
+                          'Abrir atendimento, agenda e materiais',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       height: 56,
