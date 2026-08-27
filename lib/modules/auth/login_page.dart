@@ -55,17 +55,6 @@ class _LoginPageState extends State<LoginPage> {
 
       const destino = SuperAdminDashboardPage();
 
-      if (destino == null) {
-        await StorageService.clearToken();
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuário não possui cargo definido.')),
-        );
-        return;
-      }
-
       Navigator.of(
         context,
       ).pushReplacement(MaterialPageRoute(builder: (_) => destino));

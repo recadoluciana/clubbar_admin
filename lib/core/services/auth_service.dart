@@ -16,12 +16,15 @@ class AuthService {
         'email': email,
         'senha': senha,
       });
-      if (response.statusCode == 401)
+      if (response.statusCode == 401) {
         throw const AuthException('E-mail ou senha invalidos.');
-      if (response.statusCode == 403)
+      }
+      if (response.statusCode == 403) {
         throw const AuthException('Operador inativo.');
-      if (response.statusCode != 200)
+      }
+      if (response.statusCode != 200) {
         throw const AuthException('Nao foi possivel realizar o login.');
+      }
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       await StorageService.saveToken(data['access_token'].toString());
       await StorageService.saveOperador(
