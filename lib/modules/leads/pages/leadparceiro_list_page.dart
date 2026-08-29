@@ -428,60 +428,28 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
               ),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _statusSelecionado,
-                isExpanded: true,
-                decoration: _decoracaoFiltro(
-                  label: 'Situação',
-                  icone: Icons.track_changes_rounded,
+        DropdownButtonFormField<String>(
+          value: _tipoSelecionado,
+          isExpanded: true,
+          decoration: _decoracaoFiltro(
+            label: 'Tipo',
+            icone: Icons.category_outlined,
+          ),
+          items: _tipos
+              .map(
+                (tipo) => DropdownMenuItem(
+                  value: tipo,
+                  child: Text(_nomeTipo(tipo)),
                 ),
-                items: _status
-                    .map(
-                      (status) => DropdownMenuItem(
-                        value: status,
-                        child: Text(_nomeStatus(status)),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() {
-                    _statusSelecionado = value;
-                    _aplicarFiltros();
-                  });
-                },
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _tipoSelecionado,
-                isExpanded: true,
-                decoration: _decoracaoFiltro(
-                  label: 'Tipo',
-                  icone: Icons.category_outlined,
-                ),
-                items: _tipos
-                    .map(
-                      (tipo) => DropdownMenuItem(
-                        value: tipo,
-                        child: Text(_nomeTipo(tipo)),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() {
-                    _tipoSelecionado = value;
-                    _aplicarFiltros();
-                  });
-                },
-              ),
-            ),
-          ],
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value == null) return;
+            setState(() {
+              _tipoSelecionado = value;
+              _aplicarFiltros();
+            });
+          },
         ),
       ],
     );

@@ -9,7 +9,6 @@ import '../../../core/widgets/clubbar_card.dart';
 import '../../../core/widgets/clubbar_page_header.dart';
 import '../models/leadparceiro.dart';
 import '../repositories/leadparceiro_repository.dart';
-import 'leadatendimento_page.dart';
 
 class LeadParceiroFormPage extends StatefulWidget {
   final LeadParceiro lead;
@@ -216,7 +215,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         child: Column(
           children: [
             const ClubbarPageHeader(
-              titulo: 'Atendimento do Lead',
+              titulo: 'Editar lead',
               subtitulo: 'Atualize os dados de contato e a situação comercial',
               icone: Icons.handshake_rounded,
               mostrarDadosSessao: false,
@@ -436,11 +435,11 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                           ),
                           const SizedBox(height: 14),
                           _campoLeitura(
-                            label: 'Mensagem enviada',
+                            label: 'Descrição do seu negócio',
                             valor: mensagem == null || mensagem.isEmpty
-                                ? 'Nenhuma mensagem informada'
+                                ? 'Nenhuma descrição informada'
                                 : mensagem,
-                            icone: Icons.message_outlined,
+                            icone: Icons.business_outlined,
                             maxLines: 4,
                           ),
                           const SizedBox(height: 14),
@@ -467,23 +466,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                LeadAtendimentoPage(lead: widget.lead),
-                          ),
-                        ),
-                        icon: const Icon(Icons.forum_rounded),
-                        label: const Text(
-                          'Abrir atendimento, agenda e materiais',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       height: 56,
