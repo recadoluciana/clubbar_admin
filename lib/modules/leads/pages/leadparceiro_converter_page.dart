@@ -35,7 +35,11 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   @override
   void initState() {
     super.initState();
-    _organizacao = TextEditingController(text: widget.lead.nmestabelecimento);
+    _organizacao = TextEditingController(
+      text: (widget.lead.nmorganizacao?.trim().isNotEmpty ?? false)
+          ? widget.lead.nmorganizacao!
+          : widget.lead.nmestabelecimento,
+    );
     _loja = TextEditingController(text: widget.estabelecimento.nome);
     _email = TextEditingController(text: widget.lead.email);
     _tipoLoja = widget.estabelecimento.tipo;
@@ -117,8 +121,8 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       body: Column(
         children: [
           const ClubbarPageHeader(
-            titulo: 'Converter em parceiro',
-            subtitulo: 'Criação inicial com documentação pendente',
+            titulo: 'Converter estabelecimento em parceiro',
+            subtitulo: 'Criação da loja com documentação financeira pendente',
           ),
           Expanded(
             child: Form(
@@ -144,7 +148,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                             controller: _loja,
                             validator: _obrigatorio,
                             decoration: _decoracao(
-                              'Nome da loja inicial',
+                              'Nome da loja',
                               Icons.storefront_rounded,
                             ),
                           ),
@@ -245,7 +249,9 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                           )
                         : const Icon(Icons.handshake_rounded),
                     label: Text(
-                      _convertendo ? 'Convertendo...' : 'Converter em parceiro',
+                      _convertendo
+                          ? 'Convertendo...'
+                          : 'Converter estabelecimento em parceiro',
                     ),
                   ),
                 ],

@@ -29,6 +29,7 @@ class LeadEstabelecimento {
 class LeadParceiro {
   final int leadparceiroId;
   final String nmresponsavel;
+  final String? nmorganizacao;
   final String nmestabelecimento;
   final String tipo;
   final String telefone;
@@ -49,6 +50,7 @@ class LeadParceiro {
   const LeadParceiro({
     required this.leadparceiroId,
     required this.nmresponsavel,
+    required this.nmorganizacao,
     required this.nmestabelecimento,
     required this.tipo,
     required this.telefone,
@@ -71,6 +73,7 @@ class LeadParceiro {
     return LeadParceiro(
       leadparceiroId: _toInt(json['leadparceiro_id']),
       nmresponsavel: json['nmresponsavel']?.toString() ?? '',
+      nmorganizacao: json['nmorganizacao']?.toString(),
       nmestabelecimento: json['nmestabelecimento']?.toString() ?? '',
       tipo: json['tipo']?.toString() ?? '',
       telefone: json['telefone']?.toString() ?? '',
