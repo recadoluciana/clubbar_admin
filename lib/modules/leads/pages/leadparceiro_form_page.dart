@@ -215,7 +215,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         child: Column(
           children: [
             const ClubbarPageHeader(
-              titulo: 'Editar lead',
+              titulo: 'Edição do Lead',
               subtitulo: 'Atualize os dados de contato e a situação comercial',
               icone: Icons.handshake_rounded,
               mostrarDadosSessao: false,
