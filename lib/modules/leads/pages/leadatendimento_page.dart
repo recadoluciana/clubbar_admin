@@ -291,6 +291,123 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     link.dispose();
   }
 
+  Future<void> _contrato() async {
+    if (widget.lead.estabelecimentos.isEmpty) {
+      AppSnackBar.aviso(context, 'Cadastre um estabelecimento para o lead.');
+      return;
+    }
+    var estabelecimento = widget.lead.estabelecimentos.first;
+    final versao = TextEditingController(text: '1.0');
+    final url = TextEditingController();
+    final taxaProdutos = TextEditingController(text: '5,00');
+    final taxaIngressos = TextEditingController(text: '5,00');
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('Disponibilizar contrato'),
+          content: SizedBox(
+            width: 520,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<LeadEstabelecimento>(
+                  initialValue: estabelecimento,
+                  decoration: const InputDecoration(
+                    labelText: 'Estabelecimento',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: widget.lead.estabelecimentos
+                      .map(
+                        (item) => DropdownMenuItem(
+                          value: item,
+                          child: Text(item.nome),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (item) {
+                    if (item != null) setLocal(() => estabelecimento = item);
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: versao,
+                  decoration: const InputDecoration(
+                    labelText: 'Versão',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: url,
+                  decoration: const InputDecoration(
+                    labelText: 'Link HTTPS do contrato',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: taxaProdutos,
+                        decoration: const InputDecoration(
+                          labelText: 'Taxa produtos %',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: taxaIngressos,
+                        decoration: const InputDecoration(
+                          labelText: 'Taxa ingressos %',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Disponibilizar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmar == true) {
+      final produtos = double.tryParse(taxaProdutos.text.replaceAll(',', '.'));
+      final ingressos = double.tryParse(taxaIngressos.text.replaceAll(',', '.'));
+      if (produtos == null || ingressos == null || !url.text.startsWith('https://')) {
+        AppSnackBar.aviso(context, 'Informe taxas válidas e um link HTTPS.');
+      } else {
+        await _acao(
+          () => _repo.criarContrato(estabelecimento.id, {
+            'versao': versao.text.trim(),
+            'urlcontrato': url.text.trim(),
+            'vrtaxaprod': produtos,
+            'vrtaxaing': ingressos,
+          }),
+          'Contrato disponibilizado para ${estabelecimento.nome}.',
+        );
+      }
+    }
+    versao.dispose();
+    url.dispose();
+    taxaProdutos.dispose();
+    taxaIngressos.dispose();
+  }
+
   Future<void> _agendamento() async {
     DateTime data = DateTime.now().add(const Duration(days: 1));
     String tipo = 'REUNIAO_ONLINE';
@@ -492,6 +609,12 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                           ),
                           icon: const Icon(Icons.mark_email_read),
                           label: const Text('Reenviar acesso ao portal'),
+                        ),
+                        const SizedBox(height: 10),
+                        OutlinedButton.icon(
+                          onPressed: _contrato,
+                          icon: const Icon(Icons.description_rounded),
+                          label: const Text('Disponibilizar contrato por estabelecimento'),
                         ),
                         const SizedBox(height: 14),
                         _secao(

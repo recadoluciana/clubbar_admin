@@ -170,6 +170,7 @@ class LeadParceiroRepository {
 
   Future<Map<String, dynamic>> converterEmParceiro({
     required int leadparceiroId,
+    required int leadestabelecimentoId,
     required String nomeOrganizacao,
     required String nomeLoja,
     required String tipoLoja,
@@ -180,6 +181,7 @@ class LeadParceiroRepository {
     final response = await ApiService.post(
       '/parceiros/$leadparceiroId/converter-em-parceiro',
       {
+        'leadestabelecimento_id': leadestabelecimentoId,
         'nome_organizacao': nomeOrganizacao.trim(),
         'nome_loja': nomeLoja.trim(),
         'tipo_loja': tipoLoja,
@@ -200,6 +202,19 @@ class LeadParceiroRepository {
     throw Exception(
       _extrairErro(response.body, 'Erro ao converter lead em parceiro.'),
     );
+  }
+
+  Future<void> criarContrato(
+    int leadestabelecimentoId,
+    Map<String, dynamic> dados,
+  ) async {
+    final r = await ApiService.post(
+      '/contratos-lead/estabelecimento/$leadestabelecimentoId',
+      dados,
+    );
+    if (r.statusCode != 201) {
+      throw Exception(_extrairErro(r.body, 'Erro ao disponibilizar contrato.'));
+    }
   }
 
   Future<Map<String, dynamic>> reenviarConviteParceiro({

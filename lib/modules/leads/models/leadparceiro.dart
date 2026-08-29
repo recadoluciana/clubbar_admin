@@ -1,3 +1,31 @@
+class LeadEstabelecimento {
+  final int id;
+  final String nome;
+  final String tipo;
+  final String tipoVenda;
+  final String status;
+  final String decisao;
+
+  const LeadEstabelecimento({
+    required this.id,
+    required this.nome,
+    required this.tipo,
+    required this.tipoVenda,
+    required this.status,
+    required this.decisao,
+  });
+
+  factory LeadEstabelecimento.fromJson(Map<String, dynamic> json) =>
+      LeadEstabelecimento(
+        id: LeadParceiro._toInt(json['leadestabelecimento_id']),
+        nome: json['nmestabelecimento']?.toString() ?? '',
+        tipo: json['tipo']?.toString() ?? '',
+        tipoVenda: json['tipovenda']?.toString() ?? 'AMBOS',
+        status: json['status']?.toString() ?? 'NOVO',
+        decisao: json['decisao']?.toString() ?? 'PENDENTE',
+      );
+}
+
 class LeadParceiro {
   final int leadparceiroId;
   final String nmresponsavel;
@@ -16,6 +44,7 @@ class LeadParceiro {
   final DateTime? dtultatu;
   final int diasEspera;
   final bool aguardandoResposta;
+  final List<LeadEstabelecimento> estabelecimentos;
 
   const LeadParceiro({
     required this.leadparceiroId,
@@ -35,6 +64,7 @@ class LeadParceiro {
     required this.dtultatu,
     required this.diasEspera,
     required this.aguardandoResposta,
+    required this.estabelecimentos,
   });
 
   factory LeadParceiro.fromJson(Map<String, dynamic> json) {
@@ -56,6 +86,10 @@ class LeadParceiro {
       dtultatu: _toNullableDateTime(json['dtultatu']),
       diasEspera: _toInt(json['dias_espera']),
       aguardandoResposta: json['aguardando_resposta'] == true,
+      estabelecimentos: (json['estabelecimentos'] as List? ?? const [])
+          .whereType<Map>()
+          .map((item) => LeadEstabelecimento.fromJson(Map<String, dynamic>.from(item)))
+          .toList(),
     );
   }
 

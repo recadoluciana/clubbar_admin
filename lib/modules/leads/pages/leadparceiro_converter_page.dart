@@ -9,7 +9,12 @@ import '../repositories/leadparceiro_repository.dart';
 
 class LeadParceiroConverterPage extends StatefulWidget {
   final LeadParceiro lead;
-  const LeadParceiroConverterPage({super.key, required this.lead});
+  final LeadEstabelecimento estabelecimento;
+  const LeadParceiroConverterPage({
+    super.key,
+    required this.lead,
+    required this.estabelecimento,
+  });
 
   @override
   State<LeadParceiroConverterPage> createState() =>
@@ -31,9 +36,9 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   void initState() {
     super.initState();
     _organizacao = TextEditingController(text: widget.lead.nmestabelecimento);
-    _loja = TextEditingController(text: widget.lead.nmestabelecimento);
+    _loja = TextEditingController(text: widget.estabelecimento.nome);
     _email = TextEditingController(text: widget.lead.email);
-    _tipoLoja = widget.lead.tipo;
+    _tipoLoja = widget.estabelecimento.tipo;
   }
 
   @override
@@ -69,6 +74,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
     try {
       final resultado = await _repository.converterEmParceiro(
         leadparceiroId: widget.lead.leadparceiroId,
+        leadestabelecimentoId: widget.estabelecimento.id,
         nomeOrganizacao: _organizacao.text,
         nomeLoja: _loja.text,
         tipoLoja: _tipoLoja,
@@ -78,9 +84,12 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       );
       if (!mounted) return;
       final convite = resultado['superadmin']?['convite_enviado'] == true;
+      final criouUsuario = resultado['superadmin']?['senha_inicial'] != null;
       AppSnackBar.sucesso(
         context,
-        convite
+        !criouUsuario
+            ? 'Estabelecimento convertido e nova loja criada.'
+            : convite
             ? 'Parceiro criado e convite enviado por e-mail.'
             : 'Parceiro criado. O convite não pôde ser enviado; informe a senha inicial ao responsável.',
       );

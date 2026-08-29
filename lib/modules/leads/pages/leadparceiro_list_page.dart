@@ -145,9 +145,17 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
     if (mounted) await _carregar();
   }
 
-  Future<void> _abrirConversao(LeadParceiro lead) async {
+  Future<void> _abrirConversao(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) async {
     final resultado = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => LeadParceiroConverterPage(lead: lead)),
+      MaterialPageRoute(
+        builder: (_) => LeadParceiroConverterPage(
+          lead: lead,
+          estabelecimento: estabelecimento,
+        ),
+      ),
     );
 
     if (resultado == true) await _carregar();
@@ -679,24 +687,30 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: lead.status == 'ACEITOU_PARCERIA'
-                  ? () => _abrirConversao(lead)
-                  : null,
-              icon: const Icon(Icons.handshake_rounded),
-              label: const Text('Converter em parceiro'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ClubbarColors.ambar,
-                foregroundColor: ClubbarColors.preto,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+          for (final estabelecimento in lead.estabelecimentos) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: estabelecimento.status == 'ACEITOU_PARCERIA'
+                    ? () => _abrirConversao(lead, estabelecimento)
+                    : null,
+                icon: const Icon(Icons.storefront_rounded),
+                label: Text(
+                  estabelecimento.status == 'CONVERTIDO'
+                      ? '${estabelecimento.nome} — convertido'
+                      : 'Converter ${estabelecimento.nome}',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ClubbarColors.ambar,
+                  foregroundColor: ClubbarColors.preto,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
           if (lead.status == 'CONVERTIDO') ...[
             const SizedBox(height: 10),
             SizedBox(
