@@ -38,11 +38,12 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
   Future<void> _carregar() async {
     try {
       final d = await _repo.consultarAtendimento(widget.lead.leadparceiroId);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _dados = d;
           _carregando = false;
         });
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _carregando = false);
@@ -88,25 +89,27 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       AppSnackBar.sucesso(context, msg);
       await _carregar();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
     }
   }
 
   Future<void> _mensagem() async {
     final t = await _texto('Nova mensagem', 'Mensagem para o lead');
-    if (t != null && t.isNotEmpty)
+    if (t != null && t.isNotEmpty) {
       await _acao(
         () => _repo.enviarMensagem(widget.lead.leadparceiroId, t),
         'Mensagem enviada.',
       );
+    }
   }
 
   Future<void> materialLegado() async {
     final t = await _texto('Novo material', 'Título');
     if (t == null || t.isEmpty) return;
     final u = await _texto('Link do material', 'https://...');
-    if (u != null && u.isNotEmpty)
+    if (u != null && u.isNotEmpty) {
       await _acao(
         () => _repo.criarMaterial(widget.lead.leadparceiroId, {
           'titulo': t,
@@ -116,6 +119,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         }),
         'Material incluído.',
       );
+    }
   }
 
   Future<void> _materialNovo() async {
@@ -250,8 +254,9 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                 final uri = Uri.tryParse(link.text.trim());
                 if (titulo.text.trim().isEmpty) return;
                 if (modo == 'ARQUIVO' && arquivo == null) return;
-                if (modo == 'LINK' && (uri == null || uri.scheme != 'https'))
+                if (modo == 'LINK' && (uri == null || uri.scheme != 'https')) {
                   return;
+                }
                 Navigator.pop(ctx, true);
               },
               child: const Text('Disponibilizar'),
@@ -387,8 +392,12 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     );
     if (confirmar == true) {
       final produtos = double.tryParse(taxaProdutos.text.replaceAll(',', '.'));
-      final ingressos = double.tryParse(taxaIngressos.text.replaceAll(',', '.'));
-      if (produtos == null || ingressos == null || !url.text.startsWith('https://')) {
+      final ingressos = double.tryParse(
+        taxaIngressos.text.replaceAll(',', '.'),
+      );
+      if (produtos == null ||
+          ingressos == null ||
+          !url.text.startsWith('https://')) {
         AppSnackBar.aviso(context, 'Informe taxas válidas e um link HTTPS.');
       } else {
         await _acao(
@@ -450,7 +459,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                     context: ctx,
                     initialTime: TimeOfDay.fromDateTime(data),
                   );
-                  if (hora != null)
+                  if (hora != null) {
                     setLocal(
                       () => data = DateTime(
                         dia.year,
@@ -460,6 +469,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                         hora.minute,
                       ),
                     );
+                  }
                 },
               ),
             ],
@@ -477,7 +487,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         ),
       ),
     );
-    if (ok == true)
+    if (ok == true) {
       await _acao(
         () => _repo.criarAgendamento(widget.lead.leadparceiroId, {
           'tipo': tipo,
@@ -486,6 +496,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         }),
         'Agendamento enviado.',
       );
+    }
   }
 
   Widget _secao(
@@ -614,7 +625,9 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                         OutlinedButton.icon(
                           onPressed: _contrato,
                           icon: const Icon(Icons.description_rounded),
-                          label: const Text('Disponibilizar contrato por estabelecimento'),
+                          label: const Text(
+                            'Disponibilizar contrato por estabelecimento',
+                          ),
                         ),
                         const SizedBox(height: 14),
                         _secao(
@@ -631,11 +644,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                                   ),
                                   title: Text(x['mensagem']?.toString() ?? ''),
                                   subtitle: Text(
-                                    (x['origem'] == 'LEAD'
-                                            ? 'Lead'
-                                            : 'Clubbar') +
-                                        ' • ' +
-                                        _data(x['dtcriacao']),
+                                    '${x['origem'] == 'LEAD' ? 'Lead' : 'Clubbar'} • ${_data(x['dtcriacao'])}',
                                   ),
                                 ),
                               )
@@ -652,9 +661,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                                     x['tipo'].toString().replaceAll('_', ' '),
                                   ),
                                   subtitle: Text(
-                                    _data(x['dtagendamento']) +
-                                        ' • ' +
-                                        x['status'].toString(),
+                                    '${_data(x['dtagendamento'])} • ${x['status']}',
                                   ),
                                   trailing: PopupMenuButton<String>(
                                     onSelected: (s) => _acao(

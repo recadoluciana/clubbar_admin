@@ -347,7 +347,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _status.length - 1,
-        separatorBuilder: (_, __) => const SizedBox(width: 9),
+        separatorBuilder: (_, _) => const SizedBox(width: 9),
         itemBuilder: (context, index) {
           final status = _status[index + 1];
 
@@ -476,7 +476,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
-          value: _tipoSelecionado,
+          initialValue: _tipoSelecionado,
           isExpanded: true,
           decoration: _decoracaoFiltro(
             label: 'Tipo estabelecimento',
@@ -484,10 +484,8 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
           ),
           items: _tipos
               .map(
-                (tipo) => DropdownMenuItem(
-                  value: tipo,
-                  child: Text(_nomeTipo(tipo)),
-                ),
+                (tipo) =>
+                    DropdownMenuItem(value: tipo, child: Text(_nomeTipo(tipo))),
               )
               .toList(),
           onChanged: (value) {

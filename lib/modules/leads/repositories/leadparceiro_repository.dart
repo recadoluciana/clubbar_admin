@@ -11,8 +11,9 @@ import '../models/leadparceiro.dart';
 class LeadParceiroRepository {
   Future<Map<String, dynamic>> consultarAtendimento(int id) async {
     final response = await ApiService.get('/lead-atendimento/$id');
-    if (response.statusCode == 200)
+    if (response.statusCode == 200) {
       return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
     throw Exception(
       _extrairErro(response.body, 'Erro ao carregar atendimento.'),
     );
@@ -22,8 +23,9 @@ class LeadParceiroRepository {
     final r = await ApiService.post('/lead-atendimento/$id/mensagens', {
       'mensagem': mensagem,
     });
-    if (r.statusCode != 201)
+    if (r.statusCode != 201) {
       throw Exception(_extrairErro(r.body, 'Erro ao enviar mensagem.'));
+    }
   }
 
   Future<void> criarAgendamento(int id, Map<String, dynamic> dados) async {
@@ -31,8 +33,9 @@ class LeadParceiroRepository {
       '/lead-atendimento/$id/agendamentos',
       dados,
     );
-    if (r.statusCode != 201)
+    if (r.statusCode != 201) {
       throw Exception(_extrairErro(r.body, 'Erro ao criar agendamento.'));
+    }
   }
 
   Future<void> alterarAgendamento(int leadId, int itemId, String status) async {
@@ -40,14 +43,16 @@ class LeadParceiroRepository {
       '/lead-atendimento/$leadId/agendamentos/$itemId',
       {'status': status},
     );
-    if (r.statusCode != 200)
+    if (r.statusCode != 200) {
       throw Exception(_extrairErro(r.body, 'Erro ao atualizar agendamento.'));
+    }
   }
 
   Future<void> criarMaterial(int id, Map<String, dynamic> dados) async {
     final r = await ApiService.post('/lead-atendimento/$id/materiais', dados);
-    if (r.statusCode != 201)
+    if (r.statusCode != 201) {
       throw Exception(_extrairErro(r.body, 'Erro ao incluir material.'));
+    }
   }
 
   Future<void> uploadMaterial({
@@ -59,20 +64,17 @@ class LeadParceiroRepository {
   }) async {
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse(
-        ApiConfig.baseUrl +
-            '/lead-atendimento/' +
-            id.toString() +
-            '/materiais-upload',
-      ),
+      Uri.parse('${ApiConfig.baseUrl}/lead-atendimento/$id/materiais-upload'),
     );
     final token = await StorageService.getToken();
-    if (token != null && token.isNotEmpty)
+    if (token != null && token.isNotEmpty) {
       request.headers['Authorization'] = 'Bearer $token';
+    }
     request.fields['titulo'] = titulo;
     request.fields['tipo'] = tipo;
-    if (descricao != null && descricao.isNotEmpty)
+    if (descricao != null && descricao.isNotEmpty) {
       request.fields['descricao'] = descricao;
+    }
     if (kIsWeb || arquivo.path == null) {
       request.files.add(
         http.MultipartFile.fromBytes(
@@ -91,16 +93,18 @@ class LeadParceiroRepository {
       );
     }
     final response = await http.Response.fromStream(await request.send());
-    if (response.statusCode != 201)
+    if (response.statusCode != 201) {
       throw Exception(_extrairErro(response.body, 'Erro ao enviar arquivo.'));
+    }
   }
 
   Future<void> excluirMaterial(int leadId, int itemId) async {
     final r = await ApiService.delete(
       '/lead-atendimento/$leadId/materiais/$itemId',
     );
-    if (r.statusCode != 200)
+    if (r.statusCode != 200) {
       throw Exception(_extrairErro(r.body, 'Erro ao excluir material.'));
+    }
   }
 
   Future<void> reenviarAcesso(int id) async {
@@ -108,8 +112,9 @@ class LeadParceiroRepository {
       '/lead-atendimento/$id/reenviar-acesso',
       {},
     );
-    if (r.statusCode != 200)
+    if (r.statusCode != 200) {
       throw Exception(_extrairErro(r.body, 'Erro ao reenviar acesso.'));
+    }
   }
 
   Future<List<LeadParceiro>> listar() async {
