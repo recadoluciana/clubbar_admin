@@ -413,6 +413,15 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       ),
     ),
   );
+  String _nomeDecisao(dynamic valor) {
+    return switch (valor?.toString()) {
+      'ANALISANDO' => 'Em análise',
+      'ACEITOU' => 'Parceria aceita',
+      'RECUSOU' => 'Recusou parceria',
+      _ => 'Pendente',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final mensagens = _lista('mensagens'),
@@ -426,8 +435,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
           ClubbarPageHeader(
             titulo: widget.lead.nmestabelecimento,
             subtitulo:
-                'Atendimento • Decisão: ' +
-                (_dados['decisao']?.toString() ?? 'PENDENTE'),
+                'Atendimento • Decisão: ${_nomeDecisao(_dados['decisao'])}',
             icone: Icons.forum_rounded,
             mostrarDadosSessao: false,
           ),
