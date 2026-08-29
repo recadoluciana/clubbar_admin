@@ -38,9 +38,9 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
     'NOVO',
     'CONTATADO',
     'NEGOCIANDO',
-    'APROVADO_CADASTRO',
+    'ACEITOU_PARCERIA',
     'CONVERTIDO',
-    'PERDIDO',
+    'RECUSOU_PARCERIA',
   ];
 
   static const _tipos = [
@@ -57,13 +57,13 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
 
       case 'NEGOCIANDO':
         return Icons.handshake_rounded;
-      case 'APROVADO_CADASTRO':
+      case 'ACEITOU_PARCERIA':
         return Icons.task_alt_rounded;
 
       case 'CONVERTIDO':
         return Icons.verified_rounded;
 
-      case 'PERDIDO':
+      case 'RECUSOU_PARCERIA':
         return Icons.cancel_outlined;
 
       case 'NOVO':
@@ -169,12 +169,12 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         return 'Contatados';
       case 'NEGOCIANDO':
         return 'Negociando';
-      case 'APROVADO_CADASTRO':
-        return 'Aprovados para cadastro';
+      case 'ACEITOU_PARCERIA':
+        return 'Aceitaram parceria';
       case 'CONVERTIDO':
         return 'Convertidos';
-      case 'PERDIDO':
-        return 'Perdidos';
+      case 'RECUSOU_PARCERIA':
+        return 'Recusaram parceria';
       case 'NOVO':
         return 'Novos';
       default:
@@ -188,12 +188,12 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         return 'Contatado';
       case 'NEGOCIANDO':
         return 'Negociando';
-      case 'APROVADO_CADASTRO':
-        return 'Aprovado para cadastro';
+      case 'ACEITOU_PARCERIA':
+        return 'Aceitou parceria';
       case 'CONVERTIDO':
         return 'Convertido';
-      case 'PERDIDO':
-        return 'Perdido';
+      case 'RECUSOU_PARCERIA':
+        return 'Recusou parceria';
       case 'NOVO':
         return 'Novo';
       default:
@@ -225,11 +225,11 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         return ClubbarColors.info;
       case 'NEGOCIANDO':
         return Colors.orange.shade800;
-      case 'APROVADO_CADASTRO':
+      case 'ACEITOU_PARCERIA':
         return Colors.teal.shade700;
       case 'CONVERTIDO':
         return ClubbarColors.sucesso;
-      case 'PERDIDO':
+      case 'RECUSOU_PARCERIA':
         return ClubbarColors.textoSecundario;
       default:
         return ClubbarColors.erro;
@@ -242,11 +242,11 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         return ClubbarColors.infoClaro;
       case 'NEGOCIANDO':
         return Colors.orange.shade50;
-      case 'APROVADO_CADASTRO':
+      case 'ACEITOU_PARCERIA':
         return Colors.teal.shade50;
       case 'CONVERTIDO':
         return ClubbarColors.sucessoClaro;
-      case 'PERDIDO':
+      case 'RECUSOU_PARCERIA':
         return Colors.grey.shade200;
       default:
         return ClubbarColors.erroClaro;
@@ -608,7 +608,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
               ),
             ],
           ),
-          if (lead.status == 'APROVADO_CADASTRO') ...[
+          if (lead.status == 'ACEITOU_PARCERIA') ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,

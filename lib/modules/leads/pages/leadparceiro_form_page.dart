@@ -45,9 +45,9 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
     'NOVO',
     'CONTATADO',
     'NEGOCIANDO',
-    'APROVADO_CADASTRO',
+    'ACEITOU_PARCERIA',
     'CONVERTIDO',
-    'PERDIDO',
+    'RECUSOU_PARCERIA',
   ];
 
   @override
@@ -100,12 +100,12 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         return 'Contatado';
       case 'NEGOCIANDO':
         return 'Negociando';
-      case 'APROVADO_CADASTRO':
-        return 'Aprovado para cadastro';
+      case 'ACEITOU_PARCERIA':
+        return 'Aceitou parceria';
       case 'CONVERTIDO':
         return 'Convertido';
-      case 'PERDIDO':
-        return 'Perdido';
+      case 'RECUSOU_PARCERIA':
+        return 'Recusou parceria';
       default:
         return 'Novo';
     }
