@@ -202,6 +202,25 @@ class LeadParceiroRepository {
     );
   }
 
+  Future<Map<String, dynamic>> reenviarConviteParceiro({
+    required int leadparceiroId,
+  }) async {
+    final response = await ApiService.post(
+      '/parceiros/$leadparceiroId/reenviar-convite-parceiro',
+      {},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data is Map<String, dynamic>) return data;
+      return {};
+    }
+
+    throw Exception(
+      _extrairErro(response.body, 'Erro ao reenviar convite do parceiro.'),
+    );
+  }
+
   String _extrairErro(String body, String fallback) {
     try {
       final data = jsonDecode(body);

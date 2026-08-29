@@ -153,6 +153,45 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
     if (resultado == true) await _carregar();
   }
 
+  Future<void> _reenviarConvite(LeadParceiro lead) async {
+    try {
+      final resultado = await _repository.reenviarConviteParceiro(
+        leadparceiroId: lead.leadparceiroId,
+      );
+      if (!mounted) return;
+
+      final enviado = resultado['convite_enviado'] == true;
+      final email = resultado['email']?.toString() ?? lead.email;
+      final senha = resultado['senha_inicial']?.toString() ?? '';
+
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(enviado ? 'Convite reenviado' : 'Nova senha gerada'),
+          content: SelectableText(
+            enviado
+                ? 'O convite foi enviado para $email.\n\n'
+                      'Senha inicial: $senha'
+                : 'O e-mail não pôde ser enviado. Informe estes dados '
+                      'manualmente ao parceiro:\n\nE-mail: $email\nSenha: $senha',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Fechar'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      AppSnackBar.erro(
+        context,
+        e.toString().replaceFirst('Exception: ', '').trim(),
+      );
+    }
+  }
+
   Future<void> _abrirAtendimento(LeadParceiro lead) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(builder: (_) => LeadAtendimentoPage(lead: lead)),
@@ -640,21 +679,32 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
               ),
             ],
           ),
-          if (lead.status == 'ACEITOU_PARCERIA') ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: lead.status == 'ACEITOU_PARCERIA'
+                  ? () => _abrirConversao(lead)
+                  : null,
+              icon: const Icon(Icons.handshake_rounded),
+              label: const Text('Converter em parceiro'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ClubbarColors.ambar,
+                foregroundColor: ClubbarColors.preto,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
+          if (lead.status == 'CONVERTIDO') ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _abrirConversao(lead),
-                icon: const Icon(Icons.handshake_rounded),
-                label: const Text('Converter em parceiro'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ClubbarColors.ambar,
-                  foregroundColor: ClubbarColors.preto,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
+              child: OutlinedButton.icon(
+                onPressed: () => _reenviarConvite(lead),
+                icon: const Icon(Icons.mark_email_read_rounded),
+                label: const Text('Reenviar convite de acesso'),
               ),
             ),
           ],
