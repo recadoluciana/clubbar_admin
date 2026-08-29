@@ -427,6 +427,8 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     final mensagens = _lista('mensagens'),
         agendas = _lista('agendamentos'),
         materiais = _lista('materiais');
+    final aguardandoResposta =
+        mensagens.isNotEmpty && mensagens.last['origem'] == 'LEAD';
     return Scaffold(
       backgroundColor: ClubbarColors.fundo,
       appBar: const ClubbarAppBar(mostrarVoltar: true),
@@ -438,7 +440,41 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                 'Atendimento • Decisão: ${_nomeDecisao(_dados['decisao'])}',
             icone: Icons.forum_rounded,
             mostrarDadosSessao: false,
+            trailing: IconButton(
+              tooltip: 'Atualizar atendimento',
+              onPressed: _carregando ? null : _carregar,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
           ),
+          if (!_carregando && aguardandoResposta)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                border: Border.all(color: Colors.orange.shade300),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.mark_chat_unread_rounded,
+                    color: Colors.orange.shade900,
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      'Lead aguardando resposta da conversa',
+                      style: TextStyle(
+                        color: Colors.orange.shade900,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: _carregando
                 ? const Center(child: CircularProgressIndicator())

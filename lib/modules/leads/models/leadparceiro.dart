@@ -15,6 +15,7 @@ class LeadParceiro {
   final DateTime dtcriacao;
   final DateTime? dtultatu;
   final int diasEspera;
+  final bool aguardandoResposta;
 
   const LeadParceiro({
     required this.leadparceiroId,
@@ -33,6 +34,7 @@ class LeadParceiro {
     required this.dtcriacao,
     required this.dtultatu,
     required this.diasEspera,
+    required this.aguardandoResposta,
   });
 
   factory LeadParceiro.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class LeadParceiro {
       dtcriacao: _toDateTime(json['dtcriacao']),
       dtultatu: _toNullableDateTime(json['dtultatu']),
       diasEspera: _toInt(json['dias_espera']),
+      aguardandoResposta: json['aguardando_resposta'] == true,
     );
   }
 

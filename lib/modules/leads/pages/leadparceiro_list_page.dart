@@ -584,6 +584,38 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
               ],
             ),
           ),
+          if (lead.aguardandoResposta) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                border: Border.all(color: Colors.orange.shade300),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.mark_chat_unread_rounded,
+                    size: 19,
+                    color: Colors.orange.shade900,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Lead aguardando resposta',
+                      style: TextStyle(
+                        color: Colors.orange.shade900,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
