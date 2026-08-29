@@ -170,11 +170,11 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
       case 'NEGOCIANDO':
         return 'Negociando';
       case 'ACEITOU_PARCERIA':
-        return 'Aceitaram parceria';
+        return 'Parceria aceita';
       case 'CONVERTIDO':
         return 'Convertidos';
       case 'RECUSOU_PARCERIA':
-        return 'Recusaram parceria';
+        return 'Parceria recusada';
       case 'NOVO':
         return 'Novos';
       default:
@@ -432,7 +432,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
           value: _tipoSelecionado,
           isExpanded: true,
           decoration: _decoracaoFiltro(
-            label: 'Tipo',
+            label: 'Tipo estabelecimento',
             icone: Icons.category_outlined,
           ),
           items: _tipos
