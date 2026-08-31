@@ -215,7 +215,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         child: Column(
           children: [
             const ClubbarPageHeader(
-              titulo: 'Edição do Lead',
+              titulo: 'Editar Lead',
               subtitulo: 'Atualize os dados de contato e a situação comercial',
               icone: Icons.handshake_rounded,
               mostrarDadosSessao: false,
@@ -351,7 +351,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                             initialValue: _tipoSelecionado,
                             isExpanded: true,
                             decoration: _decoracao(
-                              label: 'Tipo',
+                              label: 'Tipo Lead',
                               icone: Icons.category_outlined,
                             ),
                             items: _tipos
@@ -416,7 +416,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                       child: Column(
                         children: [
                           _campoLeitura(
-                            label: 'Estabelecimento',
+                            label: 'Nome estabelecimento',
                             valor: widget.lead.nmestabelecimento,
                             icone: Icons.storefront_outlined,
                           ),
