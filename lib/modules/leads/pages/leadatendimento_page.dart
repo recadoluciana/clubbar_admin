@@ -12,7 +12,13 @@ import '../repositories/leadparceiro_repository.dart';
 class LeadAtendimentoPage extends StatefulWidget {
   final LeadParceiro lead;
   final String? secao;
-  const LeadAtendimentoPage({super.key, required this.lead, this.secao});
+  final int? estabelecimentoInicialId;
+  const LeadAtendimentoPage({
+    super.key,
+    required this.lead,
+    this.secao,
+    this.estabelecimentoInicialId,
+  });
   @override
   State<LeadAtendimentoPage> createState() => _LeadAtendimentoPageState();
 }
@@ -21,6 +27,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
   final _repo = LeadParceiroRepository();
   Map<String, dynamic> _dados = {};
   bool _carregando = true;
+  late LeadEstabelecimento _estabelecimentoSelecionado;
   List<Map<String, dynamic>> _lista(String chave) =>
       ((_dados[chave] as List?) ?? [])
           .map((x) => Map<String, dynamic>.from(x as Map))
@@ -33,12 +40,19 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
   @override
   void initState() {
     super.initState();
+    _estabelecimentoSelecionado = widget.lead.estabelecimentos.firstWhere(
+      (item) => item.id == widget.estabelecimentoInicialId,
+      orElse: () => widget.lead.estabelecimentos.first,
+    );
     _carregar();
   }
 
   Future<void> _carregar() async {
     try {
-      final d = await _repo.consultarAtendimento(widget.lead.leadparceiroId);
+      final d = await _repo.consultarAtendimento(
+        widget.lead.leadparceiroId,
+        _estabelecimentoSelecionado.id,
+      );
       if (mounted) {
         setState(() {
           _dados = d;
@@ -56,7 +70,11 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
   Future<void> _abrirSecao(String secao) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => LeadAtendimentoPage(lead: widget.lead, secao: secao),
+        builder: (_) => LeadAtendimentoPage(
+          lead: widget.lead,
+          secao: secao,
+          estabelecimentoInicialId: _estabelecimentoSelecionado.id,
+        ),
       ),
     );
     if (mounted) await _carregar();
@@ -134,7 +152,11 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     final t = await _texto('Nova mensagem', 'Mensagem para o lead');
     if (t != null && t.isNotEmpty) {
       await _acao(
-        () => _repo.enviarMensagem(widget.lead.leadparceiroId, t),
+        () => _repo.enviarMensagem(
+          widget.lead.leadparceiroId,
+          _estabelecimentoSelecionado.id,
+          t,
+        ),
         'Mensagem enviada.',
       );
     }
@@ -146,12 +168,11 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     final u = await _texto('Link do material', 'https://...');
     if (u != null && u.isNotEmpty) {
       await _acao(
-        () => _repo.criarMaterial(widget.lead.leadparceiroId, {
-          'titulo': t,
-          'descricao': null,
-          'tipo': 'OUTRO',
-          'urlarquivo': u,
-        }),
+        () => _repo.criarMaterial(
+          widget.lead.leadparceiroId,
+          _estabelecimentoSelecionado.id,
+          {'titulo': t, 'descricao': null, 'tipo': 'OUTRO', 'urlarquivo': u},
+        ),
         'Material incluído.',
       );
     }
@@ -306,6 +327,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         await _acao(
           () => _repo.uploadMaterial(
             id: widget.lead.leadparceiroId,
+            estabelecimentoId: _estabelecimentoSelecionado.id,
             titulo: titulo.text.trim(),
             descricao: descricao.text.trim(),
             tipo: tipo,
@@ -315,14 +337,18 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         );
       } else {
         await _acao(
-          () => _repo.criarMaterial(widget.lead.leadparceiroId, {
-            'titulo': titulo.text.trim(),
-            'descricao': descricao.text.trim().isEmpty
-                ? null
-                : descricao.text.trim(),
-            'tipo': tipo,
-            'urlarquivo': link.text.trim(),
-          }),
+          () => _repo.criarMaterial(
+            widget.lead.leadparceiroId,
+            _estabelecimentoSelecionado.id,
+            {
+              'titulo': titulo.text.trim(),
+              'descricao': descricao.text.trim().isEmpty
+                  ? null
+                  : descricao.text.trim(),
+              'tipo': tipo,
+              'urlarquivo': link.text.trim(),
+            },
+          ),
           'Link disponibilizado.',
         );
       }
@@ -526,11 +552,15 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     );
     if (ok == true) {
       await _acao(
-        () => _repo.criarAgendamento(widget.lead.leadparceiroId, {
-          'tipo': tipo,
-          'dtagendamento': data.toIso8601String(),
-          'observacao': null,
-        }),
+        () => _repo.criarAgendamento(
+          widget.lead.leadparceiroId,
+          _estabelecimentoSelecionado.id,
+          {
+            'tipo': tipo,
+            'dtagendamento': data.toIso8601String(),
+            'observacao': null,
+          },
+        ),
         'Agendamento enviado.',
       );
     }
@@ -634,6 +664,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                   onSelected: (s) => _acao(
                     () => _repo.alterarAgendamento(
                       widget.lead.leadparceiroId,
+                      _estabelecimentoSelecionado.id,
                       x['leadagendamento_id'] as int,
                       s,
                     ),
@@ -661,6 +692,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                   onPressed: () => _acao(
                     () => _repo.excluirMaterial(
                       widget.lead.leadparceiroId,
+                      _estabelecimentoSelecionado.id,
                       x['leadmaterial_id'] as int,
                     ),
                     'Material excluído.',
@@ -686,6 +718,35 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
               tooltip: 'Atualizar atendimento',
               onPressed: _carregando ? null : _carregar,
               icon: const Icon(Icons.refresh_rounded),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: DropdownButtonFormField<LeadEstabelecimento>(
+              key: ValueKey(_estabelecimentoSelecionado.id),
+              initialValue: _estabelecimentoSelecionado,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Estabelecimento atendido',
+                prefixIcon: Icon(Icons.storefront_rounded),
+                border: OutlineInputBorder(),
+              ),
+              items: widget.lead.estabelecimentos
+                  .map(
+                    (item) =>
+                        DropdownMenuItem(value: item, child: Text(item.nome)),
+                  )
+                  .toList(),
+              onChanged: (item) {
+                if (item == null || item.id == _estabelecimentoSelecionado.id) {
+                  return;
+                }
+                setState(() {
+                  _estabelecimentoSelecionado = item;
+                  _carregando = true;
+                });
+                _carregar();
+              },
             ),
           ),
           if (!_carregando &&

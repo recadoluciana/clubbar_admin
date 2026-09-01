@@ -1029,6 +1029,27 @@ class _LeadEstabelecimentoListPageState
                       ],
                     ),
                     const SizedBox(height: 7),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.person_rounded,
+                          size: 17,
+                          color: ClubbarColors.info,
+                        ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
+                            estabelecimento.nomeResponsavel ??
+                                lead.nmresponsavel,
+                            style: const TextStyle(
+                              color: ClubbarColors.textoSecundario,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
                     Wrap(
                       spacing: 8,
                       runSpacing: 7,
@@ -1051,10 +1072,15 @@ class _LeadEstabelecimentoListPageState
           const SizedBox(height: 14),
           _linha(
             Icons.phone_outlined,
-            ClubbarFormatters.telefone(lead.telefone),
+            ClubbarFormatters.telefone(
+              estabelecimento.telefoneResponsavel ?? lead.telefone,
+            ),
           ),
           const SizedBox(height: 7),
-          _linha(Icons.email_outlined, lead.email),
+          _linha(
+            Icons.email_outlined,
+            estabelecimento.emailResponsavel ?? lead.email,
+          ),
           const SizedBox(height: 7),
           _linha(
             Icons.calendar_today_outlined,

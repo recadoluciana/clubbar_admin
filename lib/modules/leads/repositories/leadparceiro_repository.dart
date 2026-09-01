@@ -62,8 +62,13 @@ class LeadParceiroRepository {
     }
   }
 
-  Future<Map<String, dynamic>> consultarAtendimento(int id) async {
-    final response = await ApiService.get('/lead-atendimento/$id');
+  Future<Map<String, dynamic>> consultarAtendimento(
+    int id,
+    int estabelecimentoId,
+  ) async {
+    final response = await ApiService.get(
+      '/lead-atendimento/$id?leadestabelecimento_id=$estabelecimentoId',
+    );
     if (response.statusCode == 200) {
       return Map<String, dynamic>.from(jsonDecode(response.body));
     }
@@ -72,18 +77,27 @@ class LeadParceiroRepository {
     );
   }
 
-  Future<void> enviarMensagem(int id, String mensagem) async {
-    final r = await ApiService.post('/lead-atendimento/$id/mensagens', {
-      'mensagem': mensagem,
-    });
+  Future<void> enviarMensagem(
+    int id,
+    int estabelecimentoId,
+    String mensagem,
+  ) async {
+    final r = await ApiService.post(
+      '/lead-atendimento/$id/mensagens?leadestabelecimento_id=$estabelecimentoId',
+      {'mensagem': mensagem},
+    );
     if (r.statusCode != 201) {
       throw Exception(_extrairErro(r.body, 'Erro ao enviar mensagem.'));
     }
   }
 
-  Future<void> criarAgendamento(int id, Map<String, dynamic> dados) async {
+  Future<void> criarAgendamento(
+    int id,
+    int estabelecimentoId,
+    Map<String, dynamic> dados,
+  ) async {
     final r = await ApiService.post(
-      '/lead-atendimento/$id/agendamentos',
+      '/lead-atendimento/$id/agendamentos?leadestabelecimento_id=$estabelecimentoId',
       dados,
     );
     if (r.statusCode != 201) {
@@ -91,9 +105,14 @@ class LeadParceiroRepository {
     }
   }
 
-  Future<void> alterarAgendamento(int leadId, int itemId, String status) async {
+  Future<void> alterarAgendamento(
+    int leadId,
+    int estabelecimentoId,
+    int itemId,
+    String status,
+  ) async {
     final r = await ApiService.patch(
-      '/lead-atendimento/$leadId/agendamentos/$itemId',
+      '/lead-atendimento/$leadId/agendamentos/$itemId?leadestabelecimento_id=$estabelecimentoId',
       {'status': status},
     );
     if (r.statusCode != 200) {
@@ -101,8 +120,15 @@ class LeadParceiroRepository {
     }
   }
 
-  Future<void> criarMaterial(int id, Map<String, dynamic> dados) async {
-    final r = await ApiService.post('/lead-atendimento/$id/materiais', dados);
+  Future<void> criarMaterial(
+    int id,
+    int estabelecimentoId,
+    Map<String, dynamic> dados,
+  ) async {
+    final r = await ApiService.post(
+      '/lead-atendimento/$id/materiais?leadestabelecimento_id=$estabelecimentoId',
+      dados,
+    );
     if (r.statusCode != 201) {
       throw Exception(_extrairErro(r.body, 'Erro ao incluir material.'));
     }
@@ -110,6 +136,7 @@ class LeadParceiroRepository {
 
   Future<void> uploadMaterial({
     required int id,
+    required int estabelecimentoId,
     required String titulo,
     required String tipo,
     String? descricao,
@@ -117,7 +144,9 @@ class LeadParceiroRepository {
   }) async {
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${ApiConfig.baseUrl}/lead-atendimento/$id/materiais-upload'),
+      Uri.parse(
+        '${ApiConfig.baseUrl}/lead-atendimento/$id/materiais-upload?leadestabelecimento_id=$estabelecimentoId',
+      ),
     );
     final token = await StorageService.getToken();
     if (token != null && token.isNotEmpty) {
@@ -151,9 +180,13 @@ class LeadParceiroRepository {
     }
   }
 
-  Future<void> excluirMaterial(int leadId, int itemId) async {
+  Future<void> excluirMaterial(
+    int leadId,
+    int estabelecimentoId,
+    int itemId,
+  ) async {
     final r = await ApiService.delete(
-      '/lead-atendimento/$leadId/materiais/$itemId',
+      '/lead-atendimento/$leadId/materiais/$itemId?leadestabelecimento_id=$estabelecimentoId',
     );
     if (r.statusCode != 200) {
       throw Exception(_extrairErro(r.body, 'Erro ao excluir material.'));

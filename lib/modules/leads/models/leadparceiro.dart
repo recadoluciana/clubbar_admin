@@ -4,6 +4,9 @@ class LeadEstabelecimento {
   final String tipo;
   final String tipoVenda;
   final String status;
+  final String? nomeResponsavel;
+  final String? telefoneResponsavel;
+  final String? emailResponsavel;
   final String? cpfCnpj;
   final String? telefone;
   final String? email;
@@ -24,6 +27,9 @@ class LeadEstabelecimento {
     required this.tipo,
     required this.tipoVenda,
     required this.status,
+    required this.nomeResponsavel,
+    required this.telefoneResponsavel,
+    required this.emailResponsavel,
     required this.cpfCnpj,
     required this.telefone,
     required this.email,
@@ -40,6 +46,9 @@ class LeadEstabelecimento {
   });
 
   bool get dadosContratuaisCompletos =>
+      (nomeResponsavel ?? '').trim().isNotEmpty &&
+      (telefoneResponsavel ?? '').trim().isNotEmpty &&
+      (emailResponsavel ?? '').trim().isNotEmpty &&
       (cpfCnpj ?? '').trim().isNotEmpty &&
       (telefone ?? '').trim().isNotEmpty &&
       (email ?? '').trim().isNotEmpty &&
@@ -58,6 +67,9 @@ class LeadEstabelecimento {
     tipo: json['tipo']?.toString() ?? '',
     tipoVenda: json['tipovenda']?.toString() ?? 'AMBOS',
     status: json['status']?.toString() ?? 'NOVO',
+    nomeResponsavel: json['nmresponsavel']?.toString(),
+    telefoneResponsavel: json['telefone_responsavel']?.toString(),
+    emailResponsavel: json['email_responsavel']?.toString(),
     cpfCnpj: json['cpfcnpj']?.toString(),
     telefone: json['telefone']?.toString(),
     email: json['email']?.toString(),

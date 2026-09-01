@@ -27,6 +27,9 @@ class _LeadEstabelecimentoFormPageState
   final _formKey = GlobalKey<FormState>();
   final _repo = LeadParceiroRepository();
   final _nome = TextEditingController();
+  final _responsavel = TextEditingController();
+  final _telefoneResponsavel = TextEditingController();
+  final _emailResponsavel = TextEditingController();
   final _documento = TextEditingController();
   final _telefone = TextEditingController();
   final _email = TextEditingController();
@@ -51,6 +54,12 @@ class _LeadEstabelecimentoFormPageState
     super.initState();
     final estabelecimento = widget.estabelecimento;
     _nome.text = estabelecimento.nome;
+    _responsavel.text =
+        estabelecimento.nomeResponsavel ?? widget.lead.nmresponsavel;
+    _telefoneResponsavel.text =
+        estabelecimento.telefoneResponsavel ?? widget.lead.telefone;
+    _emailResponsavel.text =
+        estabelecimento.emailResponsavel ?? widget.lead.email;
     _documento.text = estabelecimento.cpfCnpj ?? '';
     _telefone.text = estabelecimento.telefone ?? widget.lead.telefone;
     _email.text = estabelecimento.email ?? widget.lead.email;
@@ -69,6 +78,9 @@ class _LeadEstabelecimentoFormPageState
   void dispose() {
     for (final controller in [
       _nome,
+      _responsavel,
+      _telefoneResponsavel,
+      _emailResponsavel,
       _documento,
       _telefone,
       _email,
@@ -147,6 +159,9 @@ class _LeadEstabelecimentoFormPageState
         widget.estabelecimento.id,
         {
           'nmestabelecimento': _nome.text.trim(),
+          'nmresponsavel': _opcional(_responsavel),
+          'telefone_responsavel': _opcional(_telefoneResponsavel),
+          'email_responsavel': _opcional(_emailResponsavel),
           'tipo': _tipo,
           'tipovenda': _tipoVenda,
           'cpfcnpj': _opcional(_documento),
@@ -208,6 +223,53 @@ class _LeadEstabelecimentoFormPageState
                           validator: (v) => (v?.trim().length ?? 0) < 2
                               ? 'Informe o nome do estabelecimento.'
                               : null,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _responsavel,
+                          decoration: _decoracao(
+                            'Responsável pelo estabelecimento',
+                            Icons.person_rounded,
+                          ),
+                          validator: (v) => (v?.trim().length ?? 0) < 2
+                              ? 'Informe o responsável.'
+                              : null,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _telefoneResponsavel,
+                                keyboardType: TextInputType.phone,
+                                decoration: _decoracao(
+                                  'Telefone do responsável',
+                                  Icons.phone_rounded,
+                                ),
+                                validator: (v) => (v?.trim().isEmpty ?? true)
+                                    ? 'Informe o telefone.'
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _emailResponsavel,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: _decoracao(
+                                  'E-mail do responsável',
+                                  Icons.email_rounded,
+                                ),
+                                validator: (v) {
+                                  final email = v?.trim() ?? '';
+                                  if (email.isEmpty) return 'Informe o e-mail.';
+                                  return email.contains('@')
+                                      ? null
+                                      : 'E-mail inválido.';
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
