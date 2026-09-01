@@ -11,7 +11,8 @@ import '../repositories/leadparceiro_repository.dart';
 
 class LeadAtendimentoPage extends StatefulWidget {
   final LeadParceiro lead;
-  const LeadAtendimentoPage({super.key, required this.lead});
+  final String? secao;
+  const LeadAtendimentoPage({super.key, required this.lead, this.secao});
   @override
   State<LeadAtendimentoPage> createState() => _LeadAtendimentoPageState();
 }
@@ -50,6 +51,40 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
+  }
+
+  Future<void> _abrirSecao(String secao) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => LeadAtendimentoPage(lead: widget.lead, secao: secao),
+      ),
+    );
+    if (mounted) await _carregar();
+  }
+
+  Widget _opcao({
+    required String titulo,
+    required String subtitulo,
+    required IconData icone,
+    required String secao,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+        leading: CircleAvatar(
+          backgroundColor: ClubbarColors.ambar.withValues(alpha: 0.22),
+          child: Icon(icone, color: ClubbarColors.ambarEscuro),
+        ),
+        title: Text(
+          titulo,
+          style: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+        subtitle: Text(subtitulo),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => _abrirSecao(secao),
+      ),
+    );
   }
 
   Future<String?> _texto(String titulo, String dica) async {
@@ -265,6 +300,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         ),
       ),
     );
+    if (!mounted) return;
     if (confirmar == true) {
       if (modo == 'ARQUIVO') {
         await _acao(
@@ -390,6 +426,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         ),
       ),
     );
+    if (!mounted) return;
     if (confirmar == true) {
       final produtos = double.tryParse(taxaProdutos.text.replaceAll(',', '.'));
       final ingressos = double.tryParse(
@@ -557,13 +594,89 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         materiais = _lista('materiais');
     final aguardandoResposta =
         mensagens.isNotEmpty && mensagens.last['origem'] == 'LEAD';
+    final tituloSecao = switch (widget.secao) {
+      'MENSAGENS' => 'Mensagens recebidas',
+      'AGENDAMENTOS' => 'Agendamentos',
+      'MATERIAIS' => 'Materiais',
+      _ => widget.lead.nmestabelecimento,
+    };
+    final conteudoSecao = switch (widget.secao) {
+      'MENSAGENS' => _secao(
+        'Mensagens recebidas',
+        Icons.chat_bubble_outline,
+        _mensagem,
+        mensagens
+            .map(
+              (x) => ListTile(
+                leading: Icon(
+                  x['origem'] == 'LEAD' ? Icons.person : Icons.support_agent,
+                ),
+                title: Text(x['mensagem']?.toString() ?? ''),
+                subtitle: Text(
+                  '${x['origem'] == 'LEAD' ? 'Lead' : 'Clubbar'} • ${_data(x['dtcriacao'])}',
+                ),
+              ),
+            )
+            .toList(),
+      ),
+      'AGENDAMENTOS' => _secao(
+        'Agendamentos',
+        Icons.event_available,
+        _agendamento,
+        agendas
+            .map(
+              (x) => ListTile(
+                title: Text(x['tipo'].toString().replaceAll('_', ' ')),
+                subtitle: Text('${_data(x['dtagendamento'])} • ${x['status']}'),
+                trailing: PopupMenuButton<String>(
+                  onSelected: (s) => _acao(
+                    () => _repo.alterarAgendamento(
+                      widget.lead.leadparceiroId,
+                      x['leadagendamento_id'] as int,
+                      s,
+                    ),
+                    'Agendamento atualizado.',
+                  ),
+                  itemBuilder: (_) => ['REALIZADO', 'CANCELADO']
+                      .map((s) => PopupMenuItem(value: s, child: Text(s)))
+                      .toList(),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+      'MATERIAIS' => _secao(
+        'Materiais',
+        Icons.folder_open,
+        _materialNovo,
+        materiais
+            .map(
+              (x) => ListTile(
+                title: Text(x['titulo']?.toString() ?? ''),
+                subtitle: Text(x['urlarquivo']?.toString() ?? ''),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _acao(
+                    () => _repo.excluirMaterial(
+                      widget.lead.leadparceiroId,
+                      x['leadmaterial_id'] as int,
+                    ),
+                    'Material excluído.',
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+      _ => null,
+    };
     return Scaffold(
       backgroundColor: ClubbarColors.fundo,
       appBar: const ClubbarAppBar(mostrarVoltar: true),
       body: Column(
         children: [
           ClubbarPageHeader(
-            titulo: widget.lead.nmestabelecimento,
+            titulo: tituloSecao,
             subtitulo:
                 'Atendimento • Decisão: ${_nomeDecisao(_dados['decisao'])}',
             icone: Icons.forum_rounded,
@@ -574,7 +687,9 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
               icon: const Icon(Icons.refresh_rounded),
             ),
           ),
-          if (!_carregando && aguardandoResposta)
+          if (!_carregando &&
+              aguardandoResposta &&
+              (widget.secao == null || widget.secao == 'MENSAGENS'))
             Container(
               width: double.infinity,
               margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -611,106 +726,49 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                     child: ListView(
                       padding: const EdgeInsets.all(16),
                       children: [
-                        ElevatedButton.icon(
-                          onPressed: () => _acao(
-                            () => _repo.reenviarAcesso(
-                              widget.lead.leadparceiroId,
+                        if (widget.secao == null) ...[
+                          ElevatedButton.icon(
+                            onPressed: () => _acao(
+                              () => _repo.reenviarAcesso(
+                                widget.lead.leadparceiroId,
+                              ),
+                              'Novo link enviado por e-mail.',
                             ),
-                            'Novo link enviado por e-mail.',
+                            icon: const Icon(Icons.mark_email_read),
+                            label: const Text('Reenviar acesso ao portal'),
                           ),
-                          icon: const Icon(Icons.mark_email_read),
-                          label: const Text('Reenviar acesso ao portal'),
-                        ),
-                        const SizedBox(height: 10),
-                        OutlinedButton.icon(
-                          onPressed: _contrato,
-                          icon: const Icon(Icons.description_rounded),
-                          label: const Text(
-                            'Disponibilizar contrato por estabelecimento',
+                          const SizedBox(height: 10),
+                          OutlinedButton.icon(
+                            onPressed: _contrato,
+                            icon: const Icon(Icons.description_rounded),
+                            label: const Text(
+                              'Disponibilizar contrato por estabelecimento',
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 14),
-                        _secao(
-                          'Conversa',
-                          Icons.chat_bubble_outline,
-                          _mensagem,
-                          mensagens
-                              .map(
-                                (x) => ListTile(
-                                  leading: Icon(
-                                    x['origem'] == 'LEAD'
-                                        ? Icons.person
-                                        : Icons.support_agent,
-                                  ),
-                                  title: Text(x['mensagem']?.toString() ?? ''),
-                                  subtitle: Text(
-                                    '${x['origem'] == 'LEAD' ? 'Lead' : 'Clubbar'} • ${_data(x['dtcriacao'])}',
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                        _secao(
-                          'Agendamentos',
-                          Icons.event_available,
-                          _agendamento,
-                          agendas
-                              .map(
-                                (x) => ListTile(
-                                  title: Text(
-                                    x['tipo'].toString().replaceAll('_', ' '),
-                                  ),
-                                  subtitle: Text(
-                                    '${_data(x['dtagendamento'])} • ${x['status']}',
-                                  ),
-                                  trailing: PopupMenuButton<String>(
-                                    onSelected: (s) => _acao(
-                                      () => _repo.alterarAgendamento(
-                                        widget.lead.leadparceiroId,
-                                        x['leadagendamento_id'] as int,
-                                        s,
-                                      ),
-                                      'Agendamento atualizado.',
-                                    ),
-                                    itemBuilder: (_) =>
-                                        ['REALIZADO', 'CANCELADO']
-                                            .map(
-                                              (s) => PopupMenuItem(
-                                                value: s,
-                                                child: Text(s),
-                                              ),
-                                            )
-                                            .toList(),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                        _secao(
-                          'Materiais',
-                          Icons.folder_open,
-                          _materialNovo,
-                          materiais
-                              .map(
-                                (x) => ListTile(
-                                  title: Text(x['titulo']?.toString() ?? ''),
-                                  subtitle: Text(
-                                    x['urlarquivo']?.toString() ?? '',
-                                  ),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.delete_outline),
-                                    onPressed: () => _acao(
-                                      () => _repo.excluirMaterial(
-                                        widget.lead.leadparceiroId,
-                                        x['leadmaterial_id'] as int,
-                                      ),
-                                      'Material excluído.',
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
+                          const SizedBox(height: 14),
+                        ],
+                        if (conteudoSecao != null)
+                          conteudoSecao
+                        else ...[
+                          _opcao(
+                            titulo: 'Mensagens recebidas',
+                            subtitulo: '${mensagens.length} mensagem(ns)',
+                            icone: Icons.mark_chat_unread_rounded,
+                            secao: 'MENSAGENS',
+                          ),
+                          _opcao(
+                            titulo: 'Agendamentos',
+                            subtitulo: '${agendas.length} agendamento(s)',
+                            icone: Icons.event_available,
+                            secao: 'AGENDAMENTOS',
+                          ),
+                          _opcao(
+                            titulo: 'Materiais',
+                            subtitulo: '${materiais.length} material(is)',
+                            icone: Icons.folder_open_rounded,
+                            secao: 'MATERIAIS',
+                          ),
+                        ],
                       ],
                     ),
                   ),

@@ -9,6 +9,43 @@ import '../../../core/services/api_service.dart';
 import '../models/leadparceiro.dart';
 
 class LeadParceiroRepository {
+  Future<List<Map<String, dynamic>>> listarEstados() async {
+    final response = await ApiService.get('/localidades/estados');
+    if (response.statusCode != 200) {
+      throw Exception(_extrairErro(response.body, 'Erro ao carregar estados.'));
+    }
+    return (jsonDecode(response.body) as List)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+  }
+
+  Future<List<Map<String, dynamic>>> listarCidades(int estadoId) async {
+    final response = await ApiService.get(
+      '/localidades/estados/$estadoId/cidades',
+    );
+    if (response.statusCode != 200) {
+      throw Exception(_extrairErro(response.body, 'Erro ao carregar cidades.'));
+    }
+    return (jsonDecode(response.body) as List)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+  }
+
+  Future<void> adicionarEstabelecimento(
+    int leadId,
+    Map<String, dynamic> dados,
+  ) async {
+    final response = await ApiService.post(
+      '/parceiros/$leadId/estabelecimentos',
+      dados,
+    );
+    if (response.statusCode != 201) {
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao cadastrar estabelecimento.'),
+      );
+    }
+  }
+
   Future<Map<String, dynamic>> consultarAtendimento(int id) async {
     final response = await ApiService.get('/lead-atendimento/$id');
     if (response.statusCode == 200) {

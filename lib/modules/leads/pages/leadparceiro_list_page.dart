@@ -12,6 +12,7 @@ import '../repositories/leadparceiro_repository.dart';
 import 'leadparceiro_form_page.dart';
 import 'leadparceiro_converter_page.dart';
 import 'leadatendimento_page.dart';
+import 'leadestabelecimento_form_page.dart';
 
 class LeadParceiroListPage extends StatefulWidget {
   const LeadParceiroListPage({super.key});
@@ -205,6 +206,15 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
       MaterialPageRoute(builder: (_) => LeadAtendimentoPage(lead: lead)),
     );
     if (mounted) await _carregar();
+  }
+
+  Future<void> _novoEstabelecimento(LeadParceiro lead) async {
+    final criado = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => LeadEstabelecimentoFormPage(lead: lead),
+      ),
+    );
+    if (criado == true && mounted) await _carregar();
   }
 
   int _quantidadeStatus(String status) =>
@@ -601,7 +611,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
-              color: _corEspera(lead).withOpacity(0.08),
+              color: _corEspera(lead).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(13),
             ),
             child: Row(
@@ -682,6 +692,22 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                     foregroundColor: ClubbarColors.branco,
                   ),
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Estabelecimentos',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => _novoEstabelecimento(lead),
+                icon: const Icon(Icons.add_business_rounded, size: 18),
+                label: const Text('Novo estabelecimento'),
               ),
             ],
           ),
