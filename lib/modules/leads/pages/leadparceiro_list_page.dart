@@ -1104,13 +1104,17 @@ class _LeadEstabelecimentoListPageState
         child: Column(
           children: [
             ClubbarPageHeader(
-              titulo: 'Estabelecimentos do lead',
-              subtitulo: _carregando
-                  ? 'Carregando estabelecimentos...'
+              titulo: _carregando
+                  ? 'Carregando lead...'
                   : _leads.isEmpty
                   ? 'Lead não encontrado'
                   : _leads.first.nmresponsavel,
+              subtitulo: 'Estabelecimentos do lead',
               icone: Icons.storefront_rounded,
+              estiloTitulo: const TextStyle(
+                fontSize: 24,
+                color: ClubbarColors.info,
+              ),
               mostrarDadosSessao: false,
               trailing: IconButton(
                 tooltip: 'Atualizar leads',

@@ -12,6 +12,7 @@ class ClubbarPageHeader extends StatefulWidget {
   final String titulo;
   final String subtitulo;
   final IconData? icone;
+  final TextStyle? estiloTitulo;
 
   /// Permite informar uma imagem manualmente.
   /// Caso esteja vazio, será utilizada a logo da loja do usuário.
@@ -33,6 +34,7 @@ class ClubbarPageHeader extends StatefulWidget {
     required this.titulo,
     required this.subtitulo,
     this.icone,
+    this.estiloTitulo,
     this.imagemUrl,
     this.trailing,
     this.mostrarDadosSessao = true,
@@ -355,7 +357,7 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
                     fontSize: 19,
                     fontWeight: FontWeight.w900,
                     color: ClubbarColors.textoPrincipal,
-                  ),
+                  ).merge(widget.estiloTitulo),
                 ),
 
                 const SizedBox(height: 3),
