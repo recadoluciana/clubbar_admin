@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/clubbar_colors.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/clubbar_app_bar.dart';
 import '../../../core/widgets/clubbar_card.dart';
@@ -97,6 +98,32 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
     if (mounted) await _carregar();
   }
 
+  Widget _informacaoLead({
+    required IconData icone,
+    required Color cor,
+    required String texto,
+    FontWeight peso = FontWeight.w600,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Row(
+        children: [
+          Icon(icone, size: 17, color: cor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              texto,
+              style: TextStyle(
+                color: ClubbarColors.textoSecundario,
+                fontWeight: peso,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _conteudo() {
     if (_carregando) {
       return const Center(
@@ -129,7 +156,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
 
     final leads = _leadsFiltrados;
     if (leads.isEmpty) {
-      return const Center(child: Text('Nenhum lead parceiro encontrado.'));
+      return const Center(child: Text('Nenhum lead encontrado.'));
     }
 
     return RefreshIndicator(
@@ -152,51 +179,41 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                   children: [
                     Row(
                       children: [
-                        const CircleAvatar(
-                          backgroundColor: ClubbarColors.ambar,
-                          foregroundColor: ClubbarColors.preto,
-                          child: Icon(Icons.person_rounded),
-                        ),
-                        const SizedBox(width: 13),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                lead.nmresponsavel,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                              _informacaoLead(
+                                icone: Icons.person_rounded,
+                                cor: Colors.blue,
+                                texto: lead.nmresponsavel,
+                                peso: FontWeight.w900,
                               ),
                               if ((lead.nmorganizacao ?? '').trim().isNotEmpty)
-                                Text(
-                                  lead.nmorganizacao!,
-                                  style: const TextStyle(
-                                    color: ClubbarColors.textoSecundario,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                _informacaoLead(
+                                  icone: Icons.business_rounded,
+                                  cor: Colors.deepPurple,
+                                  texto: lead.nmorganizacao!,
+                                  peso: FontWeight.w700,
                                 ),
-                              const SizedBox(height: 6),
-                              Text(
-                                lead.email,
-                                style: const TextStyle(
-                                  color: ClubbarColors.textoSecundario,
+                              _informacaoLead(
+                                icone: Icons.email_rounded,
+                                cor: Colors.redAccent,
+                                texto: lead.email,
+                              ),
+                              _informacaoLead(
+                                icone: Icons.phone_rounded,
+                                cor: Colors.green,
+                                texto: ClubbarFormatters.telefone(
+                                  lead.telefone,
                                 ),
                               ),
-                              Text(
-                                lead.telefone,
-                                style: const TextStyle(
-                                  color: ClubbarColors.textoSecundario,
-                                ),
-                              ),
-                              const SizedBox(height: 7),
-                              Text(
-                                '${lead.estabelecimentos.length} estabelecimento(s)',
-                                style: const TextStyle(
-                                  color: ClubbarColors.ambarEscuro,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                              _informacaoLead(
+                                icone: Icons.storefront_rounded,
+                                cor: Colors.deepOrange,
+                                texto:
+                                    '${lead.estabelecimentos.length} estabelecimento(s)',
+                                peso: FontWeight.w900,
                               ),
                             ],
                           ),
@@ -282,7 +299,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         child: Column(
           children: [
             ClubbarPageHeader(
-              titulo: 'Leads parceiros',
+              titulo: 'Leads',
               subtitulo: _carregando
                   ? 'Carregando leads...'
                   : '${_leads.length} lead(s) cadastrado(s)',
@@ -300,7 +317,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                 controller: _buscaController,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  labelText: 'Buscar lead parceiro',
+                  labelText: 'Buscar lead',
                   hintText: 'Nome, organização, e-mail ou telefone',
                   prefixIcon: const Icon(Icons.search_rounded),
                   suffixIcon: _buscaController.text.isEmpty
@@ -762,20 +779,6 @@ class _LeadEstabelecimentoListPageState
     }
   }
 
-  String _formatarTelefone(String valor) {
-    final numeros = valor.replaceAll(RegExp(r'\D'), '');
-
-    if (numeros.length == 11) {
-      return '(${numeros.substring(0, 2)}) ${numeros.substring(2, 7)}-${numeros.substring(7)}';
-    }
-
-    if (numeros.length == 10) {
-      return '(${numeros.substring(0, 2)}) ${numeros.substring(2, 6)}-${numeros.substring(6)}';
-    }
-
-    return valor;
-  }
-
   String _formatarData(DateTime data) {
     final local = data.toLocal();
     String dois(int valor) => valor.toString().padLeft(2, '0');
@@ -1046,7 +1049,10 @@ class _LeadEstabelecimentoListPageState
             ],
           ),
           const SizedBox(height: 14),
-          _linha(Icons.phone_outlined, _formatarTelefone(lead.telefone)),
+          _linha(
+            Icons.phone_outlined,
+            ClubbarFormatters.telefone(lead.telefone),
+          ),
           const SizedBox(height: 7),
           _linha(Icons.email_outlined, lead.email),
           const SizedBox(height: 7),

@@ -281,6 +281,107 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     );
   }
 
+  Widget _badgeNovos(int quantidade) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.red.shade700,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        '$quantidade novo${quantidade == 1 ? '' : 's'}',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+
+  Widget _cardLeads() {
+    Widget linha({
+      required String titulo,
+      required int total,
+      required int novos,
+    }) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              '$titulo  $total',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          _badgeNovos(novos),
+        ],
+      );
+    }
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      elevation: 2,
+      shadowColor: Colors.black12,
+      child: InkWell(
+        onTap: _abrirLeads,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.handshake_rounded,
+                  size: 25,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  children: [
+                    linha(
+                      titulo: 'Leads',
+                      total: _valorInteiro('total_leads'),
+                      novos: _valorInteiro('leads_novos'),
+                    ),
+                    const Divider(height: 18),
+                    linha(
+                      titulo: 'Estabelecimentos',
+                      total: _valorInteiro('total_lead_estabelecimentos'),
+                      novos: _valorInteiro('lead_estabelecimentos_novos'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 18,
+                color: Colors.black45,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _dashboard() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -304,12 +405,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
           children: [
             titulo('Cadastros da plataforma'),
             grade([
-              _cardIndicador(
-                titulo: 'Leads novos',
-                valor: '${_dados['leads_novos'] ?? 0}',
-                icone: Icons.handshake_rounded,
-                onTap: _abrirLeads,
-              ),
+              _cardLeads(),
 
               _cardIndicador(
                 titulo: 'Organizações Parceiras',
@@ -319,7 +415,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               ),
 
               _cardIndicador(
-                titulo: 'Estabelecimentos',
+                titulo: 'Estabelecimentos Parceiros',
                 valor: '${_dados['total_estabelecimentos'] ?? 0}',
                 icone: Icons.storefront_rounded,
                 onTap: _abrirEstabelecimentos,
