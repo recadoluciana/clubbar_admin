@@ -27,6 +27,243 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
 
   bool _carregando = true;
   String? _erro;
+  List<LeadParceiro> _leads = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _carregar();
+  }
+
+  @override
+  void dispose() {
+    _buscaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _carregar() async {
+    setState(() {
+      _carregando = true;
+      _erro = null;
+    });
+    try {
+      final leads = await _repository.listar();
+      if (!mounted) return;
+      setState(() {
+        _leads = leads;
+        _carregando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _erro = e.toString().replaceFirst('Exception: ', '').trim();
+        _carregando = false;
+      });
+    }
+  }
+
+  List<LeadParceiro> get _leadsFiltrados {
+    final busca = _buscaController.text.trim().toLowerCase();
+    if (busca.isEmpty) return _leads;
+    return _leads.where((lead) {
+      return lead.nmresponsavel.toLowerCase().contains(busca) ||
+          lead.email.toLowerCase().contains(busca) ||
+          lead.telefone.toLowerCase().contains(busca) ||
+          (lead.nmorganizacao ?? '').toLowerCase().contains(busca);
+    }).toList();
+  }
+
+  Future<void> _abrirLead(LeadParceiro lead) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) =>
+            LeadEstabelecimentoListPage(leadparceiroId: lead.leadparceiroId),
+      ),
+    );
+    if (mounted) await _carregar();
+  }
+
+  Widget _conteudo() {
+    if (_carregando) {
+      return const Center(
+        child: CircularProgressIndicator(color: ClubbarColors.ambar),
+      );
+    }
+    if (_erro != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: ClubbarCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.cloud_off_rounded, size: 52),
+                const SizedBox(height: 12),
+                Text(_erro!, textAlign: TextAlign.center),
+                const SizedBox(height: 14),
+                ElevatedButton.icon(
+                  onPressed: _carregar,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Tentar novamente'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final leads = _leadsFiltrados;
+    if (leads.isEmpty) {
+      return const Center(child: Text('Nenhum lead parceiro encontrado.'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _carregar,
+      color: ClubbarColors.ambar,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+        itemCount: leads.length,
+        itemBuilder: (context, index) {
+          final lead = leads[index];
+          return ClubbarCard(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => _abrirLead(lead),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      backgroundColor: ClubbarColors.ambar,
+                      foregroundColor: ClubbarColors.preto,
+                      child: Icon(Icons.person_rounded),
+                    ),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            lead.nmresponsavel,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          if ((lead.nmorganizacao ?? '').trim().isNotEmpty)
+                            Text(
+                              lead.nmorganizacao!,
+                              style: const TextStyle(
+                                color: ClubbarColors.textoSecundario,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          const SizedBox(height: 6),
+                          Text(
+                            lead.email,
+                            style: const TextStyle(
+                              color: ClubbarColors.textoSecundario,
+                            ),
+                          ),
+                          Text(
+                            lead.telefone,
+                            style: const TextStyle(
+                              color: ClubbarColors.textoSecundario,
+                            ),
+                          ),
+                          const SizedBox(height: 7),
+                          Text(
+                            '${lead.estabelecimentos.length} estabelecimento(s)',
+                            style: const TextStyle(
+                              color: ClubbarColors.ambarEscuro,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: ClubbarColors.fundo,
+      appBar: const ClubbarAppBar(mostrarVoltar: true),
+      body: SafeArea(
+        child: Column(
+          children: [
+            ClubbarPageHeader(
+              titulo: 'Leads parceiros',
+              subtitulo: _carregando
+                  ? 'Carregando leads...'
+                  : '${_leads.length} lead(s) cadastrado(s)',
+              icone: Icons.people_alt_rounded,
+              mostrarDadosSessao: false,
+              trailing: IconButton(
+                tooltip: 'Atualizar leads',
+                onPressed: _carregando ? null : _carregar,
+                icon: const Icon(Icons.refresh_rounded),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: TextField(
+                controller: _buscaController,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  labelText: 'Buscar lead parceiro',
+                  hintText: 'Nome, organização, e-mail ou telefone',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: _buscaController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          onPressed: () {
+                            _buscaController.clear();
+                            setState(() {});
+                          },
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Expanded(child: _conteudo()),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class LeadEstabelecimentoListPage extends StatefulWidget {
+  final int leadparceiroId;
+
+  const LeadEstabelecimentoListPage({super.key, required this.leadparceiroId});
+
+  @override
+  State<LeadEstabelecimentoListPage> createState() =>
+      _LeadEstabelecimentoListPageState();
+}
+
+class _LeadEstabelecimentoListPageState
+    extends State<LeadEstabelecimentoListPage> {
+  final _repository = LeadParceiroRepository();
+  final _buscaController = TextEditingController();
+
+  bool _carregando = true;
+  String? _erro;
 
   List<LeadParceiro> _leads = [];
   List<LeadParceiro> _leadsFiltrados = [];
@@ -96,7 +333,9 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
       if (!mounted) return;
 
       setState(() {
-        _leads = lista;
+        _leads = lista
+            .where((lead) => lead.leadparceiroId == widget.leadparceiroId)
+            .toList();
         _aplicarFiltros();
         _carregando = false;
       });
@@ -865,11 +1104,13 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
         child: Column(
           children: [
             ClubbarPageHeader(
-              titulo: 'Leads',
+              titulo: 'Estabelecimentos do lead',
               subtitulo: _carregando
-                  ? 'Carregando fila comercial...'
-                  : '${_leads.length} lead(s) cadastrado(s)',
-              icone: Icons.handshake_rounded,
+                  ? 'Carregando estabelecimentos...'
+                  : _leads.isEmpty
+                  ? 'Lead não encontrado'
+                  : _leads.first.nmresponsavel,
+              icone: Icons.storefront_rounded,
               mostrarDadosSessao: false,
               trailing: IconButton(
                 tooltip: 'Atualizar leads',
