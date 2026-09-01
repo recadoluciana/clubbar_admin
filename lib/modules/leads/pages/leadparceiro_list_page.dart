@@ -357,19 +357,31 @@ class _LeadEstabelecimentoListPageState
     final busca = _buscaController.text.trim().toLowerCase();
 
     _leadsFiltrados = _leads.where((lead) {
-      final atendeBusca =
-          busca.isEmpty ||
+      final responsavelEncontrado =
           lead.nmresponsavel.toLowerCase().contains(busca) ||
-          lead.nmestabelecimento.toLowerCase().contains(busca) ||
           lead.telefone.toLowerCase().contains(busca) ||
           lead.email.toLowerCase().contains(busca) ||
           lead.nmcidade.toLowerCase().contains(busca);
 
+      final atendeBusca =
+          busca.isEmpty ||
+          responsavelEncontrado ||
+          lead.estabelecimentos.any(
+            (estabelecimento) =>
+                estabelecimento.nome.toLowerCase().contains(busca),
+          );
+
       final atendeStatus =
-          _statusSelecionado == 'TODOS' || lead.status == _statusSelecionado;
+          _statusSelecionado == 'TODOS' ||
+          lead.estabelecimentos.any(
+            (estabelecimento) => estabelecimento.status == _statusSelecionado,
+          );
 
       final atendeTipo =
-          _tipoSelecionado == 'TODOS' || lead.tipo == _tipoSelecionado;
+          _tipoSelecionado == 'TODOS' ||
+          lead.estabelecimentos.any(
+            (estabelecimento) => estabelecimento.tipo == _tipoSelecionado,
+          );
 
       return atendeBusca && atendeStatus && atendeTipo;
     }).toList();
@@ -456,8 +468,14 @@ class _LeadEstabelecimentoListPageState
     if (criado == true && mounted) await _carregar();
   }
 
-  int _quantidadeStatus(String status) =>
-      _leads.where((lead) => lead.status == status).length;
+  int _quantidadeStatus(String status) => _leads.fold(
+    0,
+    (total, lead) =>
+        total +
+        lead.estabelecimentos
+            .where((estabelecimento) => estabelecimento.status == status)
+            .length,
+  );
 
   String _nomeStatus(String status) {
     switch (status) {
@@ -571,8 +589,8 @@ class _LeadEstabelecimentoListPageState
         '${dois(local.hour)}:${dois(local.minute)}';
   }
 
-  String _textoEspera(LeadParceiro lead) {
-    if (lead.status == 'NOVO') {
+  String _textoEspera(LeadParceiro lead, String status) {
+    if (status == 'NOVO') {
       if (lead.diasEspera == 0) return 'Aguardando contato desde hoje';
       if (lead.diasEspera == 1) return 'Aguardando contato há 1 dia';
       return 'Aguardando contato há ${lead.diasEspera} dias';
@@ -583,8 +601,8 @@ class _LeadEstabelecimentoListPageState
     return 'Cadastrado há ${lead.diasEspera} dias';
   }
 
-  Color _corEspera(LeadParceiro lead) {
-    if (lead.status != 'NOVO') return ClubbarColors.textoSecundario;
+  Color _corEspera(LeadParceiro lead, String status) {
+    if (status != 'NOVO') return ClubbarColors.textoSecundario;
     if (lead.diasEspera >= 7) return ClubbarColors.erro;
     if (lead.diasEspera >= 3) return Colors.orange.shade800;
     return ClubbarColors.sucesso;
@@ -749,8 +767,9 @@ class _LeadEstabelecimentoListPageState
     );
   }
 
-  Widget _cardLead(LeadParceiro lead) {
-    final urgente = lead.status == 'NOVO' && lead.diasEspera >= 7;
+  Widget _cardLead(LeadParceiro lead, LeadEstabelecimento estabelecimento) {
+    final status = estabelecimento.status;
+    final urgente = status == 'NOVO' && lead.diasEspera >= 7;
 
     return ClubbarCard(
       margin: const EdgeInsets.only(bottom: 14),
@@ -765,14 +784,14 @@ class _LeadEstabelecimentoListPageState
                 width: 54,
                 height: 54,
                 decoration: BoxDecoration(
-                  color: _fundoStatus(lead.status),
+                  color: _fundoStatus(status),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   urgente
                       ? Icons.local_fire_department_rounded
                       : Icons.handshake_rounded,
-                  color: _corStatus(lead.status),
+                  color: _corStatus(status),
                 ),
               ),
               const SizedBox(width: 13),
@@ -784,7 +803,7 @@ class _LeadEstabelecimentoListPageState
                       children: [
                         Expanded(
                           child: Text(
-                            lead.nmestabelecimento,
+                            estabelecimento.nome,
                             style: const TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
@@ -797,13 +816,13 @@ class _LeadEstabelecimentoListPageState
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: _fundoStatus(lead.status),
+                            color: _fundoStatus(status),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            _nomeStatusBadge(lead.status),
+                            _nomeStatusBadge(status),
                             style: TextStyle(
-                              color: _corStatus(lead.status),
+                              color: _corStatus(status),
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
                             ),
@@ -824,7 +843,10 @@ class _LeadEstabelecimentoListPageState
                       spacing: 8,
                       runSpacing: 7,
                       children: [
-                        _chip(Icons.category_outlined, _nomeTipo(lead.tipo)),
+                        _chip(
+                          Icons.category_outlined,
+                          _nomeTipo(estabelecimento.tipo),
+                        ),
                         _chip(
                           Icons.location_on_outlined,
                           '${lead.nmcidade}/${lead.sgestado}',
@@ -850,7 +872,7 @@ class _LeadEstabelecimentoListPageState
             width: double.infinity,
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
-              color: _corEspera(lead).withValues(alpha: 0.08),
+              color: _corEspera(lead, status).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(13),
             ),
             child: Row(
@@ -860,16 +882,16 @@ class _LeadEstabelecimentoListPageState
                       ? Icons.priority_high_rounded
                       : Icons.schedule_rounded,
                   size: 18,
-                  color: _corEspera(lead),
+                  color: _corEspera(lead, status),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     urgente
-                        ? 'URGENTE • ${_textoEspera(lead)}'
-                        : _textoEspera(lead),
+                        ? 'URGENTE • ${_textoEspera(lead, status)}'
+                        : _textoEspera(lead, status),
                     style: TextStyle(
-                      color: _corEspera(lead),
+                      color: _corEspera(lead, status),
                       fontWeight: FontWeight.w800,
                       fontSize: 12,
                     ),
@@ -950,31 +972,29 @@ class _LeadEstabelecimentoListPageState
               ),
             ],
           ),
-          for (final estabelecimento in lead.estabelecimentos) ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: estabelecimento.status == 'ACEITOU_PARCERIA'
-                    ? () => _abrirConversao(lead, estabelecimento)
-                    : null,
-                icon: const Icon(Icons.storefront_rounded),
-                label: Text(
-                  estabelecimento.status == 'CONVERTIDO'
-                      ? '${estabelecimento.nome} — convertido'
-                      : 'Converter ${estabelecimento.nome}',
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ClubbarColors.ambar,
-                  foregroundColor: ClubbarColors.preto,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: status == 'ACEITOU_PARCERIA'
+                  ? () => _abrirConversao(lead, estabelecimento)
+                  : null,
+              icon: const Icon(Icons.storefront_rounded),
+              label: Text(
+                status == 'CONVERTIDO'
+                    ? '${estabelecimento.nome} — convertido'
+                    : 'Converter ${estabelecimento.nome}',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ClubbarColors.ambar,
+                foregroundColor: ClubbarColors.preto,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
                 ),
               ),
             ),
-          ],
-          if (lead.status == 'CONVERTIDO') ...[
+          ),
+          if (status == 'CONVERTIDO') ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
@@ -1034,6 +1054,28 @@ class _LeadEstabelecimentoListPageState
     );
   }
 
+  List<LeadEstabelecimento> _estabelecimentosFiltrados(LeadParceiro lead) {
+    final busca = _buscaController.text.trim().toLowerCase();
+    final buscaNoLead =
+        busca.isEmpty ||
+        lead.nmresponsavel.toLowerCase().contains(busca) ||
+        lead.telefone.toLowerCase().contains(busca) ||
+        lead.email.toLowerCase().contains(busca) ||
+        lead.nmcidade.toLowerCase().contains(busca);
+
+    return lead.estabelecimentos.where((estabelecimento) {
+      final atendeBusca =
+          buscaNoLead || estabelecimento.nome.toLowerCase().contains(busca);
+      final atendeStatus =
+          _statusSelecionado == 'TODOS' ||
+          estabelecimento.status == _statusSelecionado;
+      final atendeTipo =
+          _tipoSelecionado == 'TODOS' ||
+          estabelecimento.tipo == _tipoSelecionado;
+      return atendeBusca && atendeStatus && atendeTipo;
+    }).toList();
+  }
+
   Widget _conteudoLista() {
     if (_carregando) {
       return const Center(
@@ -1067,7 +1109,13 @@ class _LeadEstabelecimentoListPageState
       );
     }
 
-    if (_leadsFiltrados.isEmpty) {
+    final cards = <Widget>[
+      for (final lead in _leadsFiltrados)
+        for (final estabelecimento in _estabelecimentosFiltrados(lead))
+          _cardLead(lead, estabelecimento),
+    ];
+
+    if (cards.isEmpty) {
       return const ClubbarCard(
         child: Column(
           children: [
@@ -1088,14 +1136,23 @@ class _LeadEstabelecimentoListPageState
       );
     }
 
-    return Column(children: _leadsFiltrados.map(_cardLead).toList());
+    return Column(children: cards);
   }
 
   @override
   Widget build(BuildContext context) {
-    final urgentes = _leads
-        .where((lead) => lead.status == 'NOVO' && lead.diasEspera >= 7)
-        .length;
+    final urgentes = _leads.fold(
+      0,
+      (total, lead) =>
+          total +
+          (lead.diasEspera < 7
+              ? 0
+              : lead.estabelecimentos
+                    .where(
+                      (estabelecimento) => estabelecimento.status == 'NOVO',
+                    )
+                    .length),
+    );
 
     return Scaffold(
       backgroundColor: ClubbarColors.fundo,
