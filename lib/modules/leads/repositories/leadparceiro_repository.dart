@@ -180,7 +180,6 @@ class LeadParceiroRepository {
     required String tipo,
     required String telefone,
     required String email,
-    String? status,
   }) async {
     final dados = <String, dynamic>{
       'nmresponsavel': nmresponsavel,
@@ -188,8 +187,6 @@ class LeadParceiroRepository {
       'telefone': telefone,
       'email': email,
     };
-    if (status != null) dados['status'] = status;
-
     final response = await ApiService.put('/parceiros/$leadparceiroId', dados);
 
     if (response.statusCode == 200) {

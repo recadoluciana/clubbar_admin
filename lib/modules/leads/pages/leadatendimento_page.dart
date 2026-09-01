@@ -578,12 +578,14 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       ),
     ),
   );
-  String _nomeDecisao(dynamic valor) {
+  String _nomeStatus(dynamic valor) {
     return switch (valor?.toString()) {
-      'ANALISANDO' => 'Em análise',
-      'ACEITOU' => 'Parceria aceita',
-      'RECUSOU' => 'Recusou parceria',
-      _ => 'Pendente',
+      'CONTATADO' => 'Contatado',
+      'NEGOCIANDO' => 'Em negociação',
+      'ACEITOU_PARCERIA' => 'Parceria aceita',
+      'CONVERTIDO' => 'Convertido',
+      'RECUSOU_PARCERIA' => 'Recusou parceria',
+      _ => 'Novo',
     };
   }
 
@@ -677,8 +679,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         children: [
           ClubbarPageHeader(
             titulo: tituloSecao,
-            subtitulo:
-                'Atendimento • Decisão: ${_nomeDecisao(_dados['decisao'])}',
+            subtitulo: 'Atendimento • Status: ${_nomeStatus(_dados['status'])}',
             icone: Icons.forum_rounded,
             mostrarDadosSessao: false,
             trailing: IconButton(

@@ -4,7 +4,6 @@ class LeadEstabelecimento {
   final String tipo;
   final String tipoVenda;
   final String status;
-  final String decisao;
 
   const LeadEstabelecimento({
     required this.id,
@@ -12,7 +11,6 @@ class LeadEstabelecimento {
     required this.tipo,
     required this.tipoVenda,
     required this.status,
-    required this.decisao,
   });
 
   factory LeadEstabelecimento.fromJson(Map<String, dynamic> json) =>
@@ -22,7 +20,6 @@ class LeadEstabelecimento {
         tipo: json['tipo']?.toString() ?? '',
         tipoVenda: json['tipovenda']?.toString() ?? 'AMBOS',
         status: json['status']?.toString() ?? 'NOVO',
-        decisao: json['decisao']?.toString() ?? 'PENDENTE',
       );
 }
 
@@ -91,7 +88,10 @@ class LeadParceiro {
       aguardandoResposta: json['aguardando_resposta'] == true,
       estabelecimentos: (json['estabelecimentos'] as List? ?? const [])
           .whereType<Map>()
-          .map((item) => LeadEstabelecimento.fromJson(Map<String, dynamic>.from(item)))
+          .map(
+            (item) =>
+                LeadEstabelecimento.fromJson(Map<String, dynamic>.from(item)),
+          )
           .toList(),
     );
   }

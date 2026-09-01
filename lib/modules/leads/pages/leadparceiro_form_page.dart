@@ -20,10 +20,6 @@ class LeadParceiroFormPage extends StatefulWidget {
 }
 
 class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
-  bool get _leadConvertido {
-    return widget.lead.status == 'CONVERTIDO';
-  }
-
   final _formKey = GlobalKey<FormState>();
   final _repository = LeadParceiroRepository();
 
@@ -32,7 +28,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
   final _emailController = TextEditingController();
 
   late String _tipoSelecionado;
-  late String _statusSelecionado;
   bool _salvando = false;
 
   static const _tipos = [
@@ -41,17 +36,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
     'PRODUTOR_EVENTOS',
     'CASA_EVENTOS',
   ];
-  static const _statusEditaveis = [
-    'NOVO',
-    'CONTATADO',
-    'NEGOCIANDO',
-    'ACEITOU_PARCERIA',
-    'RECUSOU_PARCERIA',
-  ];
-
-  List<String> get _statusDisponiveis =>
-      _leadConvertido ? const ['CONVERTIDO'] : _statusEditaveis;
-
   @override
   void initState() {
     super.initState();
@@ -59,7 +43,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
     _telefoneController.text = _formatarTelefone(widget.lead.telefone);
     _emailController.text = widget.lead.email;
     _tipoSelecionado = widget.lead.tipo;
-    _statusSelecionado = widget.lead.status;
   }
 
   @override
@@ -93,23 +76,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         return 'Casa de eventos';
       default:
         return 'Bar';
-    }
-  }
-
-  String _nomeStatus(String status) {
-    switch (status) {
-      case 'CONTATADO':
-        return 'Contatado';
-      case 'NEGOCIANDO':
-        return 'Negociando';
-      case 'ACEITOU_PARCERIA':
-        return 'Aceitou parceria';
-      case 'CONVERTIDO':
-        return 'Convertido';
-      case 'RECUSOU_PARCERIA':
-        return 'Recusou parceria';
-      default:
-        return 'Novo';
     }
   }
 
@@ -174,8 +140,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
   Future<void> _salvar() async {
     FocusScope.of(context).unfocus();
 
-    final statusParaSalvar = _leadConvertido ? null : _statusSelecionado;
-
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _salvando = true);
@@ -187,7 +151,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         tipo: _tipoSelecionado,
         telefone: _somenteNumeros(_telefoneController.text),
         email: _emailController.text.trim().toLowerCase(),
-        status: statusParaSalvar,
       );
 
       if (!mounted) return;
@@ -367,45 +330,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                                 : (value) {
                                     if (value == null) return;
                                     setState(() => _tipoSelecionado = value);
-                                  },
-                          ),
-                          const SizedBox(height: 14),
-                          DropdownButtonFormField<String>(
-                            initialValue: _statusSelecionado,
-                            isExpanded: true,
-                            decoration:
-                                _decoracao(
-                                  label: 'Status',
-                                  icone: _leadConvertido
-                                      ? Icons.lock_rounded
-                                      : Icons.track_changes_rounded,
-                                ).copyWith(
-                                  helperText: _leadConvertido
-                                      ? 'O status não pode ser alterado após a conversão.'
-                                      : null,
-                                  suffixIcon: _leadConvertido
-                                      ? const Icon(
-                                          Icons.lock_rounded,
-                                          color: Colors.green,
-                                        )
-                                      : null,
-                                ),
-                            items: _statusDisponiveis
-                                .map(
-                                  (status) => DropdownMenuItem<String>(
-                                    value: status,
-                                    child: Text(_nomeStatus(status)),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: _leadConvertido
-                                ? null
-                                : (value) {
-                                    if (value == null) return;
-
-                                    setState(() {
-                                      _statusSelecionado = value;
-                                    });
                                   },
                           ),
                         ],
