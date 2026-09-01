@@ -41,14 +41,16 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
     'PRODUTOR_EVENTOS',
     'CASA_EVENTOS',
   ];
-  static const _status = [
+  static const _statusEditaveis = [
     'NOVO',
     'CONTATADO',
     'NEGOCIANDO',
     'ACEITOU_PARCERIA',
-    'CONVERTIDO',
     'RECUSOU_PARCERIA',
   ];
+
+  List<String> get _statusDisponiveis =>
+      _leadConvertido ? const ['CONVERTIDO'] : _statusEditaveis;
 
   @override
   void initState() {
@@ -172,9 +174,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
   Future<void> _salvar() async {
     FocusScope.of(context).unfocus();
 
-    final statusParaSalvar = _leadConvertido
-        ? 'CONVERTIDO'
-        : _statusSelecionado;
+    final statusParaSalvar = _leadConvertido ? null : _statusSelecionado;
 
     if (!_formKey.currentState!.validate()) return;
 
@@ -390,7 +390,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                                         )
                                       : null,
                                 ),
-                            items: _status
+                            items: _statusDisponiveis
                                 .map(
                                   (status) => DropdownMenuItem<String>(
                                     value: status,

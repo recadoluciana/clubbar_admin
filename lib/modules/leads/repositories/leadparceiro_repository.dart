@@ -153,15 +153,17 @@ class LeadParceiroRepository {
     required String tipo,
     required String telefone,
     required String email,
-    required String status,
+    String? status,
   }) async {
-    final response = await ApiService.put('/parceiros/$leadparceiroId', {
+    final dados = <String, dynamic>{
       'nmresponsavel': nmresponsavel,
       'tipo': tipo,
       'telefone': telefone,
       'email': email,
-      'status': status,
-    });
+    };
+    if (status != null) dados['status'] = status;
+
+    final response = await ApiService.put('/parceiros/$leadparceiroId', dados);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
