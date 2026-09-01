@@ -727,17 +727,6 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                       padding: const EdgeInsets.all(16),
                       children: [
                         if (widget.secao == null) ...[
-                          ElevatedButton.icon(
-                            onPressed: () => _acao(
-                              () => _repo.reenviarAcesso(
-                                widget.lead.leadparceiroId,
-                              ),
-                              'Novo link enviado por e-mail.',
-                            ),
-                            icon: const Icon(Icons.mark_email_read),
-                            label: const Text('Reenviar acesso ao portal'),
-                          ),
-                          const SizedBox(height: 10),
                           OutlinedButton.icon(
                             onPressed: _contrato,
                             icon: const Icon(Icons.description_rounded),

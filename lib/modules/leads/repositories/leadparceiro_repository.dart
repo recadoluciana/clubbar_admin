@@ -144,16 +144,6 @@ class LeadParceiroRepository {
     }
   }
 
-  Future<void> reenviarAcesso(int id) async {
-    final r = await ApiService.post(
-      '/lead-atendimento/$id/reenviar-acesso',
-      {},
-    );
-    if (r.statusCode != 200) {
-      throw Exception(_extrairErro(r.body, 'Erro ao reenviar acesso.'));
-    }
-  }
-
   Future<List<LeadParceiro>> listar() async {
     final response = await ApiService.get('/parceiros');
 
