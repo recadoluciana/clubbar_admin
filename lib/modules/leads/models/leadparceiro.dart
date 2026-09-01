@@ -4,6 +4,19 @@ class LeadEstabelecimento {
   final String tipo;
   final String tipoVenda;
   final String status;
+  final String? cpfCnpj;
+  final String? telefone;
+  final String? email;
+  final int estadoId;
+  final int cidadeId;
+  final String? cep;
+  final String? endereco;
+  final String? numero;
+  final String? complemento;
+  final String? bairro;
+  final String? mensagem;
+  final double taxaProdutos;
+  final double taxaIngressos;
 
   const LeadEstabelecimento({
     required this.id,
@@ -11,16 +24,54 @@ class LeadEstabelecimento {
     required this.tipo,
     required this.tipoVenda,
     required this.status,
+    required this.cpfCnpj,
+    required this.telefone,
+    required this.email,
+    required this.estadoId,
+    required this.cidadeId,
+    required this.cep,
+    required this.endereco,
+    required this.numero,
+    required this.complemento,
+    required this.bairro,
+    required this.mensagem,
+    required this.taxaProdutos,
+    required this.taxaIngressos,
   });
 
-  factory LeadEstabelecimento.fromJson(Map<String, dynamic> json) =>
-      LeadEstabelecimento(
-        id: LeadParceiro._toInt(json['leadestabelecimento_id']),
-        nome: json['nmestabelecimento']?.toString() ?? '',
-        tipo: json['tipo']?.toString() ?? '',
-        tipoVenda: json['tipovenda']?.toString() ?? 'AMBOS',
-        status: json['status']?.toString() ?? 'NOVO',
-      );
+  bool get dadosContratuaisCompletos =>
+      (cpfCnpj ?? '').trim().isNotEmpty &&
+      (telefone ?? '').trim().isNotEmpty &&
+      (email ?? '').trim().isNotEmpty &&
+      estadoId > 0 &&
+      cidadeId > 0 &&
+      (cep ?? '').trim().isNotEmpty &&
+      (endereco ?? '').trim().isNotEmpty &&
+      (numero ?? '').trim().isNotEmpty &&
+      (bairro ?? '').trim().isNotEmpty;
+
+  factory LeadEstabelecimento.fromJson(
+    Map<String, dynamic> json,
+  ) => LeadEstabelecimento(
+    id: LeadParceiro._toInt(json['leadestabelecimento_id']),
+    nome: json['nmestabelecimento']?.toString() ?? '',
+    tipo: json['tipo']?.toString() ?? '',
+    tipoVenda: json['tipovenda']?.toString() ?? 'AMBOS',
+    status: json['status']?.toString() ?? 'NOVO',
+    cpfCnpj: json['cpfcnpj']?.toString(),
+    telefone: json['telefone']?.toString(),
+    email: json['email']?.toString(),
+    estadoId: LeadParceiro._toInt(json['estado_id']),
+    cidadeId: LeadParceiro._toInt(json['cidade_id']),
+    cep: json['cep']?.toString(),
+    endereco: json['endereco']?.toString(),
+    numero: json['numero']?.toString(),
+    complemento: json['complemento']?.toString(),
+    bairro: json['bairro']?.toString(),
+    mensagem: json['mensagem']?.toString(),
+    taxaProdutos: double.tryParse(json['vrtaxaprod']?.toString() ?? '') ?? 5,
+    taxaIngressos: double.tryParse(json['vrtaxaing']?.toString() ?? '') ?? 5,
+  );
 }
 
 class LeadParceiro {

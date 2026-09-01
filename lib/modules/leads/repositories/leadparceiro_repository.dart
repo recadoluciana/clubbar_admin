@@ -46,6 +46,22 @@ class LeadParceiroRepository {
     }
   }
 
+  Future<void> atualizarEstabelecimento(
+    int leadId,
+    int estabelecimentoId,
+    Map<String, dynamic> dados,
+  ) async {
+    final response = await ApiService.put(
+      '/parceiros/$leadId/estabelecimentos/$estabelecimentoId',
+      dados,
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao atualizar estabelecimento.'),
+      );
+    }
+  }
+
   Future<Map<String, dynamic>> consultarAtendimento(int id) async {
     final response = await ApiService.get('/lead-atendimento/$id');
     if (response.statusCode == 200) {

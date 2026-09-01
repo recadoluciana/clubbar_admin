@@ -9,8 +9,13 @@ import '../repositories/leadparceiro_repository.dart';
 
 class LeadEstabelecimentoFormPage extends StatefulWidget {
   final LeadParceiro lead;
+  final LeadEstabelecimento estabelecimento;
 
-  const LeadEstabelecimentoFormPage({super.key, required this.lead});
+  const LeadEstabelecimentoFormPage({
+    super.key,
+    required this.lead,
+    required this.estabelecimento,
+  });
 
   @override
   State<LeadEstabelecimentoFormPage> createState() =>
@@ -44,9 +49,19 @@ class _LeadEstabelecimentoFormPageState
   @override
   void initState() {
     super.initState();
-    _telefone.text = widget.lead.telefone;
-    _email.text = widget.lead.email;
-    _tipo = widget.lead.tipo.isEmpty ? 'BAR' : widget.lead.tipo;
+    final estabelecimento = widget.estabelecimento;
+    _nome.text = estabelecimento.nome;
+    _documento.text = estabelecimento.cpfCnpj ?? '';
+    _telefone.text = estabelecimento.telefone ?? widget.lead.telefone;
+    _email.text = estabelecimento.email ?? widget.lead.email;
+    _cep.text = estabelecimento.cep ?? '';
+    _endereco.text = estabelecimento.endereco ?? '';
+    _numero.text = estabelecimento.numero ?? '';
+    _complemento.text = estabelecimento.complemento ?? '';
+    _bairro.text = estabelecimento.bairro ?? '';
+    _mensagem.text = estabelecimento.mensagem ?? '';
+    _tipo = estabelecimento.tipo;
+    _tipoVenda = estabelecimento.tipoVenda;
     _carregarLocalidades();
   }
 
@@ -75,7 +90,9 @@ class _LeadEstabelecimentoFormPageState
   Future<void> _carregarLocalidades() async {
     try {
       final estados = await _repo.listarEstados();
-      final estadoId = widget.lead.estadoId > 0 ? widget.lead.estadoId : null;
+      final estadoId = widget.estabelecimento.estadoId > 0
+          ? widget.estabelecimento.estadoId
+          : null;
       final cidades = estadoId == null
           ? <Map<String, dynamic>>[]
           : await _repo.listarCidades(estadoId);
@@ -86,9 +103,10 @@ class _LeadEstabelecimentoFormPageState
         _cidades = cidades;
         _cidadeId =
             cidades.any(
-              (item) => _id(item, 'cidade_id') == widget.lead.cidadeId,
+              (item) =>
+                  _id(item, 'cidade_id') == widget.estabelecimento.cidadeId,
             )
-            ? widget.lead.cidadeId
+            ? widget.estabelecimento.cidadeId
             : null;
         _carregando = false;
       });
@@ -124,24 +142,28 @@ class _LeadEstabelecimentoFormPageState
     if (!_formKey.currentState!.validate()) return;
     setState(() => _salvando = true);
     try {
-      await _repo.adicionarEstabelecimento(widget.lead.leadparceiroId, {
-        'nmestabelecimento': _nome.text.trim(),
-        'tipo': _tipo,
-        'tipovenda': _tipoVenda,
-        'cpfcnpj': _opcional(_documento),
-        'telefone': _opcional(_telefone),
-        'email': _opcional(_email),
-        'estado_id': _estadoId,
-        'cidade_id': _cidadeId,
-        'cep': _opcional(_cep),
-        'endereco': _opcional(_endereco),
-        'numero': _opcional(_numero),
-        'complemento': _opcional(_complemento),
-        'bairro': _opcional(_bairro),
-        'mensagem': _opcional(_mensagem),
-      });
+      await _repo.atualizarEstabelecimento(
+        widget.lead.leadparceiroId,
+        widget.estabelecimento.id,
+        {
+          'nmestabelecimento': _nome.text.trim(),
+          'tipo': _tipo,
+          'tipovenda': _tipoVenda,
+          'cpfcnpj': _opcional(_documento),
+          'telefone': _opcional(_telefone),
+          'email': _opcional(_email),
+          'estado_id': _estadoId,
+          'cidade_id': _cidadeId,
+          'cep': _opcional(_cep),
+          'endereco': _opcional(_endereco),
+          'numero': _opcional(_numero),
+          'complemento': _opcional(_complemento),
+          'bairro': _opcional(_bairro),
+          'mensagem': _opcional(_mensagem),
+        },
+      );
       if (!mounted) return;
-      AppSnackBar.sucesso(context, 'Estabelecimento cadastrado com sucesso.');
+      AppSnackBar.sucesso(context, 'Dados contratuais atualizados.');
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
@@ -164,9 +186,9 @@ class _LeadEstabelecimentoFormPageState
       body: Column(
         children: [
           ClubbarPageHeader(
-            titulo: 'Novo estabelecimento',
+            titulo: 'Dados para o contrato',
             subtitulo: 'Lead: ${widget.lead.nmresponsavel}',
-            icone: Icons.add_business_rounded,
+            icone: Icons.description_rounded,
             mostrarDadosSessao: false,
           ),
           Expanded(
@@ -241,6 +263,9 @@ class _LeadEstabelecimentoFormPageState
                             'CPF/CNPJ',
                             Icons.badge_rounded,
                           ),
+                          validator: (v) => (v?.trim().isEmpty ?? true)
+                              ? 'Informe o CPF/CNPJ.'
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -250,12 +275,22 @@ class _LeadEstabelecimentoFormPageState
                             'Telefone',
                             Icons.phone_rounded,
                           ),
+                          validator: (v) => (v?.trim().isEmpty ?? true)
+                              ? 'Informe o telefone.'
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: _email,
                           keyboardType: TextInputType.emailAddress,
                           decoration: _decoracao('E-mail', Icons.email_rounded),
+                          validator: (v) {
+                            final email = v?.trim() ?? '';
+                            if (email.isEmpty) return 'Informe o e-mail.';
+                            return email.contains('@')
+                                ? null
+                                : 'E-mail inválido.';
+                          },
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -318,6 +353,9 @@ class _LeadEstabelecimentoFormPageState
                         TextFormField(
                           controller: _cep,
                           decoration: _decoracao('CEP', Icons.pin_drop_rounded),
+                          validator: (v) => (v?.trim().isEmpty ?? true)
+                              ? 'Informe o CEP.'
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -326,6 +364,9 @@ class _LeadEstabelecimentoFormPageState
                             'Endereço',
                             Icons.route_rounded,
                           ),
+                          validator: (v) => (v?.trim().isEmpty ?? true)
+                              ? 'Informe o endereço.'
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -334,6 +375,9 @@ class _LeadEstabelecimentoFormPageState
                               child: TextFormField(
                                 controller: _numero,
                                 decoration: _decoracao('Número', Icons.numbers),
+                                validator: (v) => (v?.trim().isEmpty ?? true)
+                                    ? 'Informe o número.'
+                                    : null,
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -344,6 +388,9 @@ class _LeadEstabelecimentoFormPageState
                                   'Bairro',
                                   Icons.location_on_rounded,
                                 ),
+                                validator: (v) => (v?.trim().isEmpty ?? true)
+                                    ? 'Informe o bairro.'
+                                    : null,
                               ),
                             ),
                           ],
@@ -380,7 +427,7 @@ class _LeadEstabelecimentoFormPageState
                           label: Text(
                             _salvando
                                 ? 'Salvando...'
-                                : 'Cadastrar estabelecimento',
+                                : 'Salvar dados contratuais',
                           ),
                         ),
                       ],

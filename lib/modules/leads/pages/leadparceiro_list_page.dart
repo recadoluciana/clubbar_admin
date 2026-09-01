@@ -83,6 +83,20 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
     if (mounted) await _carregar();
   }
 
+  Future<void> _abrirEdicao(LeadParceiro lead) async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => LeadParceiroFormPage(lead: lead)),
+    );
+    if (mounted) await _carregar();
+  }
+
+  Future<void> _abrirAtendimento(LeadParceiro lead) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => LeadAtendimentoPage(lead: lead)),
+    );
+    if (mounted) await _carregar();
+  }
+
   Widget _conteudo() {
     if (_carregando) {
       return const Center(
@@ -134,58 +148,121 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
               onTap: () => _abrirLead(lead),
               child: Padding(
                 padding: const EdgeInsets.all(4),
-                child: Row(
+                child: Column(
                   children: [
-                    const CircleAvatar(
-                      backgroundColor: ClubbarColors.ambar,
-                      foregroundColor: ClubbarColors.preto,
-                      child: Icon(Icons.person_rounded),
-                    ),
-                    const SizedBox(width: 13),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            lead.nmresponsavel,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                            ),
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          backgroundColor: ClubbarColors.ambar,
+                          foregroundColor: ClubbarColors.preto,
+                          child: Icon(Icons.person_rounded),
+                        ),
+                        const SizedBox(width: 13),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                lead.nmresponsavel,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              if ((lead.nmorganizacao ?? '').trim().isNotEmpty)
+                                Text(
+                                  lead.nmorganizacao!,
+                                  style: const TextStyle(
+                                    color: ClubbarColors.textoSecundario,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              const SizedBox(height: 6),
+                              Text(
+                                lead.email,
+                                style: const TextStyle(
+                                  color: ClubbarColors.textoSecundario,
+                                ),
+                              ),
+                              Text(
+                                lead.telefone,
+                                style: const TextStyle(
+                                  color: ClubbarColors.textoSecundario,
+                                ),
+                              ),
+                              const SizedBox(height: 7),
+                              Text(
+                                '${lead.estabelecimentos.length} estabelecimento(s)',
+                                style: const TextStyle(
+                                  color: ClubbarColors.ambarEscuro,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
                           ),
-                          if ((lead.nmorganizacao ?? '').trim().isNotEmpty)
-                            Text(
-                              lead.nmorganizacao!,
-                              style: const TextStyle(
-                                color: ClubbarColors.textoSecundario,
-                                fontWeight: FontWeight.w700,
+                        ),
+                        const Icon(Icons.chevron_right_rounded),
+                      ],
+                    ),
+                    if (lead.aguardandoResposta) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          border: Border.all(color: Colors.orange.shade300),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.mark_chat_unread_rounded,
+                              size: 19,
+                              color: Colors.orange.shade900,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Lead aguardando resposta',
+                                style: TextStyle(
+                                  color: Colors.orange.shade900,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
-                          const SizedBox(height: 6),
-                          Text(
-                            lead.email,
-                            style: const TextStyle(
-                              color: ClubbarColors.textoSecundario,
-                            ),
-                          ),
-                          Text(
-                            lead.telefone,
-                            style: const TextStyle(
-                              color: ClubbarColors.textoSecundario,
-                            ),
-                          ),
-                          const SizedBox(height: 7),
-                          Text(
-                            '${lead.estabelecimentos.length} estabelecimento(s)',
-                            style: const TextStyle(
-                              color: ClubbarColors.ambarEscuro,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                    ],
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _abrirEdicao(lead),
+                            icon: const Icon(Icons.edit_rounded),
+                            label: const Text('Editar lead'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _abrirAtendimento(lead),
+                            icon: const Icon(Icons.forum_rounded),
+                            label: const Text('Atender lead'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ClubbarColors.info,
+                              foregroundColor: ClubbarColors.branco,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const Icon(Icons.chevron_right_rounded),
                   ],
                 ),
               ),
@@ -291,7 +368,7 @@ class _LeadEstabelecimentoListPageState
   IconData _iconeStatus(String status) {
     switch (status) {
       case 'CONTATADO':
-        return Icons.phone_in_talk_rounded;
+        return Icons.message_rounded;
 
       case 'NEGOCIANDO':
         return Icons.handshake_rounded;
@@ -389,14 +466,6 @@ class _LeadEstabelecimentoListPageState
 
   void _filtrar() => setState(_aplicarFiltros);
 
-  Future<void> _abrirEdicao(LeadParceiro lead) async {
-    await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => LeadParceiroFormPage(lead: lead)),
-    );
-
-    if (mounted) await _carregar();
-  }
-
   Future<void> _abrirConversao(
     LeadParceiro lead,
     LeadEstabelecimento estabelecimento,
@@ -452,20 +521,146 @@ class _LeadEstabelecimentoListPageState
     }
   }
 
-  Future<void> _abrirAtendimento(LeadParceiro lead) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => LeadAtendimentoPage(lead: lead)),
-    );
-    if (mounted) await _carregar();
-  }
-
-  Future<void> _novoEstabelecimento(LeadParceiro lead) async {
-    final criado = await Navigator.of(context).push<bool>(
+  Future<void> _editarDadosContratuais(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) async {
+    final atualizado = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => LeadEstabelecimentoFormPage(lead: lead),
+        builder: (_) => LeadEstabelecimentoFormPage(
+          lead: lead,
+          estabelecimento: estabelecimento,
+        ),
       ),
     );
-    if (criado == true && mounted) await _carregar();
+    if (atualizado == true && mounted) await _carregar();
+  }
+
+  Future<void> _disponibilizarContrato(
+    LeadEstabelecimento estabelecimento,
+  ) async {
+    if (!estabelecimento.dadosContratuaisCompletos) {
+      AppSnackBar.aviso(
+        context,
+        'Complete os dados contratuais antes de gerar o contrato.',
+      );
+      return;
+    }
+
+    final versao = TextEditingController(text: '1.0');
+    final url = TextEditingController();
+    final taxaProdutos = TextEditingController(
+      text: estabelecimento.taxaProdutos
+          .toStringAsFixed(2)
+          .replaceAll('.', ','),
+    );
+    final taxaIngressos = TextEditingController(
+      text: estabelecimento.taxaIngressos
+          .toStringAsFixed(2)
+          .replaceAll('.', ','),
+    );
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Contrato de ${estabelecimento.nome}'),
+        content: SizedBox(
+          width: 520,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: versao,
+                decoration: const InputDecoration(
+                  labelText: 'Versão',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: url,
+                decoration: const InputDecoration(
+                  labelText: 'Link HTTPS do contrato',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: taxaProdutos,
+                      decoration: const InputDecoration(
+                        labelText: 'Taxa produtos %',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: taxaIngressos,
+                      decoration: const InputDecoration(
+                        labelText: 'Taxa ingressos %',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Disponibilizar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true && mounted) {
+      final produtos = double.tryParse(taxaProdutos.text.replaceAll(',', '.'));
+      final ingressos = double.tryParse(
+        taxaIngressos.text.replaceAll(',', '.'),
+      );
+      if (produtos == null ||
+          ingressos == null ||
+          !url.text.trim().startsWith('https://')) {
+        AppSnackBar.aviso(context, 'Informe taxas válidas e um link HTTPS.');
+      } else {
+        try {
+          await _repository.criarContrato(estabelecimento.id, {
+            'versao': versao.text.trim(),
+            'urlcontrato': url.text.trim(),
+            'vrtaxaprod': produtos,
+            'vrtaxaing': ingressos,
+          });
+          if (mounted) {
+            AppSnackBar.sucesso(
+              context,
+              'Contrato disponibilizado para ${estabelecimento.nome}.',
+            );
+            await _carregar();
+          }
+        } catch (e) {
+          if (mounted) {
+            AppSnackBar.erro(
+              context,
+              e.toString().replaceFirst('Exception: ', ''),
+            );
+          }
+        }
+      }
+    }
+    versao.dispose();
+    url.dispose();
+    taxaProdutos.dispose();
+    taxaIngressos.dispose();
   }
 
   int _quantidadeStatus(String status) => _leads.fold(
@@ -823,20 +1018,12 @@ class _LeadEstabelecimentoListPageState
                             _nomeStatusBadge(status),
                             style: TextStyle(
                               color: _corStatus(status),
-                              fontSize: 10,
+                              fontSize: 14,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      lead.nmresponsavel,
-                      style: const TextStyle(
-                        color: ClubbarColors.textoSecundario,
-                        fontWeight: FontWeight.w700,
-                      ),
                     ),
                     const SizedBox(height: 7),
                     Wrap(
@@ -900,77 +1087,85 @@ class _LeadEstabelecimentoListPageState
               ],
             ),
           ),
-          if (lead.aguardandoResposta) ...[
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                border: Border.all(color: Colors.orange.shade300),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.mark_chat_unread_rounded,
-                    size: 19,
-                    color: Colors.orange.shade900,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Lead aguardando resposta',
-                      style: TextStyle(
-                        color: Colors.orange.shade900,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: estabelecimento.dadosContratuaisCompletos
+                  ? ClubbarColors.sucessoClaro
+                  : ClubbarColors.erroClaro,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      estabelecimento.dadosContratuaisCompletos
+                          ? Icons.task_alt_rounded
+                          : Icons.warning_amber_rounded,
+                      color: estabelecimento.dadosContratuaisCompletos
+                          ? ClubbarColors.sucesso
+                          : ClubbarColors.erro,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        estabelecimento.dadosContratuaisCompletos
+                            ? 'Dados contratuais completos'
+                            : 'Dados contratuais incompletos',
+                        style: TextStyle(
+                          color: estabelecimento.dadosContratuaisCompletos
+                              ? ClubbarColors.sucesso
+                              : ClubbarColors.erro,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'CPF/CNPJ: ${(estabelecimento.cpfCnpj ?? '').isEmpty ? 'não informado' : estabelecimento.cpfCnpj}',
+                ),
+                Text(
+                  'Endereço: ${(estabelecimento.endereco ?? '').isEmpty ? 'não informado' : '${estabelecimento.endereco}, ${estabelecimento.numero ?? ''}'}',
+                ),
+                Text(
+                  'Taxas: produtos ${estabelecimento.taxaProdutos.toStringAsFixed(2)}% • ingressos ${estabelecimento.taxaIngressos.toStringAsFixed(2)}%',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _editarDadosContratuais(lead, estabelecimento),
+              icon: const Icon(Icons.edit_document),
+              label: Text(
+                estabelecimento.dadosContratuaisCompletos
+                    ? 'Editar dados do contrato'
+                    : 'Completar dados para contrato',
               ),
             ),
-          ],
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _abrirEdicao(lead),
-                  icon: const Icon(Icons.edit_rounded),
-                  label: const Text('Editar lead'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _abrirAtendimento(lead),
-                  icon: const Icon(Icons.forum_rounded),
-                  label: const Text('Atender lead'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ClubbarColors.info,
-                    foregroundColor: ClubbarColors.branco,
-                  ),
-                ),
-              ),
-            ],
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Estabelecimentos',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-                ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: estabelecimento.dadosContratuaisCompletos
+                  ? () => _disponibilizarContrato(estabelecimento)
+                  : null,
+              icon: const Icon(Icons.description_rounded),
+              label: const Text('Gerar e disponibilizar contrato'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ClubbarColors.info,
+                foregroundColor: ClubbarColors.branco,
               ),
-              OutlinedButton.icon(
-                onPressed: () => _novoEstabelecimento(lead),
-                icon: const Icon(Icons.add_business_rounded, size: 18),
-                label: const Text('Novo estabelecimento'),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 10),
           SizedBox(
