@@ -51,7 +51,8 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
       final leads = await _repository.listar();
       if (!mounted) return;
       setState(() {
-        _leads = leads;
+        _leads = [...leads]
+          ..sort((a, b) => a.leadparceiroId.compareTo(b.leadparceiroId));
         _carregando = false;
       });
     } catch (e) {
@@ -87,13 +88,6 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
   Future<void> _abrirEdicao(LeadParceiro lead) async {
     await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => LeadParceiroFormPage(lead: lead)),
-    );
-    if (mounted) await _carregar();
-  }
-
-  Future<void> _abrirAtendimento(LeadParceiro lead) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => LeadAtendimentoPage(lead: lead)),
     );
     if (mounted) await _carregar();
   }
@@ -178,13 +172,43 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Lead #${lead.leadparceiroId}',
-                      style: const TextStyle(
-                        color: ClubbarColors.info,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 5,
+                            children: [
+                              Text(
+                                'Lead #${lead.leadparceiroId}',
+                                style: const TextStyle(
+                                  color: ClubbarColors.info,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.person_rounded,
+                                size: 18,
+                                color: ClubbarColors.info,
+                              ),
+                              Text(
+                                lead.nmresponsavel,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Editar lead',
+                          onPressed: () => _abrirEdicao(lead),
+                          icon: const Icon(Icons.edit_rounded),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     const Divider(height: 1),
@@ -195,12 +219,6 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _informacaoLead(
-                                icone: Icons.person_rounded,
-                                cor: Colors.blue,
-                                texto: lead.nmresponsavel,
-                                peso: FontWeight.w900,
-                              ),
                               if ((lead.nmorganizacao ?? '').trim().isNotEmpty)
                                 _informacaoLead(
                                   icone: Icons.business_rounded,
@@ -268,30 +286,6 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _abrirEdicao(lead),
-                            icon: const Icon(Icons.edit_rounded),
-                            label: const Text('Editar lead'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _abrirAtendimento(lead),
-                            icon: const Icon(Icons.forum_rounded),
-                            label: const Text('Atender lead'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: ClubbarColors.info,
-                              foregroundColor: ClubbarColors.branco,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -494,6 +488,21 @@ class _LeadEstabelecimentoListPageState
   }
 
   void _filtrar() => setState(_aplicarFiltros);
+
+  Future<void> _abrirAtendimento(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => LeadAtendimentoPage(
+          lead: lead,
+          estabelecimentoInicialId: estabelecimento.id,
+        ),
+      ),
+    );
+    if (mounted) await _carregar();
+  }
 
   Future<void> _abrirConversao(
     LeadParceiro lead,
@@ -1144,6 +1153,19 @@ class _LeadEstabelecimentoListPageState
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _abrirAtendimento(lead, estabelecimento),
+              icon: const Icon(Icons.forum_rounded),
+              label: const Text('Atender estabelecimento'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ClubbarColors.info,
+                foregroundColor: ClubbarColors.branco,
+              ),
             ),
           ),
           const SizedBox(height: 14),
