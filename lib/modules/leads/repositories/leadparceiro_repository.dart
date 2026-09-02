@@ -229,12 +229,14 @@ class LeadParceiroRepository {
     required String tipo,
     required String telefone,
     required String email,
+    required String mensagem,
   }) async {
     final dados = <String, dynamic>{
       'nmresponsavel': nmresponsavel,
       'tipo': tipo,
       'telefone': telefone,
       'email': email,
+      'mensagem': mensagem,
     };
     final response = await ApiService.put('/parceiros/$leadparceiroId', dados);
 

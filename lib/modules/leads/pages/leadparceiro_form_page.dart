@@ -26,6 +26,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
   final _responsavelController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _emailController = TextEditingController();
+  final _mensagemController = TextEditingController();
 
   late String _tipoSelecionado;
   bool _salvando = false;
@@ -42,6 +43,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
     _responsavelController.text = widget.lead.nmresponsavel;
     _telefoneController.text = _formatarTelefone(widget.lead.telefone);
     _emailController.text = widget.lead.email;
+    _mensagemController.text = widget.lead.mensagem ?? '';
     _tipoSelecionado = widget.lead.tipo;
   }
 
@@ -50,6 +52,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
     _responsavelController.dispose();
     _telefoneController.dispose();
     _emailController.dispose();
+    _mensagemController.dispose();
     super.dispose();
   }
 
@@ -151,6 +154,7 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
         tipo: _tipoSelecionado,
         telefone: _somenteNumeros(_telefoneController.text),
         email: _emailController.text.trim().toLowerCase(),
+        mensagem: _mensagemController.text.trim(),
       );
 
       if (!mounted) return;
@@ -169,8 +173,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final mensagem = widget.lead.mensagem?.trim();
-
     return Scaffold(
       backgroundColor: ClubbarColors.fundo,
       appBar: const ClubbarAppBar(mostrarVoltar: true),
@@ -358,13 +360,15 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                             icone: Icons.location_city_outlined,
                           ),
                           const SizedBox(height: 14),
-                          _campoLeitura(
-                            label: 'Descrição do seu negócio',
-                            valor: mensagem == null || mensagem.isEmpty
-                                ? 'Nenhuma descrição informada'
-                                : mensagem,
-                            icone: Icons.business_outlined,
+                          TextFormField(
+                            controller: _mensagemController,
+                            enabled: !_salvando,
+                            maxLength: 1000,
                             maxLines: 4,
+                            decoration: _decoracao(
+                              label: 'Descrição do seu negócio',
+                              icone: Icons.business_outlined,
+                            ),
                           ),
                           const SizedBox(height: 14),
                           _campoLeitura(

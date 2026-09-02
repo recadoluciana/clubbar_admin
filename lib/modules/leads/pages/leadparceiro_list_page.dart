@@ -176,7 +176,19 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
               child: Padding(
                 padding: const EdgeInsets.all(4),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      'Lead #${lead.leadparceiroId}',
+                      style: const TextStyle(
+                        color: ClubbarColors.info,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
