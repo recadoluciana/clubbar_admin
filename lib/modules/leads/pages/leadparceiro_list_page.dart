@@ -577,7 +577,6 @@ class _LeadEstabelecimentoListPageState
     }
 
     final versao = TextEditingController(text: '1.0');
-    final url = TextEditingController();
     final taxaProdutos = TextEditingController(
       text: estabelecimento.taxaProdutos
           .toStringAsFixed(2)
@@ -601,14 +600,6 @@ class _LeadEstabelecimentoListPageState
                 controller: versao,
                 decoration: const InputDecoration(
                   labelText: 'Versão',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: url,
-                decoration: const InputDecoration(
-                  labelText: 'Link HTTPS do contrato',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -646,7 +637,7 @@ class _LeadEstabelecimentoListPageState
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Disponibilizar'),
+            child: const Text('Pré-visualizar'),
           ),
         ],
       ),
@@ -657,18 +648,43 @@ class _LeadEstabelecimentoListPageState
       final ingressos = double.tryParse(
         taxaIngressos.text.replaceAll(',', '.'),
       );
-      if (produtos == null ||
-          ingressos == null ||
-          !url.text.trim().startsWith('https://')) {
-        AppSnackBar.aviso(context, 'Informe taxas válidas e um link HTTPS.');
+      if (produtos == null || ingressos == null || versao.text.trim().isEmpty) {
+        AppSnackBar.aviso(context, 'Informe a versão e taxas válidas.');
       } else {
         try {
-          await _repository.criarContrato(estabelecimento.id, {
+          final dados = {
             'versao': versao.text.trim(),
-            'urlcontrato': url.text.trim(),
             'vrtaxaprod': produtos,
             'vrtaxaing': ingressos,
-          });
+          };
+          final conteudo = await _repository.previsualizarContrato(
+            estabelecimento.id,
+            dados,
+          );
+          if (!mounted) return;
+          final disponibilizar = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Prévia do contrato'),
+              content: SizedBox(
+                width: 680,
+                height: 520,
+                child: SingleChildScrollView(child: SelectableText(conteudo)),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Voltar'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Gerar e disponibilizar'),
+                ),
+              ],
+            ),
+          );
+          if (disponibilizar != true) return;
+          await _repository.criarContrato(estabelecimento.id, dados);
           if (mounted) {
             AppSnackBar.sucesso(
               context,
@@ -687,7 +703,6 @@ class _LeadEstabelecimentoListPageState
       }
     }
     versao.dispose();
-    url.dispose();
     taxaProdutos.dispose();
     taxaIngressos.dispose();
   }

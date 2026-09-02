@@ -291,12 +291,29 @@ class LeadParceiroRepository {
     Map<String, dynamic> dados,
   ) async {
     final r = await ApiService.post(
-      '/contratos-lead/estabelecimento/$leadestabelecimentoId',
+      '/lead-estabelecimento-contratos/estabelecimento/$leadestabelecimentoId',
       dados,
     );
     if (r.statusCode != 201) {
       throw Exception(_extrairErro(r.body, 'Erro ao disponibilizar contrato.'));
     }
+  }
+
+  Future<String> previsualizarContrato(
+    int leadestabelecimentoId,
+    Map<String, dynamic> dados,
+  ) async {
+    final r = await ApiService.post(
+      '/lead-estabelecimento-contratos/estabelecimento/$leadestabelecimentoId/previsualizar',
+      dados,
+    );
+    if (r.statusCode != 200) {
+      throw Exception(
+        _extrairErro(r.body, 'Erro ao gerar prévia do contrato.'),
+      );
+    }
+    final resposta = jsonDecode(r.body) as Map<String, dynamic>;
+    return resposta['conteudocontrato']?.toString() ?? '';
   }
 
   Future<Map<String, dynamic>> reenviarConviteParceiro({

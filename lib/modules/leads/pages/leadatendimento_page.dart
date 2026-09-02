@@ -365,7 +365,6 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     }
     var estabelecimento = widget.lead.estabelecimentos.first;
     final versao = TextEditingController(text: '1.0');
-    final url = TextEditingController();
     final taxaProdutos = TextEditingController(text: '5,00');
     final taxaIngressos = TextEditingController(text: '5,00');
     final confirmar = await showDialog<bool>(
@@ -405,14 +404,6 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: url,
-                  decoration: const InputDecoration(
-                    labelText: 'Link HTTPS do contrato',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -446,7 +437,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Disponibilizar'),
+              child: const Text('Pré-visualizar'),
             ),
           ],
         ),
@@ -458,24 +449,58 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       final ingressos = double.tryParse(
         taxaIngressos.text.replaceAll(',', '.'),
       );
-      if (produtos == null ||
-          ingressos == null ||
-          !url.text.startsWith('https://')) {
-        AppSnackBar.aviso(context, 'Informe taxas válidas e um link HTTPS.');
+      if (produtos == null || ingressos == null || versao.text.trim().isEmpty) {
+        AppSnackBar.aviso(context, 'Informe a versão e taxas válidas.');
       } else {
-        await _acao(
-          () => _repo.criarContrato(estabelecimento.id, {
-            'versao': versao.text.trim(),
-            'urlcontrato': url.text.trim(),
-            'vrtaxaprod': produtos,
-            'vrtaxaing': ingressos,
-          }),
-          'Contrato disponibilizado para ${estabelecimento.nome}.',
-        );
+        final dados = {
+          'versao': versao.text.trim(),
+          'vrtaxaprod': produtos,
+          'vrtaxaing': ingressos,
+        };
+        try {
+          final conteudo = await _repo.previsualizarContrato(
+            estabelecimento.id,
+            dados,
+          );
+          if (!mounted) return;
+          final disponibilizar = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Prévia do contrato'),
+              content: SizedBox(
+                width: 680,
+                height: 520,
+                child: SingleChildScrollView(child: SelectableText(conteudo)),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Voltar'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Gerar e disponibilizar'),
+                ),
+              ],
+            ),
+          );
+          if (disponibilizar == true) {
+            await _acao(
+              () => _repo.criarContrato(estabelecimento.id, dados),
+              'Contrato disponibilizado para ${estabelecimento.nome}.',
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            AppSnackBar.erro(
+              context,
+              e.toString().replaceFirst('Exception: ', ''),
+            );
+          }
+        }
       }
     }
     versao.dispose();
-    url.dispose();
     taxaProdutos.dispose();
     taxaIngressos.dispose();
   }
