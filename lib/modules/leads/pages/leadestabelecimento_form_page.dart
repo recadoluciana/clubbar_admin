@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../core/theme/clubbar_colors.dart';
 import '../../../core/widgets/app_snackbar.dart';
@@ -48,6 +52,8 @@ class _LeadEstabelecimentoFormPageState
   String _tipoVenda = 'AMBOS';
   bool _carregando = true;
   bool _salvando = false;
+  bool _buscandoCep = false;
+  Timer? _cepDebounce;
 
   @override
   void initState() {
@@ -71,11 +77,13 @@ class _LeadEstabelecimentoFormPageState
     _mensagem.text = estabelecimento.mensagem ?? '';
     _tipo = estabelecimento.tipo;
     _tipoVenda = estabelecimento.tipoVenda;
+    _cep.addListener(_aoAlterarCep);
     _carregarLocalidades();
   }
 
   @override
   void dispose() {
+    _cepDebounce?.cancel();
     for (final controller in [
       _nome,
       _responsavel,
@@ -94,6 +102,56 @@ class _LeadEstabelecimentoFormPageState
       controller.dispose();
     }
     super.dispose();
+  }
+
+  void _aoAlterarCep() {
+    _cepDebounce?.cancel();
+    final cep = _cep.text.replaceAll(RegExp(r'\D'), '');
+    if (cep.length != 8) return;
+    _cepDebounce = Timer(const Duration(milliseconds: 450), () {
+      _buscarCep(cep);
+    });
+  }
+
+  Future<void> _buscarCep(String cep) async {
+    if (_buscandoCep) return;
+    setState(() => _buscandoCep = true);
+    try {
+      final resposta = await http.get(
+        Uri.parse('https://viacep.com.br/ws/$cep/json/'),
+      );
+      final dados = jsonDecode(resposta.body) as Map<String, dynamic>;
+      if (resposta.statusCode != 200 || dados['erro'] == true) {
+        throw Exception('CEP não encontrado.');
+      }
+      final uf = dados['uf']?.toString().toUpperCase();
+      final nomeCidade = dados['localidade']?.toString().toLowerCase();
+      final estado = _estados.cast<Map<String, dynamic>?>().firstWhere(
+        (item) => item?['sgestado']?.toString().toUpperCase() == uf,
+        orElse: () => null,
+      );
+      if (estado != null) {
+        final estadoId = _id(estado, 'estado_id');
+        await _alterarEstado(estadoId);
+        final cidade = _cidades.cast<Map<String, dynamic>?>().firstWhere(
+          (item) => item?['nmcidade']?.toString().toLowerCase() == nomeCidade,
+          orElse: () => null,
+        );
+        _cidadeId = cidade == null ? null : _id(cidade, 'cidade_id');
+      }
+      if (!mounted) return;
+      setState(() {
+        _endereco.text = dados['logradouro']?.toString() ?? '';
+        _bairro.text = dados['bairro']?.toString() ?? '';
+        _complemento.text = dados['complemento']?.toString() ?? '';
+      });
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _buscandoCep = false);
+    }
   }
 
   int _id(Map<String, dynamic> item, String chave) =>
@@ -414,7 +472,18 @@ class _LeadEstabelecimentoFormPageState
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: _cep,
-                          decoration: _decoracao('CEP', Icons.pin_drop_rounded),
+                          keyboardType: TextInputType.number,
+                          decoration: _decoracao('CEP', Icons.pin_drop_rounded)
+                              .copyWith(
+                                suffixIcon: _buscandoCep
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(14),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.search_rounded),
+                              ),
                           validator: (v) => (v?.trim().isEmpty ?? true)
                               ? 'Informe o CEP.'
                               : null,
