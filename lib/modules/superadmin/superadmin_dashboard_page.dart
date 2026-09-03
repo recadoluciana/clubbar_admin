@@ -341,20 +341,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
           ),
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.handshake_rounded,
-                  size: 25,
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   children: [
@@ -435,7 +421,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             titulo('Interessados na plataforma'),
             grade([_cardLeads()]),
             const SizedBox(height: 18),
-            titulo('Cadastros da plataforma'),
+            titulo('Cadastrados na plataforma'),
             grade([
               _cardIndicador(
                 titulo: 'Empresas Parceiras',
@@ -501,7 +487,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
         child: Column(
           children: [
             ClubbarPageHeader(
-              titulo: 'Painel Administrativo',
+              titulo: 'Painel administrativo',
               subtitulo: '',
               icone: Icons.dashboard_rounded,
               mostrarDataHora: true,
