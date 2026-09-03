@@ -88,20 +88,6 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
     ).format(_numero(valor));
   }
 
-  String _nomeLojaSelecionada() {
-    final lojaId = _lojaIdSelecionada;
-
-    if (lojaId == null) return '';
-
-    for (final loja in _lojas) {
-      if (loja.lojaId == lojaId) {
-        return loja.nmloja;
-      }
-    }
-
-    return '';
-  }
-
   String _montarUrlImagem(dynamic produto) {
     final caminho = (produto['urlfotoproduto'] ?? '').toString().trim();
 
@@ -454,25 +440,27 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
     return DropdownButtonFormField<int>(
       initialValue: _lojaIdSelecionada,
       isExpanded: true,
+      iconEnabledColor: ClubbarColors.info,
+      style: const TextStyle(
+        color: ClubbarColors.info,
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
+      ),
       decoration: InputDecoration(
-        labelText: 'Estabelecimento',
-        prefixIcon: const Icon(
-          Icons.storefront_rounded,
-          color: ClubbarColors.textoSecundario,
-        ),
         filled: true,
-        fillColor: ClubbarColors.branco,
+        fillColor: Colors.white.withValues(alpha: 0.75),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ClubbarColors.borda),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: ClubbarColors.info),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ClubbarColors.borda),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: ClubbarColors.info),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ClubbarColors.ambar, width: 2),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: ClubbarColors.info, width: 2),
         ),
       ),
       items: _lojas.map((loja) {
@@ -945,8 +933,6 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final nomeLoja = _nomeLojaSelecionada();
-
     return Scaffold(
       backgroundColor: ClubbarColors.fundo,
       appBar: const ClubbarAppBar(mostrarVoltar: true),
@@ -955,20 +941,15 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
           children: [
             ClubbarPageHeader(
               titulo: 'Produtos',
-              subtitulo: _carregando
-                  ? 'Carregando produtos...'
-                  : nomeLoja.isEmpty
-                  ? 'Selecione um estabelecimento'
-                  : '$nomeLoja • ${_produtos.length} '
-                        '${_produtos.length == 1 ? 'produto' : 'produtos'}',
+              subtitulo: '',
+              subtituloWidget: _campoLoja(),
+              estiloTitulo: const TextStyle(color: ClubbarColors.info),
               icone: Icons.inventory_2_rounded,
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Column(
                 children: [
-                  _campoLoja(),
-                  const SizedBox(height: 12),
                   _campoBusca(),
                   const SizedBox(height: 12),
                   _acoesTopo(),

@@ -77,16 +77,6 @@ class _EventoListPageState extends State<EventoListPage> {
     return mensagem.isEmpty ? 'Ocorreu um erro inesperado.' : mensagem;
   }
 
-  String _nomeLojaSelecionada() {
-    final lojaId = _lojaIdSelecionada;
-    if (lojaId == null) return '';
-
-    for (final loja in _lojas) {
-      if (loja.lojaId == lojaId) return loja.nmloja;
-    }
-    return '';
-  }
-
   String _formatarData(String? valor) {
     if (valor == null || valor.trim().isEmpty) return 'Não informada';
     try {
@@ -369,10 +359,13 @@ class _EventoListPageState extends State<EventoListPage> {
     return DropdownButtonFormField<int>(
       initialValue: _lojaIdSelecionada,
       isExpanded: true,
-      decoration: _decoracaoFiltro(
-        label: 'Estabelecimento',
-        icone: Icons.storefront_rounded,
+      iconEnabledColor: ClubbarColors.info,
+      style: const TextStyle(
+        color: ClubbarColors.info,
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
       ),
+      decoration: _decoracaoFiltro(),
       items: _lojas.map((loja) {
         return DropdownMenuItem<int>(
           value: loja.lojaId,
@@ -386,26 +379,22 @@ class _EventoListPageState extends State<EventoListPage> {
     );
   }
 
-  InputDecoration _decoracaoFiltro({
-    required String label,
-    required IconData icone,
-  }) {
+  InputDecoration _decoracaoFiltro() {
     return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icone, color: ClubbarColors.textoSecundario),
       filled: true,
-      fillColor: ClubbarColors.branco,
+      fillColor: Colors.white.withValues(alpha: 0.75),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: ClubbarColors.borda),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: ClubbarColors.info),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: ClubbarColors.borda),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: ClubbarColors.info),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: ClubbarColors.ambar, width: 2),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: ClubbarColors.info, width: 2),
       ),
     );
   }
@@ -828,8 +817,6 @@ class _EventoListPageState extends State<EventoListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final nomeLoja = _nomeLojaSelecionada();
-
     return Scaffold(
       backgroundColor: ClubbarColors.fundo,
       appBar: const ClubbarAppBar(mostrarVoltar: true),
@@ -838,20 +825,15 @@ class _EventoListPageState extends State<EventoListPage> {
           children: [
             ClubbarPageHeader(
               titulo: 'Eventos',
-              subtitulo: _carregando
-                  ? 'Carregando eventos...'
-                  : nomeLoja.isEmpty
-                  ? 'Selecione um estabelecimento'
-                  : '$nomeLoja • ${_eventos.length} '
-                        '${_eventos.length == 1 ? 'evento' : 'eventos'}',
+              subtitulo: '',
+              subtituloWidget: _campoLoja(),
+              estiloTitulo: const TextStyle(color: ClubbarColors.info),
               icone: Icons.event_rounded,
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Column(
                 children: [
-                  _campoLoja(),
-                  const SizedBox(height: 12),
                   _campoBusca(),
                   const SizedBox(height: 12),
                   _acoesTopo(),

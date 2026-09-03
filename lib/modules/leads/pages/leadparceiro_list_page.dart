@@ -392,28 +392,6 @@ class _LeadEstabelecimentoListPageState
     'PRODUTOR_EVENTOS',
     'CASA_EVENTOS',
   ];
-  IconData _iconeStatus(String status) {
-    switch (status) {
-      case 'CONTATADO':
-        return Icons.message_rounded;
-
-      case 'NEGOCIANDO':
-        return Icons.handshake_rounded;
-      case 'ACEITOU_PARCERIA':
-        return Icons.task_alt_rounded;
-
-      case 'CONVERTIDO':
-        return Icons.verified_rounded;
-
-      case 'RECUSOU_PARCERIA':
-        return Icons.cancel_outlined;
-
-      case 'NOVO':
-      default:
-        return Icons.fiber_new_rounded;
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -720,34 +698,6 @@ class _LeadEstabelecimentoListPageState
     taxaIngressos.dispose();
   }
 
-  int _quantidadeStatus(String status) => _leads.fold(
-    0,
-    (total, lead) =>
-        total +
-        lead.estabelecimentos
-            .where((estabelecimento) => estabelecimento.status == status)
-            .length,
-  );
-
-  String _nomeStatus(String status) {
-    switch (status) {
-      case 'CONTATADO':
-        return 'Contatados';
-      case 'NEGOCIANDO':
-        return 'Negociando';
-      case 'ACEITOU_PARCERIA':
-        return 'Parceria aceita';
-      case 'CONVERTIDO':
-        return 'Convertidos';
-      case 'RECUSOU_PARCERIA':
-        return 'Parceria recusada';
-      case 'NOVO':
-        return 'Novos';
-      default:
-        return 'Todos';
-    }
-  }
-
   String _nomeStatusBadge(String status) {
     switch (status) {
       case 'CONTATADO':
@@ -846,92 +796,6 @@ class _LeadEstabelecimentoListPageState
     return ClubbarColors.sucesso;
   }
 
-  Widget _resumoStatus() {
-    return SizedBox(
-      height: 104,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _status.length - 1,
-        separatorBuilder: (_, _) => const SizedBox(width: 9),
-        itemBuilder: (context, index) {
-          final status = _status[index + 1];
-
-          final selecionado = _statusSelecionado == status;
-
-          final cor = _corStatus(status);
-
-          return InkWell(
-            onTap: () {
-              setState(() {
-                _statusSelecionado = selecionado ? 'TODOS' : status;
-
-                _aplicarFiltros();
-              });
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 104,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
-              decoration: BoxDecoration(
-                color: selecionado
-                    ? _fundoStatus(status)
-                    : ClubbarColors.branco,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: selecionado ? cor : ClubbarColors.borda,
-                  width: selecionado ? 1.5 : 1,
-                ),
-                boxShadow: selecionado
-                    ? [
-                        BoxShadow(
-                          color: cor.withValues(alpha: 0.14),
-                          blurRadius: 7,
-                          offset: const Offset(0, 3),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(_iconeStatus(status), size: 22, color: cor),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    '${_quantidadeStatus(status)}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 20,
-                      height: 1,
-                      fontWeight: FontWeight.w900,
-                      color: cor,
-                    ),
-                  ),
-
-                  const SizedBox(height: 5),
-
-                  Text(
-                    _nomeStatus(status),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   InputDecoration _decoracaoFiltro({
     required String label,
     required IconData icone,
@@ -978,6 +842,34 @@ class _LeadEstabelecimentoListPageState
                         icon: const Icon(Icons.close_rounded),
                       ),
               ),
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: _statusSelecionado,
+          isExpanded: true,
+          decoration: _decoracaoFiltro(
+            label: 'Status do estabelecimento',
+            icone: Icons.flag_outlined,
+          ),
+          items: _status
+              .map(
+                (status) => DropdownMenuItem(
+                  value: status,
+                  child: Text(
+                    status == 'TODOS'
+                        ? 'Todos os status'
+                        : _nomeStatusBadge(status),
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value == null) return;
+            setState(() {
+              _statusSelecionado = value;
+              _aplicarFiltros();
+            });
+          },
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
@@ -1479,8 +1371,6 @@ class _LeadEstabelecimentoListPageState
                       ),
                       const SizedBox(height: 14),
                     ],
-                    _resumoStatus(),
-                    const SizedBox(height: 16),
                     _filtros(),
                     const SizedBox(height: 18),
                     _conteudoLista(),
