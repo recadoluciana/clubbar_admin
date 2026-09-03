@@ -367,20 +367,22 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
                       ).merge(widget.estiloTitulo),
                     ),
 
-                const SizedBox(height: 3),
-
-                widget.subtituloWidget ??
-                    Text(
-                      widget.subtitulo,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        height: 1.3,
-                        color: ClubbarColors.textoSecundario,
-                        fontWeight: FontWeight.w600,
+                if (widget.subtituloWidget != null ||
+                    widget.subtitulo.trim().isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  widget.subtituloWidget ??
+                      Text(
+                        widget.subtitulo,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 1.3,
+                          color: ClubbarColors.textoSecundario,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
+                ],
 
                 _dadosSessao(),
               ],

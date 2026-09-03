@@ -633,6 +633,67 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       ),
     ),
   );
+
+  Widget _mensagemChat(Map<String, dynamic> mensagem) {
+    final enviadaPeloLead = mensagem['origem'] == 'LEAD';
+    final cor = enviadaPeloLead ? Colors.blue : Colors.deepPurple;
+    return Align(
+      alignment: enviadaPeloLead ? Alignment.centerLeft : Alignment.centerRight,
+      child: FractionallySizedBox(
+        widthFactor: 0.82,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+          decoration: BoxDecoration(
+            color: cor.withValues(alpha: 0.12),
+            border: Border.all(color: cor.withValues(alpha: 0.35)),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: Radius.circular(enviadaPeloLead ? 4 : 16),
+              bottomRight: Radius.circular(enviadaPeloLead ? 16 : 4),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    enviadaPeloLead
+                        ? Icons.person_rounded
+                        : Icons.support_agent_rounded,
+                    size: 17,
+                    color: cor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    enviadaPeloLead ? 'Lead' : 'Clubbar',
+                    style: TextStyle(
+                      color: cor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(mensagem['mensagem']?.toString() ?? ''),
+              const SizedBox(height: 5),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  _data(mensagem['dtcriacao']),
+                  style: TextStyle(color: cor, fontSize: 10.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _nomeStatus(dynamic valor) {
     return switch (valor?.toString()) {
       'CONTATADO' => 'Contatado',
@@ -686,6 +747,22 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     );
   }
 
+  Widget _estabelecimentoCabecalho() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+        'Estabelecimento: ${_estabelecimentoSelecionado.nome}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: ClubbarColors.info,
+          fontSize: 14,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mensagens = _lista('mensagens'),
@@ -695,22 +772,10 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         mensagens.isNotEmpty && mensagens.last['origem'] == 'LEAD';
     final conteudoSecao = switch (widget.secao) {
       'MENSAGENS' => _secao(
-        'Mensagens recebidas',
+        'Mensagens',
         Icons.chat_bubble_outline,
         _mensagem,
-        mensagens
-            .map(
-              (x) => ListTile(
-                leading: Icon(
-                  x['origem'] == 'LEAD' ? Icons.person : Icons.support_agent,
-                ),
-                title: Text(x['mensagem']?.toString() ?? ''),
-                subtitle: Text(
-                  '${x['origem'] == 'LEAD' ? 'Lead' : 'Clubbar'} • ${_data(x['dtcriacao'])}',
-                ),
-              ),
-            )
-            .toList(),
+        mensagens.map(_mensagemChat).toList(),
       ),
       'AGENDAMENTOS' => _secao(
         'Agendamentos',
@@ -773,7 +838,9 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
           ClubbarPageHeader(
             titulo: widget.lead.nmresponsavel,
             subtitulo: '',
-            subtituloWidget: _seletorEstabelecimentoCabecalho(),
+            subtituloWidget: widget.secao == null
+                ? _seletorEstabelecimentoCabecalho()
+                : _estabelecimentoCabecalho(),
             mostrarIcone: false,
             estiloTitulo: const TextStyle(color: ClubbarColors.info),
             mostrarDadosSessao: false,
@@ -826,7 +893,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                           conteudoSecao
                         else ...[
                           _opcao(
-                            titulo: 'Mensagens recebidas',
+                            titulo: 'Mensagens',
                             subtitulo: '${mensagens.length} mensagem(ns)',
                             icone: Icons.mark_chat_unread_rounded,
                             secao: 'MENSAGENS',

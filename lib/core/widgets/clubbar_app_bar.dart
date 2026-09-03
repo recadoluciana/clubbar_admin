@@ -44,29 +44,23 @@ class ClubbarAppBar extends StatelessWidget implements PreferredSizeWidget {
             )
           : null,
 
-      title: SizedBox(
-        height: 56,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Align(
-            alignment: Alignment.center,
+      flexibleSpace: SafeArea(
+        bottom: false,
+        child: IgnorePointer(
+          child: Center(
             child: Image.asset(
               logoPath,
               height: 52,
               fit: BoxFit.contain,
-              errorBuilder: (_, _, _) {
-                return const Center(
-                  child: Text(
-                    'CLUBBAR',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                );
-              },
+              errorBuilder: (_, _, _) => const Text(
+                'CLUBBAR',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
           ),
         ),
