@@ -276,7 +276,7 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
     final lojaId = _lojaIdSelecionada;
 
     if (lojaId == null) {
-      AppSnackBar.aviso(context, 'Selecione uma loja.');
+      AppSnackBar.aviso(context, 'Selecione um estabelecimento.');
       return;
     }
 
@@ -455,7 +455,7 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
       initialValue: _lojaIdSelecionada,
       isExpanded: true,
       decoration: InputDecoration(
-        labelText: 'Loja',
+        labelText: 'Estabelecimento',
         prefixIcon: const Icon(
           Icons.storefront_rounded,
           color: ClubbarColors.textoSecundario,
@@ -833,7 +833,7 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
             const SizedBox(height: 16),
             Text(
               !temLoja
-                  ? 'Nenhuma loja disponível'
+                  ? 'Nenhum estabelecimento disponível'
                   : temBusca
                   ? 'Nenhum produto encontrado'
                   : 'Nenhum produto cadastrado',
@@ -843,10 +843,10 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
             const SizedBox(height: 7),
             Text(
               !temLoja
-                  ? 'Cadastre uma loja antes de criar produtos.'
+                  ? 'Cadastre um estabelecimento antes de criar produtos.'
                   : temBusca
                   ? 'Tente pesquisar por outro nome, categoria ou situação.'
-                  : 'Cadastre o primeiro produto desta loja.',
+                  : 'Cadastre o primeiro produto deste estabelecimento.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,
@@ -958,7 +958,7 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
               subtitulo: _carregando
                   ? 'Carregando produtos...'
                   : nomeLoja.isEmpty
-                  ? 'Selecione uma loja'
+                  ? 'Selecione um estabelecimento'
                   : '$nomeLoja • ${_produtos.length} '
                         '${_produtos.length == 1 ? 'produto' : 'produtos'}',
               icone: Icons.inventory_2_rounded,

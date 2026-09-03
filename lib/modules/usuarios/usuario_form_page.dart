@@ -163,7 +163,7 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
         _carregandoLojas = false;
       });
 
-      AppSnackBar.erro(context, 'Não foi possível carregar as lojas.');
+      AppSnackBar.erro(context, 'Não foi possível carregar os estabelecimentos.');
     }
   }
 
@@ -640,13 +640,13 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                                   initialValue: _lojaIdSelecionada,
                                   isExpanded: true,
                                   decoration: _decoracaoCampo(
-                                    label: 'Loja',
+                                    label: 'Estabelecimento',
                                     icone: Icons.storefront_outlined,
                                   ),
                                   items: [
                                     const DropdownMenuItem<int?>(
                                       value: null,
-                                      child: Text('Sem loja vinculada'),
+                                      child: Text('Sem estabelecimento vinculado'),
                                     ),
                                     ..._lojas.map(
                                       (loja) => DropdownMenuItem<int?>(
@@ -722,7 +722,7 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                                         'são protegidos. Nome, e-mail e senha '
                                         'podem ser atualizados normalmente.'
                                   : 'O e-mail é utilizado como chave de acesso. '
-                                        'Ao vincular uma loja, o usuário poderá '
+                                        'Ao vincular um estabelecimento, o usuário poderá '
                                         'ser direcionado às operações daquele '
                                         'estabelecimento.',
                               style: const TextStyle(

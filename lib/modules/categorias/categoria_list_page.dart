@@ -221,7 +221,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
     final lojaId = _lojaIdSelecionada;
 
     if (lojaId == null) {
-      AppSnackBar.aviso(context, 'Selecione uma loja.');
+      AppSnackBar.aviso(context, 'Selecione um estabelecimento.');
       return;
     }
 
@@ -374,7 +374,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
       initialValue: _lojaIdSelecionada,
       isExpanded: true,
       decoration: InputDecoration(
-        labelText: 'Loja',
+        labelText: 'Estabelecimento',
         prefixIcon: const Icon(
           Icons.storefront_rounded,
           color: ClubbarColors.textoSecundario,
@@ -664,7 +664,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
             const SizedBox(height: 16),
             Text(
               !temLoja
-                  ? 'Nenhuma loja disponível'
+                  ? 'Nenhum estabelecimento disponível'
                   : temBusca
                   ? 'Nenhuma categoria encontrada'
                   : 'Nenhuma categoria cadastrada',
@@ -674,10 +674,10 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
             const SizedBox(height: 7),
             Text(
               !temLoja
-                  ? 'Cadastre uma loja antes de criar categorias.'
+                  ? 'Cadastre um estabelecimento antes de criar categorias.'
                   : temBusca
                   ? 'Tente pesquisar por outro nome, ordem ou situação.'
-                  : 'Cadastre a primeira categoria desta loja.',
+                  : 'Cadastre a primeira categoria deste estabelecimento.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,
@@ -789,7 +789,7 @@ class _CategoriaListPageState extends State<CategoriaListPage> {
               subtitulo: _carregando
                   ? 'Carregando categorias...'
                   : nomeLoja.isEmpty
-                  ? 'Selecione uma loja'
+                  ? 'Selecione um estabelecimento'
                   : '$nomeLoja • ${_categorias.length} '
                         '${_categorias.length == 1 ? 'categoria' : 'categorias'}',
               icone: Icons.category_rounded,

@@ -191,7 +191,7 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       const _DashboardItem(
         chave: 'lojas',
-        titulo: 'Lojas',
+        titulo: 'Estabelecimentos',
         subtitulo: 'Estabelecimentos',
         icone: Icons.storefront_rounded,
       ),

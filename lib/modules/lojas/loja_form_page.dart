@@ -94,15 +94,15 @@ class _LojaFormPageState extends State<LojaFormPage> {
     final horario = _horarioController.text.trim();
     final diasValidade = int.tryParse(_diasValidadeController.text.trim());
 
-    if (nome.isEmpty) return 'Informe o nome da loja.';
+    if (nome.isEmpty) return 'Informe o nome do estabelecimento.';
     if (nome.length < 3) {
-      return 'O nome da loja deve ter pelo menos 3 caracteres.';
+      return 'O nome do estabelecimento deve ter pelo menos 3 caracteres.';
     }
     if (nome.length > 120) {
-      return 'O nome da loja pode ter no máximo 120 caracteres.';
+      return 'O nome do estabelecimento pode ter no máximo 120 caracteres.';
     }
     if (_cidadeIdSelecionada == null || _cidadeIdSelecionada == 0) {
-      return 'Selecione a cidade da loja.';
+      return 'Selecione a cidade do estabelecimento.';
     }
     if (bairro.length > 120) {
       return 'O bairro pode ter no máximo 120 caracteres.';
@@ -304,7 +304,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
       if (!mounted) return;
 
       _mostrarMensagem(
-        editando ? 'Loja atualizada com sucesso.' : 'Loja criada com sucesso.',
+        editando ? 'Estabelecimento atualizado com sucesso.' : 'Estabelecimento criado com sucesso.',
       );
 
       Navigator.of(context).pop(true);
@@ -377,7 +377,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
-        title: Text(editando ? 'Editar loja' : 'Nova loja'),
+        title: Text(editando ? 'Editar estabelecimento' : 'Novo estabelecimento'),
         centerTitle: true,
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
@@ -472,14 +472,14 @@ class _LojaFormPageState extends State<LojaFormPage> {
                               LengthLimitingTextInputFormatter(120),
                             ],
                             decoration: _decoracaoCampo(
-                              label: 'Nome da loja',
+                              label: 'Nome do estabelecimento',
                               icone: Icons.store_outlined,
-                              hint: 'Digite o nome da loja',
+                              hint: 'Digite o nome do estabelecimento',
                             ).copyWith(counterText: ''),
                             validator: (value) {
                               final texto = value?.trim() ?? '';
                               if (texto.isEmpty) {
-                                return 'Informe o nome da loja.';
+                                return 'Informe o nome do estabelecimento.';
                               }
                               if (texto.length < 3) {
                                 return 'Informe pelo menos 3 caracteres.';
@@ -563,7 +563,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
                               LengthLimitingTextInputFormatter(255),
                             ],
                             decoration: _decoracaoCampo(
-                              label: 'Endereço da loja',
+                              label: 'Endereço do estabelecimento',
                               icone: Icons.home_work_outlined,
                             ).copyWith(counterText: ''),
                           ),
@@ -595,7 +595,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
                               LengthLimitingTextInputFormatter(255),
                             ],
                             decoration: _decoracaoCampo(
-                              label: 'Instagram da loja',
+                              label: 'Instagram do estabelecimento',
                               icone: Icons.alternate_email,
                               hint: '@nomedaloja',
                             ).copyWith(counterText: ''),
@@ -766,7 +766,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.save_outlined),
-                      label: Text(_salvando ? 'Salvando...' : 'Salvar loja'),
+                      label: Text(_salvando ? 'Salvando...' : 'Salvar estabelecimento'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber,
                         foregroundColor: Colors.black,

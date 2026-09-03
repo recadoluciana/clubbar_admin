@@ -115,7 +115,7 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
            * SUPERADMIN e administradores gerais
            * podem não possuir loja vinculada.
            */
-          debugPrint('[PAGE HEADER] Não foi possível carregar a loja: $e');
+          debugPrint('[PAGE HEADER] Não foi possível carregar o estabelecimento: $e');
         }
       }
 

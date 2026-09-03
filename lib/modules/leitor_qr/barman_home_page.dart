@@ -102,7 +102,7 @@ class _BarmanHomePageState extends State<BarmanHomePage> {
 
         nomeLoja = nomeLojaRecebido.isNotEmpty
             ? nomeLojaRecebido
-            : 'Loja não identificada';
+            : 'Estabelecimento não identificada';
 
         logoLoja = _montarUrlImagem(caminhoLogo);
 
@@ -358,7 +358,7 @@ class _BarmanHomePageState extends State<BarmanHomePage> {
               const SizedBox(height: 16),
 
               const Text(
-                'Não foi possível carregar a loja',
+                'Não foi possível carregar o estabelecimento',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
               ),
@@ -459,7 +459,7 @@ class _BarmanHomePageState extends State<BarmanHomePage> {
   @override
   Widget build(BuildContext context) {
     final subtitulo = carregando
-        ? 'Carregando dados da loja...'
+        ? 'Carregando dados do estabelecimento...'
         : nomeLoja.isEmpty
         ? 'Atendente: $nomeUsuario'
         : '$nomeLoja • Atendente: $nomeUsuario';

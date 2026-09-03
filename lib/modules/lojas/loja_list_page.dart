@@ -197,14 +197,14 @@ class _LojaListPageState extends State<LojaListPage> {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Excluir loja',
+                  'Excluir estabelecimento',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
             ],
           ),
           content: Text(
-            'Deseja realmente excluir a loja '
+            'Deseja realmente excluir o estabelecimento '
             '"${loja.nmloja}"?\n\n'
             'Essa ação não poderá ser desfeita.',
             style: const TextStyle(height: 1.4),
@@ -269,7 +269,7 @@ class _LojaListPageState extends State<LojaListPage> {
 
       if (!mounted) return;
 
-      AppSnackBar.sucesso(context, 'Loja excluída com sucesso.');
+      AppSnackBar.sucesso(context, 'Estabelecimento excluído com sucesso.');
 
       await _carregarLojas();
     } catch (e) {
@@ -505,7 +505,7 @@ class _LojaListPageState extends State<LojaListPage> {
       onChanged: _filtrar,
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
-        hintText: 'Buscar loja',
+        hintText: 'Buscar estabelecimento',
         prefixIcon: const Icon(
           Icons.search_rounded,
           color: ClubbarColors.textoSecundario,
@@ -549,7 +549,7 @@ class _LojaListPageState extends State<LojaListPage> {
               onPressed: _abrirNovaLoja,
               icon: const Icon(Icons.add_business_rounded),
               label: const Text(
-                'Nova loja',
+                'Novo estabelecimento',
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
               style: ElevatedButton.styleFrom(
@@ -612,7 +612,7 @@ class _LojaListPageState extends State<LojaListPage> {
             const SizedBox(height: 16),
 
             Text(
-              temBusca ? 'Nenhuma loja encontrada' : 'Nenhuma loja cadastrada',
+              temBusca ? 'Nenhum estabelecimento encontrado' : 'Nenhum estabelecimento cadastrado',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),
@@ -622,7 +622,7 @@ class _LojaListPageState extends State<LojaListPage> {
             Text(
               temBusca
                   ? 'Tente pesquisar usando outro nome, bairro ou endereço.'
-                  : 'Cadastre a primeira loja da sua empresa.',
+                  : 'Cadastre o primeiro estabelecimento da sua empresa.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,
@@ -637,7 +637,7 @@ class _LojaListPageState extends State<LojaListPage> {
                 onPressed: _abrirNovaLoja,
                 icon: const Icon(Icons.add_rounded),
                 label: const Text(
-                  'Cadastrar loja',
+                  'Cadastrar estabelecimento',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -669,7 +669,7 @@ class _LojaListPageState extends State<LojaListPage> {
             const SizedBox(height: 14),
 
             const Text(
-              'Não foi possível carregar as lojas',
+              'Não foi possível carregar os estabelecimentos',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),
@@ -737,11 +737,11 @@ class _LojaListPageState extends State<LojaListPage> {
         child: Column(
           children: [
             ClubbarPageHeader(
-              titulo: 'Lojas',
+              titulo: 'Estabelecimentos',
               subtitulo: _carregando
                   ? 'Carregando estabelecimentos...'
                   : '${_lojas.length} '
-                        '${_lojas.length == 1 ? 'loja cadastrada' : 'lojas cadastradas'}',
+                        '${_lojas.length == 1 ? 'estabelecimento cadastrado' : 'estabelecimentos cadastrados'}',
               icone: Icons.storefront_rounded,
             ),
 

@@ -92,7 +92,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       AppSnackBar.sucesso(
         context,
         !criouUsuario
-            ? 'Estabelecimento convertido e nova loja criada.'
+            ? 'Estabelecimento convertido e nova estabelecimento criado.'
             : convite
             ? 'Parceiro criado e convite enviado por e-mail.'
             : 'Parceiro criado. O convite não pôde ser enviado; informe a senha inicial ao responsável.',
@@ -122,7 +122,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
         children: [
           const ClubbarPageHeader(
             titulo: 'Converter estabelecimento em parceiro',
-            subtitulo: 'Criação da loja com documentação financeira pendente',
+            subtitulo: 'Criação do estabelecimento com documentação financeira pendente',
           ),
           Expanded(
             child: Form(
@@ -148,7 +148,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                             controller: _loja,
                             validator: _obrigatorio,
                             decoration: _decoracao(
-                              'Nome da loja',
+                              'Nome do estabelecimento',
                               Icons.storefront_rounded,
                             ),
                           ),
@@ -156,7 +156,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                           DropdownButtonFormField<String>(
                             initialValue: _tipoLoja,
                             decoration: _decoracao(
-                              'Tipo da loja',
+                              'Tipo do estabelecimento',
                               Icons.category_outlined,
                             ),
                             items: const [

@@ -98,7 +98,7 @@ class PainelGerencialPage extends StatelessWidget {
                       ),
                       SizedBox(height: 16),
                       _ListaRanking(
-                        titulo: 'Total de Vendas por Loja',
+                        titulo: 'Total de Vendas por Estabelecimento',
                         itens: [
                           'Canto da Ema - R\$ 18.500,00',
                           'Bar do Centro - R\$ 12.300,00',
@@ -135,7 +135,7 @@ class PainelGerencialPage extends StatelessWidget {
                     SizedBox(width: 16),
                     Expanded(
                       child: _ListaRanking(
-                        titulo: 'Total de Vendas por Loja',
+                        titulo: 'Total de Vendas por Estabelecimento',
                         itens: [
                           'Canto da Ema - R\$ 18.500,00',
                           'Bar do Centro - R\$ 12.300,00',
@@ -245,7 +245,7 @@ class _PainelPizza extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Participação por Loja',
+            'Participação por Estabelecimento',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 18),

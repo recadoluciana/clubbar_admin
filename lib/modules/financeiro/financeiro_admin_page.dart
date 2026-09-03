@@ -224,7 +224,7 @@ class _FinanceiroAdminPageState extends State<FinanceiroAdminPage> {
                               ),
                             ),
                             title: Text(
-                              '${r['nmloja'] ?? 'Loja ${r['loja_id']}'} • ${_moeda.format(r['vrrepasse'] ?? 0)}',
+                              '${r['nmloja'] ?? 'Estabelecimento ${r['loja_id']}'} • ${_moeda.format(r['vrrepasse'] ?? 0)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w800,
                               ),

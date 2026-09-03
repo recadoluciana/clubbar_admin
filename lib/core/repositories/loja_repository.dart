@@ -25,7 +25,7 @@ class LojaRepository {
       return [];
     }
 
-    throw Exception('Erro ao listar lojas: ${response.body}');
+    throw Exception('Erro ao listar estabelecimentos: ${response.body}');
   }
 
   Future<http.MultipartFile> _montarArquivoImagem(
@@ -87,7 +87,7 @@ class LojaRepository {
     final responseBody = await response.stream.bytesToString();
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Erro ao criar loja: $responseBody');
+      throw Exception('Erro ao criar estabelecimento: $responseBody');
     }
   }
 
@@ -135,7 +135,7 @@ class LojaRepository {
     final responseBody = await response.stream.bytesToString();
 
     if (response.statusCode != 200) {
-      throw Exception('Erro ao atualizar loja: $responseBody');
+      throw Exception('Erro ao atualizar estabelecimento: $responseBody');
     }
   }
 
@@ -143,7 +143,7 @@ class LojaRepository {
     final response = await ApiService.delete('/lojas/$lojaId');
 
     if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception('Erro ao excluir loja: ${response.body}');
+      throw Exception('Erro ao excluir estabelecimento: ${response.body}');
     }
   }
 }

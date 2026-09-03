@@ -124,7 +124,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                           runSpacing: 8,
                           children: [
                             _Pill(
-                              '${_inteiro(item['quantidade_lojas'])} lojas',
+                              '${_inteiro(item['quantidade_lojas'])} estabelecimentos',
                               Icons.storefront_rounded,
                             ),
                             _Pill(
@@ -222,7 +222,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Estabelecimentos',
-    subtitulo: '${_lojas.length} lojas na empresa selecionada',
+    subtitulo: '${_lojas.length} estabelecimentos na empresa selecionada',
     icone: Icons.storefront_rounded,
     onAtualizar: _inicializar,
     child: Column(
@@ -384,7 +384,7 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
               const SizedBox(height: 12),
               _CampoBusca(
                 controller: _busca,
-                dica: 'Buscar usuário, e-mail, cargo ou loja',
+                dica: 'Buscar usuário, e-mail, cargo ou estabelecimento',
                 onChanged: (_) => setState(() {}),
               ),
             ],
@@ -434,7 +434,7 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
                                     ),
                                   if (_texto(item['nmloja']).isEmpty)
                                     const _Pill(
-                                      'Sem loja',
+                                      'Sem estabelecimento',
                                       Icons.public_rounded,
                                     ),
                                 ],
@@ -634,14 +634,14 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
               DropdownButtonFormField<int?>(
                 initialValue: _lojaId,
                 decoration: const InputDecoration(
-                  labelText: 'Loja',
+                  labelText: 'Estabelecimento',
                   prefixIcon: Icon(Icons.storefront_rounded),
                   border: OutlineInputBorder(),
                 ),
                 items: [
                   const DropdownMenuItem<int?>(
                     value: null,
-                    child: Text('Todas as lojas'),
+                    child: Text('Todos os estabelecimentos'),
                   ),
                   ..._lojasFiltro.map(
                     (e) => DropdownMenuItem<int?>(

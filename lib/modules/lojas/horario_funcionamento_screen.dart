@@ -222,7 +222,7 @@ class _HorarioFuncionamentoScreenState
                       ),
                       const SizedBox(height: 5),
                       const Text(
-                        'Nos dias em que a loja não funciona, marque como “Fechado”.',
+                        'Nos dias em que o estabelecimento não funciona, marque como “Fechado”.',
                         style: TextStyle(color: Colors.white60),
                       ),
                       const SizedBox(height: 16),
@@ -259,7 +259,7 @@ class _HorarioFuncionamentoScreenState
             ),
             SizedBox(height: 4),
             Text(
-              'Informe os dias da semana e os respectivos horários da sua loja.',
+              'Informe os dias da semana e os respectivos horários do seu estabelecimento.',
               style: TextStyle(color: Colors.white60),
             ),
           ],
