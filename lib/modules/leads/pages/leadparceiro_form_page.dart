@@ -152,10 +152,10 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
       body: SafeArea(
         child: Column(
           children: [
-            const ClubbarPageHeader(
-              titulo: 'Editar Lead',
-              subtitulo: 'Atualize os dados de contato e a situação comercial',
-              icone: Icons.handshake_rounded,
+            ClubbarPageHeader(
+              titulo: widget.lead.nmresponsavel,
+              subtitulo: 'Editar lead',
+              estiloTitulo: const TextStyle(color: ClubbarColors.info),
               mostrarDadosSessao: false,
             ),
             Expanded(

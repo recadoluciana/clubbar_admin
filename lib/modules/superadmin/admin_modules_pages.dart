@@ -226,15 +226,14 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Estabelecimentos',
-    tituloWidget: _SeletorOrganizacao(
+    subtituloWidget: _SeletorOrganizacao(
       itens: _organizacoes,
       valor: _organizacaoId,
       onChanged: _trocarOrganizacao,
       noCabecalho: true,
     ),
-    subtitulo: _carregando
-        ? 'Carregando estabelecimentos da empresa selecionada...'
-        : '${_lojas.length} ${_lojas.length == 1 ? 'estabelecimento' : 'estabelecimentos'} na empresa selecionada',
+    subtitulo: '',
+    estiloTitulo: const TextStyle(color: ClubbarColors.info),
     icone: Icons.storefront_rounded,
     onAtualizar: _inicializar,
     child: Column(
@@ -716,6 +715,8 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
 class _EstruturaModulo extends StatelessWidget {
   final String titulo, subtitulo;
   final Widget? tituloWidget;
+  final Widget? subtituloWidget;
+  final TextStyle? estiloTitulo;
   final IconData icone;
   final Future<void> Function() onAtualizar;
   final VoidCallback? onCalendario;
@@ -723,6 +724,8 @@ class _EstruturaModulo extends StatelessWidget {
   const _EstruturaModulo({
     required this.titulo,
     this.tituloWidget,
+    this.subtituloWidget,
+    this.estiloTitulo,
     required this.subtitulo,
     required this.icone,
     required this.onAtualizar,
@@ -740,6 +743,8 @@ class _EstruturaModulo extends StatelessWidget {
             titulo: titulo,
             tituloWidget: tituloWidget,
             subtitulo: subtitulo,
+            subtituloWidget: subtituloWidget,
+            estiloTitulo: estiloTitulo,
             icone: icone,
             mostrarDadosSessao: false,
             trailing: Row(
@@ -834,15 +839,12 @@ class _SeletorOrganizacao extends StatelessWidget {
       fontWeight: noCabecalho ? FontWeight.w900 : null,
     ),
     decoration: InputDecoration(
-      labelText: 'Empresa',
+      labelText: noCabecalho ? null : 'Empresa',
       labelStyle: TextStyle(
         color: noCabecalho ? ClubbarColors.info : null,
         fontWeight: noCabecalho ? FontWeight.w700 : null,
       ),
-      prefixIcon: Icon(
-        Icons.business_rounded,
-        color: noCabecalho ? ClubbarColors.info : null,
-      ),
+      prefixIcon: noCabecalho ? null : const Icon(Icons.business_rounded),
       filled: noCabecalho,
       fillColor: noCabecalho ? Colors.white.withValues(alpha: 0.72) : null,
       contentPadding: noCabecalho

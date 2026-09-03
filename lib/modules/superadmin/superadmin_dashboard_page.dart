@@ -281,18 +281,26 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     );
   }
 
-  Widget _badgeNovos(int quantidade) {
+  int _totalStatusEstabelecimento(String status) {
+    final valores = _dados['lead_estabelecimentos_por_status'];
+    if (valores is! Map) return 0;
+    final valor = valores[status];
+    return valor is num ? valor.toInt() : int.tryParse('$valor') ?? 0;
+  }
+
+  Widget _badgeStatusEstabelecimento(String status, String nome, Color cor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.red.shade700,
-        borderRadius: BorderRadius.circular(20),
+        color: cor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cor.withValues(alpha: 0.3)),
       ),
       child: Text(
-        '$quantidade novo${quantidade == 1 ? '' : 's'}',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
+        '${_totalStatusEstabelecimento(status)} $nome',
+        style: TextStyle(
+          color: cor,
+          fontSize: 10.5,
           fontWeight: FontWeight.w900,
         ),
       ),
@@ -300,11 +308,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   }
 
   Widget _cardLeads() {
-    Widget linha({
-      required String titulo,
-      required int total,
-      required int novos,
-    }) {
+    Widget linha({required String titulo, required int total}) {
       return Row(
         children: [
           Expanded(
@@ -317,7 +321,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               ),
             ),
           ),
-          _badgeNovos(novos),
         ],
       );
     }
@@ -355,25 +358,51 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               Expanded(
                 child: Column(
                   children: [
-                    linha(
-                      titulo: 'Leads',
-                      total: _valorInteiro('total_leads'),
-                      novos: _valorInteiro('leads_novos'),
-                    ),
+                    linha(titulo: 'Leads', total: _valorInteiro('total_leads')),
                     const Divider(height: 18),
                     linha(
                       titulo: 'Estabelecimentos',
                       total: _valorInteiro('total_lead_estabelecimentos'),
-                      novos: _valorInteiro('lead_estabelecimentos_novos'),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        _badgeStatusEstabelecimento(
+                          'NOVO',
+                          'novos',
+                          Colors.red.shade700,
+                        ),
+                        _badgeStatusEstabelecimento(
+                          'CONTATADO',
+                          'contatados',
+                          Colors.blue.shade700,
+                        ),
+                        _badgeStatusEstabelecimento(
+                          'NEGOCIANDO',
+                          'negociando',
+                          Colors.orange.shade800,
+                        ),
+                        _badgeStatusEstabelecimento(
+                          'ACEITOU_PARCERIA',
+                          'aceitaram',
+                          Colors.teal.shade700,
+                        ),
+                        _badgeStatusEstabelecimento(
+                          'CONVERTIDO',
+                          'convertidos',
+                          Colors.green.shade700,
+                        ),
+                        _badgeStatusEstabelecimento(
+                          'RECUSOU_PARCERIA',
+                          'recusaram',
+                          Colors.grey.shade700,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 18,
-                color: Colors.black45,
               ),
             ],
           ),
