@@ -1069,27 +1069,6 @@ class _LeadEstabelecimentoListPageState
                       ],
                     ),
                     const SizedBox(height: 7),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.person_rounded,
-                          size: 17,
-                          color: ClubbarColors.info,
-                        ),
-                        const SizedBox(width: 7),
-                        Expanded(
-                          child: Text(
-                            estabelecimento.nomeResponsavel ??
-                                lead.nmresponsavel,
-                            style: const TextStyle(
-                              color: ClubbarColors.textoSecundario,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 7),
                     Wrap(
                       spacing: 8,
                       runSpacing: 7,
@@ -1122,9 +1101,29 @@ class _LeadEstabelecimentoListPageState
             estabelecimento.emailResponsavel ?? lead.email,
           ),
           const SizedBox(height: 7),
-          _linha(
-            Icons.calendar_today_outlined,
-            'Cadastrado em ${_formatarData(lead.dtcriacao)}',
+          Row(
+            children: [
+              Expanded(
+                child: _linha(
+                  Icons.calendar_today_outlined,
+                  'Cadastrado em ${_formatarData(lead.dtcriacao)}',
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: 'Atender estabelecimento',
+                child: ElevatedButton.icon(
+                  onPressed: () => _abrirAtendimento(lead, estabelecimento),
+                  icon: const Icon(Icons.forum_rounded, size: 17),
+                  label: const Text('Atender'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ClubbarColors.info,
+                    foregroundColor: ClubbarColors.branco,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Container(
@@ -1157,19 +1156,6 @@ class _LeadEstabelecimentoListPageState
                   ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _abrirAtendimento(lead, estabelecimento),
-              icon: const Icon(Icons.forum_rounded),
-              label: const Text('Atender estabelecimento'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ClubbarColors.info,
-                foregroundColor: ClubbarColors.branco,
-              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -1209,6 +1195,16 @@ class _LeadEstabelecimentoListPageState
                         ),
                       ),
                     ),
+                    IconButton(
+                      tooltip: estabelecimento.dadosContratuaisCompletos
+                          ? 'Editar dados do contrato'
+                          : 'Completar dados para contrato',
+                      onPressed: () =>
+                          _editarDadosContratuais(lead, estabelecimento),
+                      icon: const Icon(Icons.edit_rounded),
+                      color: ClubbarColors.info,
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -1222,19 +1218,6 @@ class _LeadEstabelecimentoListPageState
                   'Taxas: produtos ${estabelecimento.taxaProdutos.toStringAsFixed(2)}% • ingressos ${estabelecimento.taxaIngressos.toStringAsFixed(2)}%',
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _editarDadosContratuais(lead, estabelecimento),
-              icon: const Icon(Icons.edit_document),
-              label: Text(
-                estabelecimento.dadosContratuaisCompletos
-                    ? 'Editar dados do contrato'
-                    : 'Completar dados para contrato',
-              ),
             ),
           ),
           const SizedBox(height: 10),

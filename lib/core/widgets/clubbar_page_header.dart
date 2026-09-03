@@ -13,6 +13,7 @@ class ClubbarPageHeader extends StatefulWidget {
   final String subtitulo;
   final IconData? icone;
   final TextStyle? estiloTitulo;
+  final Widget? tituloWidget;
 
   /// Permite informar uma imagem manualmente.
   /// Caso esteja vazio, será utilizada a logo da loja do usuário.
@@ -35,6 +36,7 @@ class ClubbarPageHeader extends StatefulWidget {
     required this.subtitulo,
     this.icone,
     this.estiloTitulo,
+    this.tituloWidget,
     this.imagemUrl,
     this.trailing,
     this.mostrarDadosSessao = true,
@@ -115,7 +117,9 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
            * SUPERADMIN e administradores gerais
            * podem não possuir loja vinculada.
            */
-          debugPrint('[PAGE HEADER] Não foi possível carregar o estabelecimento: $e');
+          debugPrint(
+            '[PAGE HEADER] Não foi possível carregar o estabelecimento: $e',
+          );
         }
       }
 
@@ -349,16 +353,17 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.titulo,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w900,
-                    color: ClubbarColors.textoPrincipal,
-                  ).merge(widget.estiloTitulo),
-                ),
+                widget.tituloWidget ??
+                    Text(
+                      widget.titulo,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
+                        color: ClubbarColors.textoPrincipal,
+                      ).merge(widget.estiloTitulo),
+                    ),
 
                 const SizedBox(height: 3),
 

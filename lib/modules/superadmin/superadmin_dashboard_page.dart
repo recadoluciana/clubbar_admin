@@ -403,10 +403,11 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            titulo('Interessados na plataforma'),
+            grade([_cardLeads()]),
+            const SizedBox(height: 18),
             titulo('Cadastros da plataforma'),
             grade([
-              _cardLeads(),
-
               _cardIndicador(
                 titulo: 'Empresas Parceiras',
                 valor: '${_totalParceiros()}',
@@ -472,7 +473,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
           children: [
             ClubbarPageHeader(
               titulo: 'Painel Administrativo',
-              subtitulo: 'Visão geral e administração do Clubbar',
+              subtitulo: '',
               icone: Icons.dashboard_rounded,
               mostrarDataHora: true,
               trailing: IconButton(

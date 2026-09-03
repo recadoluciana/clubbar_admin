@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/repositories/superadmin_repository.dart';
 import '../../core/theme/clubbar_colors.dart';
+import '../../core/utils/formatters.dart';
 import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/clubbar_app_bar.dart';
 import '../../core/widgets/clubbar_card.dart';
@@ -222,27 +223,26 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Estabelecimentos',
-    subtitulo: '${_lojas.length} estabelecimentos na empresa selecionada',
+    tituloWidget: _SeletorOrganizacao(
+      itens: _organizacoes,
+      valor: _organizacaoId,
+      onChanged: _trocarOrganizacao,
+      noCabecalho: true,
+    ),
+    subtitulo: _carregando
+        ? 'Carregando estabelecimentos da empresa selecionada...'
+        : '${_lojas.length} ${_lojas.length == 1 ? 'estabelecimento' : 'estabelecimentos'} na empresa selecionada',
     icone: Icons.storefront_rounded,
     onAtualizar: _inicializar,
     child: Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _SeletorOrganizacao(
-                itens: _organizacoes,
-                valor: _organizacaoId,
-                onChanged: _trocarOrganizacao,
-              ),
-              const SizedBox(height: 12),
-              _CampoBusca(
-                controller: _busca,
-                dica: 'Buscar estabelecimento',
-                onChanged: (_) => setState(() {}),
-              ),
-            ],
+          child: _CampoBusca(
+            controller: _busca,
+            dica: 'Buscar estabelecimento',
+            onChanged: (_) => setState(() {}),
+            comBorda: true,
           ),
         ),
         Expanded(
@@ -267,16 +267,22 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                '${_texto(item['endloja'])}, ${_texto(item['nrendeloja'])}',
-                              ),
-                              Text(
-                                _texto(item['dsbairroloja']),
-                                style: const TextStyle(
-                                  color: ClubbarColors.textoSecundario,
-                                ),
+                                [
+                                      [
+                                            _texto(item['endloja']),
+                                            _texto(item['nrendeloja']),
+                                          ]
+                                          .where((valor) => valor.isNotEmpty)
+                                          .join(', '),
+                                      _texto(item['dsbairroloja']),
+                                    ]
+                                    .where((valor) => valor.isNotEmpty)
+                                    .join(' • '),
                               ),
                               const SizedBox(height: 5),
-                              Text('Telefone: ${_texto(item['nrtelloja'])}'),
+                              Text(
+                                'Telefone: ${ClubbarFormatters.telefone(_texto(item['nrtelloja']))}',
+                              ),
                             ],
                           ),
                         ),
@@ -367,27 +373,26 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Usuários',
-    subtitulo: '${_usuarios.length} usuários na empresa selecionada',
+    tituloWidget: _SeletorOrganizacao(
+      itens: _organizacoes,
+      valor: _organizacaoId,
+      onChanged: _trocarOrganizacao,
+      noCabecalho: true,
+    ),
+    subtitulo: _carregando
+        ? 'Carregando usuários da empresa selecionada...'
+        : '${_usuarios.length} ${_usuarios.length == 1 ? 'usuário' : 'usuários'} na empresa selecionada',
     icone: Icons.manage_accounts_rounded,
     onAtualizar: _inicializar,
     child: Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _SeletorOrganizacao(
-                itens: _organizacoes,
-                valor: _organizacaoId,
-                onChanged: _trocarOrganizacao,
-              ),
-              const SizedBox(height: 12),
-              _CampoBusca(
-                controller: _busca,
-                dica: 'Buscar usuário, e-mail, cargo ou estabelecimento',
-                onChanged: (_) => setState(() {}),
-              ),
-            ],
+          child: _CampoBusca(
+            controller: _busca,
+            dica: 'Buscar usuário, e-mail, cargo ou estabelecimento',
+            onChanged: (_) => setState(() {}),
+            comBorda: true,
           ),
         ),
         Expanded(
@@ -707,12 +712,14 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
 
 class _EstruturaModulo extends StatelessWidget {
   final String titulo, subtitulo;
+  final Widget? tituloWidget;
   final IconData icone;
   final Future<void> Function() onAtualizar;
   final VoidCallback? onCalendario;
   final Widget child;
   const _EstruturaModulo({
     required this.titulo,
+    this.tituloWidget,
     required this.subtitulo,
     required this.icone,
     required this.onAtualizar,
@@ -728,6 +735,7 @@ class _EstruturaModulo extends StatelessWidget {
         children: [
           ClubbarPageHeader(
             titulo: titulo,
+            tituloWidget: tituloWidget,
             subtitulo: subtitulo,
             icone: icone,
             mostrarDadosSessao: false,
@@ -759,10 +767,12 @@ class _CampoBusca extends StatelessWidget {
   final TextEditingController controller;
   final String dica;
   final ValueChanged<String> onChanged;
+  final bool comBorda;
   const _CampoBusca({
     required this.controller,
     required this.dica,
     required this.onChanged,
+    this.comBorda = false,
   });
   @override
   Widget build(BuildContext context) => TextField(
@@ -784,7 +794,15 @@ class _CampoBusca extends StatelessWidget {
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
+        borderSide: comBorda
+            ? const BorderSide(color: ClubbarColors.borda, width: 1)
+            : BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: comBorda
+            ? const BorderSide(color: ClubbarColors.borda, width: 1)
+            : BorderSide.none,
       ),
     ),
   );
@@ -795,20 +813,50 @@ class _SeletorOrganizacao extends StatelessWidget {
   final int? valor;
   final ValueChanged<int?> onChanged;
   final bool permitirTodos;
+  final bool noCabecalho;
   const _SeletorOrganizacao({
     required this.itens,
     required this.valor,
     required this.onChanged,
     this.permitirTodos = false,
+    this.noCabecalho = false,
   });
   @override
   Widget build(BuildContext context) => DropdownButtonFormField<int?>(
     initialValue: valor,
     isExpanded: true,
-    decoration: const InputDecoration(
+    style: TextStyle(
+      color: noCabecalho ? ClubbarColors.info : ClubbarColors.textoPrincipal,
+      fontSize: noCabecalho ? 17 : null,
+      fontWeight: noCabecalho ? FontWeight.w900 : null,
+    ),
+    decoration: InputDecoration(
       labelText: 'Empresa',
-      prefixIcon: Icon(Icons.business_rounded),
-      border: OutlineInputBorder(),
+      labelStyle: TextStyle(
+        color: noCabecalho ? ClubbarColors.info : null,
+        fontWeight: noCabecalho ? FontWeight.w700 : null,
+      ),
+      prefixIcon: Icon(
+        Icons.business_rounded,
+        color: noCabecalho ? ClubbarColors.info : null,
+      ),
+      filled: noCabecalho,
+      fillColor: noCabecalho ? Colors.white.withValues(alpha: 0.72) : null,
+      contentPadding: noCabecalho
+          ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
+          : null,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(noCabecalho ? 12 : 4),
+        borderSide: BorderSide(
+          color: noCabecalho ? ClubbarColors.info : ClubbarColors.borda,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(noCabecalho ? 12 : 4),
+        borderSide: BorderSide(
+          color: noCabecalho ? ClubbarColors.info : ClubbarColors.borda,
+        ),
+      ),
     ),
     items: [
       if (permitirTodos)
