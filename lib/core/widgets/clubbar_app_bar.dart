@@ -27,7 +27,7 @@ class ClubbarAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
       elevation: 0,
-      centerTitle: false,
+      centerTitle: true,
       toolbarHeight: 60,
       automaticallyImplyLeading: false,
       titleSpacing: 10,
@@ -49,7 +49,7 @@ class ClubbarAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Align(
-            alignment: Alignment.centerLeft,
+            alignment: Alignment.center,
             child: Image.asset(
               logoPath,
               height: 52,

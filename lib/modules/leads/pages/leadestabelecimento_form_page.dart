@@ -251,6 +251,43 @@ class _LeadEstabelecimentoFormPageState
     border: const OutlineInputBorder(),
   );
 
+  Widget _cardSecao({
+    required String titulo,
+    required IconData icone,
+    required List<Widget> children,
+  }) => Card(
+    margin: EdgeInsets.zero,
+    elevation: 1,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18),
+      side: const BorderSide(color: ClubbarColors.borda),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icone, color: ClubbarColors.info),
+              const SizedBox(width: 9),
+              Text(
+                titulo,
+                style: const TextStyle(
+                  color: ClubbarColors.info,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...children,
+        ],
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -259,9 +296,11 @@ class _LeadEstabelecimentoFormPageState
       body: Column(
         children: [
           ClubbarPageHeader(
-            titulo: 'Dados para o contrato',
-            subtitulo: 'Lead: ${widget.lead.nmresponsavel}',
-            icone: Icons.description_rounded,
+            titulo: 'Lead: ${widget.lead.nmresponsavel}',
+            subtitulo:
+                'Estabelecimento: ${widget.estabelecimento.nome}\nDados para o contrato',
+            mostrarIcone: false,
+            estiloTitulo: const TextStyle(color: ClubbarColors.info),
             mostrarDadosSessao: false,
           ),
           Expanded(
@@ -272,276 +311,307 @@ class _LeadEstabelecimentoFormPageState
                     child: ListView(
                       padding: const EdgeInsets.all(16),
                       children: [
-                        TextFormField(
-                          controller: _nome,
-                          decoration: _decoracao(
-                            'Nome do estabelecimento',
-                            Icons.storefront_rounded,
-                          ),
-                          validator: (v) => (v?.trim().length ?? 0) < 2
-                              ? 'Informe o nome do estabelecimento.'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _responsavel,
-                          decoration: _decoracao(
-                            'Responsável pelo estabelecimento',
-                            Icons.person_rounded,
-                          ),
-                          validator: (v) => (v?.trim().length ?? 0) < 2
-                              ? 'Informe o responsável.'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
+                        _cardSecao(
+                          titulo: 'Dados do estabelecimento',
+                          icone: Icons.storefront_rounded,
                           children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _telefoneResponsavel,
-                                keyboardType: TextInputType.phone,
-                                decoration: _decoracao(
-                                  'Telefone do responsável',
-                                  Icons.phone_rounded,
+                            TextFormField(
+                              controller: _nome,
+                              decoration: _decoracao(
+                                'Nome do estabelecimento',
+                                Icons.storefront_rounded,
+                              ),
+                              validator: (v) => (v?.trim().length ?? 0) < 2
+                                  ? 'Informe o nome do estabelecimento.'
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            DropdownButtonFormField<String>(
+                              initialValue: _tipo,
+                              decoration: _decoracao(
+                                'Tipo',
+                                Icons.category_rounded,
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'BAR',
+                                  child: Text('Bar'),
                                 ),
-                                validator: (v) => (v?.trim().isEmpty ?? true)
-                                    ? 'Informe o telefone.'
-                                    : null,
+                                DropdownMenuItem(
+                                  value: 'CASA_NOTURNA',
+                                  child: Text('Casa noturna'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'CASA_EVENTOS',
+                                  child: Text('Casa de eventos'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'PRODUTOR_EVENTOS',
+                                  child: Text('Produtor de eventos'),
+                                ),
+                              ],
+                              onChanged: (v) => setState(() => _tipo = v!),
+                            ),
+                            const SizedBox(height: 12),
+                            DropdownButtonFormField<String>(
+                              initialValue: _tipoVenda,
+                              decoration: _decoracao(
+                                'O que pretende vender',
+                                Icons.sell_rounded,
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'AMBOS',
+                                  child: Text('Produtos e ingressos'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'PRODUTOS',
+                                  child: Text('Produtos'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'INGRESSOS',
+                                  child: Text('Ingressos'),
+                                ),
+                              ],
+                              onChanged: (v) => setState(() => _tipoVenda = v!),
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _documento,
+                              decoration: _decoracao(
+                                'CPF/CNPJ',
+                                Icons.badge_rounded,
+                              ),
+                              validator: (v) => (v?.trim().isEmpty ?? true)
+                                  ? 'Informe o CPF/CNPJ.'
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _telefone,
+                              keyboardType: TextInputType.phone,
+                              decoration: _decoracao(
+                                'Telefone do estabelecimento',
+                                Icons.phone_rounded,
+                              ),
+                              validator: (v) => (v?.trim().isEmpty ?? true)
+                                  ? 'Informe o telefone.'
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _email,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: _decoracao(
+                                'E-mail do estabelecimento',
+                                Icons.email_rounded,
+                              ),
+                              validator: (v) {
+                                final email = v?.trim() ?? '';
+                                if (email.isEmpty) return 'Informe o e-mail.';
+                                return email.contains('@')
+                                    ? null
+                                    : 'E-mail inválido.';
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _mensagem,
+                              maxLines: 3,
+                              decoration: _decoracao(
+                                'Observações',
+                                Icons.notes_rounded,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _emailResponsavel,
-                                keyboardType: TextInputType.emailAddress,
-                                decoration: _decoracao(
-                                  'E-mail do responsável',
-                                  Icons.email_rounded,
-                                ),
-                                validator: (v) {
-                                  final email = v?.trim() ?? '';
-                                  if (email.isEmpty) return 'Informe o e-mail.';
-                                  return email.contains('@')
-                                      ? null
-                                      : 'E-mail inválido.';
-                                },
-                              ),
-                            ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<String>(
-                          initialValue: _tipo,
-                          decoration: _decoracao(
-                            'Tipo',
-                            Icons.category_rounded,
-                          ),
-                          items: const [
-                            DropdownMenuItem(value: 'BAR', child: Text('Bar')),
-                            DropdownMenuItem(
-                              value: 'CASA_NOTURNA',
-                              child: Text('Casa noturna'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'CASA_EVENTOS',
-                              child: Text('Casa de eventos'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'PRODUTOR_EVENTOS',
-                              child: Text('Produtor de eventos'),
-                            ),
-                          ],
-                          onChanged: (v) => setState(() => _tipo = v!),
-                        ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<String>(
-                          initialValue: _tipoVenda,
-                          decoration: _decoracao(
-                            'O que pretende vender',
-                            Icons.sell_rounded,
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'AMBOS',
-                              child: Text('Produtos e ingressos'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'PRODUTOS',
-                              child: Text('Produtos'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'INGRESSOS',
-                              child: Text('Ingressos'),
-                            ),
-                          ],
-                          onChanged: (v) => setState(() => _tipoVenda = v!),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _documento,
-                          decoration: _decoracao(
-                            'CPF/CNPJ',
-                            Icons.badge_rounded,
-                          ),
-                          validator: (v) => (v?.trim().isEmpty ?? true)
-                              ? 'Informe o CPF/CNPJ.'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _telefone,
-                          keyboardType: TextInputType.phone,
-                          decoration: _decoracao(
-                            'Telefone',
-                            Icons.phone_rounded,
-                          ),
-                          validator: (v) => (v?.trim().isEmpty ?? true)
-                              ? 'Informe o telefone.'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: _decoracao('E-mail', Icons.email_rounded),
-                          validator: (v) {
-                            final email = v?.trim() ?? '';
-                            if (email.isEmpty) return 'Informe o e-mail.';
-                            return email.contains('@')
-                                ? null
-                                : 'E-mail inválido.';
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
+                        const SizedBox(height: 16),
+                        _cardSecao(
+                          titulo: 'Endereço do estabelecimento',
+                          icone: Icons.location_on_rounded,
                           children: [
-                            Expanded(
-                              child: DropdownButtonFormField<int>(
-                                initialValue: _estadoId,
-                                isExpanded: true,
-                                decoration: _decoracao(
-                                  'Estado',
-                                  Icons.map_rounded,
+                            TextFormField(
+                              controller: _cep,
+                              keyboardType: TextInputType.number,
+                              decoration:
+                                  _decoracao(
+                                    'CEP',
+                                    Icons.pin_drop_rounded,
+                                  ).copyWith(
+                                    suffixIcon: _buscandoCep
+                                        ? const Padding(
+                                            padding: EdgeInsets.all(14),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Icon(Icons.search_rounded),
+                                  ),
+                              validator: (v) => (v?.trim().isEmpty ?? true)
+                                  ? 'Informe o CEP.'
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _endereco,
+                              decoration: _decoracao(
+                                'Endereço',
+                                Icons.route_rounded,
+                              ),
+                              validator: (v) => (v?.trim().isEmpty ?? true)
+                                  ? 'Informe o endereço.'
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _numero,
+                                    decoration: _decoracao(
+                                      'Número',
+                                      Icons.numbers,
+                                    ),
+                                    validator: (v) =>
+                                        (v?.trim().isEmpty ?? true)
+                                        ? 'Informe o número.'
+                                        : null,
+                                  ),
                                 ),
-                                items: _estados
-                                    .map(
-                                      (item) => DropdownMenuItem(
-                                        value: _id(item, 'estado_id'),
-                                        child: Text(
-                                          item['sgestado']?.toString() ??
-                                              item['nmestado']?.toString() ??
-                                              '',
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                validator: (v) =>
-                                    v == null ? 'Selecione o estado.' : null,
-                                onChanged: (v) {
-                                  if (v != null) _alterarEstado(v);
-                                },
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _bairro,
+                                    decoration: _decoracao(
+                                      'Bairro',
+                                      Icons.location_on_rounded,
+                                    ),
+                                    validator: (v) =>
+                                        (v?.trim().isEmpty ?? true)
+                                        ? 'Informe o bairro.'
+                                        : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _complemento,
+                              decoration: _decoracao(
+                                'Complemento',
+                                Icons.apartment_rounded,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: DropdownButtonFormField<int>(
-                                initialValue: _cidadeId,
-                                isExpanded: true,
-                                decoration: _decoracao(
-                                  'Cidade',
-                                  Icons.location_city_rounded,
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DropdownButtonFormField<int>(
+                                    initialValue: _estadoId,
+                                    isExpanded: true,
+                                    decoration: _decoracao(
+                                      'Estado',
+                                      Icons.map_rounded,
+                                    ),
+                                    items: _estados
+                                        .map(
+                                          (item) => DropdownMenuItem(
+                                            value: _id(item, 'estado_id'),
+                                            child: Text(
+                                              item['sgestado']?.toString() ??
+                                                  item['nmestado']
+                                                      ?.toString() ??
+                                                  '',
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                    validator: (v) => v == null
+                                        ? 'Selecione o estado.'
+                                        : null,
+                                    onChanged: (v) {
+                                      if (v != null) _alterarEstado(v);
+                                    },
+                                  ),
                                 ),
-                                items: _cidades
-                                    .map(
-                                      (item) => DropdownMenuItem(
-                                        value: _id(item, 'cidade_id'),
-                                        child: Text(
-                                          item['nmcidade']?.toString() ?? '',
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                validator: (v) =>
-                                    v == null ? 'Selecione a cidade.' : null,
-                                onChanged: (v) => setState(() => _cidadeId = v),
-                              ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: DropdownButtonFormField<int>(
+                                    initialValue: _cidadeId,
+                                    isExpanded: true,
+                                    decoration: _decoracao(
+                                      'Cidade',
+                                      Icons.location_city_rounded,
+                                    ),
+                                    items: _cidades
+                                        .map(
+                                          (item) => DropdownMenuItem(
+                                            value: _id(item, 'cidade_id'),
+                                            child: Text(
+                                              item['nmcidade']?.toString() ??
+                                                  '',
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                    validator: (v) => v == null
+                                        ? 'Selecione a cidade.'
+                                        : null,
+                                    onChanged: (v) =>
+                                        setState(() => _cidadeId = v),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _cep,
-                          keyboardType: TextInputType.number,
-                          decoration: _decoracao('CEP', Icons.pin_drop_rounded)
-                              .copyWith(
-                                suffixIcon: _buscandoCep
-                                    ? const Padding(
-                                        padding: EdgeInsets.all(14),
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.search_rounded),
-                              ),
-                          validator: (v) => (v?.trim().isEmpty ?? true)
-                              ? 'Informe o CEP.'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _endereco,
-                          decoration: _decoracao(
-                            'Endereço',
-                            Icons.route_rounded,
-                          ),
-                          validator: (v) => (v?.trim().isEmpty ?? true)
-                              ? 'Informe o endereço.'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
+                        const SizedBox(height: 16),
+                        _cardSecao(
+                          titulo: 'Dados do responsável',
+                          icone: Icons.person_rounded,
                           children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _numero,
-                                decoration: _decoracao('Número', Icons.numbers),
-                                validator: (v) => (v?.trim().isEmpty ?? true)
-                                    ? 'Informe o número.'
-                                    : null,
+                            TextFormField(
+                              controller: _responsavel,
+                              decoration: _decoracao(
+                                'Nome do responsável',
+                                Icons.person_rounded,
                               ),
+                              validator: (v) => (v?.trim().length ?? 0) < 2
+                                  ? 'Informe o responsável.'
+                                  : null,
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _bairro,
-                                decoration: _decoracao(
-                                  'Bairro',
-                                  Icons.location_on_rounded,
-                                ),
-                                validator: (v) => (v?.trim().isEmpty ?? true)
-                                    ? 'Informe o bairro.'
-                                    : null,
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _telefoneResponsavel,
+                              keyboardType: TextInputType.phone,
+                              decoration: _decoracao(
+                                'Telefone do responsável',
+                                Icons.phone_rounded,
                               ),
+                              validator: (v) => (v?.trim().isEmpty ?? true)
+                                  ? 'Informe o telefone do responsável.'
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _emailResponsavel,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: _decoracao(
+                                'E-mail do responsável',
+                                Icons.email_rounded,
+                              ),
+                              validator: (v) {
+                                final email = v?.trim() ?? '';
+                                if (email.isEmpty) {
+                                  return 'Informe o e-mail do responsável.';
+                                }
+                                return email.contains('@')
+                                    ? null
+                                    : 'E-mail inválido.';
+                              },
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _complemento,
-                          decoration: _decoracao(
-                            'Complemento',
-                            Icons.apartment_rounded,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _mensagem,
-                          maxLines: 3,
-                          decoration: _decoracao(
-                            'Observações',
-                            Icons.notes_rounded,
-                          ),
                         ),
                         const SizedBox(height: 18),
                         ElevatedButton.icon(

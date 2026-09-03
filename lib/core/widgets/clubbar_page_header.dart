@@ -12,8 +12,10 @@ class ClubbarPageHeader extends StatefulWidget {
   final String titulo;
   final String subtitulo;
   final IconData? icone;
+  final bool mostrarIcone;
   final TextStyle? estiloTitulo;
   final Widget? tituloWidget;
+  final Widget? subtituloWidget;
 
   /// Permite informar uma imagem manualmente.
   /// Caso esteja vazio, será utilizada a logo da loja do usuário.
@@ -35,8 +37,10 @@ class ClubbarPageHeader extends StatefulWidget {
     required this.titulo,
     required this.subtitulo,
     this.icone,
+    this.mostrarIcone = false,
     this.estiloTitulo,
     this.tituloWidget,
+    this.subtituloWidget,
     this.imagemUrl,
     this.trailing,
     this.mostrarDadosSessao = true,
@@ -345,9 +349,7 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _logo(),
-
-          const SizedBox(width: 13),
+          if (widget.mostrarIcone) ...[_logo(), const SizedBox(width: 13)],
 
           Expanded(
             child: Column(
@@ -367,17 +369,18 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
 
                 const SizedBox(height: 3),
 
-                Text(
-                  widget.subtitulo,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    height: 1.3,
-                    color: ClubbarColors.textoSecundario,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                widget.subtituloWidget ??
+                    Text(
+                      widget.subtitulo,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.3,
+                        color: ClubbarColors.textoSecundario,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
 
                 _dadosSessao(),
               ],

@@ -79,7 +79,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
 
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
-    titulo: 'Parceiros',
+    titulo: 'Empresas Parceiras',
     subtitulo: _carregando
         ? 'Carregando empresas...'
         : '${_itens.length} empresas parceiras',
@@ -96,6 +96,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                 controller: _busca,
                 dica: 'Buscar empresa, CNPJ ou e-mail',
                 onChanged: (_) => setState(() {}),
+                comBorda: true,
               ),
               const SizedBox(height: 14),
               ..._filtrados.map(
@@ -127,10 +128,12 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                             _Pill(
                               '${_inteiro(item['quantidade_lojas'])} estabelecimentos',
                               Icons.storefront_rounded,
+                              cor: Colors.blue,
                             ),
                             _Pill(
                               '${_inteiro(item['quantidade_usuarios'])} usuários',
                               Icons.people_alt_rounded,
+                              cor: Colors.deepPurple,
                             ),
                           ],
                         ),

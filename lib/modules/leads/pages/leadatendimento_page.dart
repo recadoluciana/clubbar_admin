@@ -644,6 +644,48 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     };
   }
 
+  Widget _seletorEstabelecimentoCabecalho() {
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: ClubbarColors.info),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<LeadEstabelecimento>(
+          value: _estabelecimentoSelecionado,
+          isExpanded: true,
+          iconEnabledColor: ClubbarColors.info,
+          style: const TextStyle(
+            color: ClubbarColors.info,
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+          ),
+          items: widget.lead.estabelecimentos
+              .map(
+                (item) => DropdownMenuItem(
+                  value: item,
+                  child: Text(item.nome, overflow: TextOverflow.ellipsis),
+                ),
+              )
+              .toList(),
+          onChanged: (item) {
+            if (item == null || item.id == _estabelecimentoSelecionado.id) {
+              return;
+            }
+            setState(() {
+              _estabelecimentoSelecionado = item;
+              _carregando = true;
+            });
+            _carregar();
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mensagens = _lista('mensagens'),
@@ -651,12 +693,6 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         materiais = _lista('materiais');
     final aguardandoResposta =
         mensagens.isNotEmpty && mensagens.last['origem'] == 'LEAD';
-    final tituloSecao = switch (widget.secao) {
-      'MENSAGENS' => 'Mensagens recebidas',
-      'AGENDAMENTOS' => 'Agendamentos',
-      'MATERIAIS' => 'Materiais',
-      _ => widget.lead.nmestabelecimento,
-    };
     final conteudoSecao = switch (widget.secao) {
       'MENSAGENS' => _secao(
         'Mensagens recebidas',
@@ -735,43 +771,16 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       body: Column(
         children: [
           ClubbarPageHeader(
-            titulo: tituloSecao,
-            subtitulo: 'Atendimento • Status: ${_nomeStatus(_dados['status'])}',
-            icone: Icons.forum_rounded,
+            titulo: widget.lead.nmresponsavel,
+            subtitulo: '',
+            subtituloWidget: _seletorEstabelecimentoCabecalho(),
+            mostrarIcone: false,
+            estiloTitulo: const TextStyle(color: ClubbarColors.info),
             mostrarDadosSessao: false,
             trailing: IconButton(
               tooltip: 'Atualizar atendimento',
               onPressed: _carregando ? null : _carregar,
               icon: const Icon(Icons.refresh_rounded),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: DropdownButtonFormField<LeadEstabelecimento>(
-              key: ValueKey(_estabelecimentoSelecionado.id),
-              initialValue: _estabelecimentoSelecionado,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Estabelecimento atendido',
-                prefixIcon: Icon(Icons.storefront_rounded),
-                border: OutlineInputBorder(),
-              ),
-              items: widget.lead.estabelecimentos
-                  .map(
-                    (item) =>
-                        DropdownMenuItem(value: item, child: Text(item.nome)),
-                  )
-                  .toList(),
-              onChanged: (item) {
-                if (item == null || item.id == _estabelecimentoSelecionado.id) {
-                  return;
-                }
-                setState(() {
-                  _estabelecimentoSelecionado = item;
-                  _carregando = true;
-                });
-                _carregar();
-              },
             ),
           ),
           if (!_carregando &&
@@ -813,16 +822,6 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                     child: ListView(
                       padding: const EdgeInsets.all(16),
                       children: [
-                        if (widget.secao == null) ...[
-                          OutlinedButton.icon(
-                            onPressed: _contrato,
-                            icon: const Icon(Icons.description_rounded),
-                            label: const Text(
-                              'Disponibilizar contrato por estabelecimento',
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                        ],
                         if (conteudoSecao != null)
                           conteudoSecao
                         else ...[
