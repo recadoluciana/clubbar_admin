@@ -266,7 +266,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
     try {
       final organizacaoId = await StorageService.getOrganizacaoId();
       if (organizacaoId == null) {
-        throw Exception('Organização não encontrada no login');
+        throw Exception('Empresa não encontrada no login');
       }
 
       final telefoneSemMascara = _somenteNumeros(_telefoneController.text);

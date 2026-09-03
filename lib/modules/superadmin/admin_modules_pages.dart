@@ -80,8 +80,8 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Parceiros',
     subtitulo: _carregando
-        ? 'Carregando organizações...'
-        : '${_itens.length} organizações parceiras',
+        ? 'Carregando empresas...'
+        : '${_itens.length} empresas parceiras',
     icone: Icons.business_rounded,
     onAtualizar: _carregar,
     child: _carregando
@@ -93,7 +93,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
             children: [
               _CampoBusca(
                 controller: _busca,
-                dica: 'Buscar organização, CNPJ ou e-mail',
+                dica: 'Buscar empresa, CNPJ ou e-mail',
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 14),
@@ -139,7 +139,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                 ),
               ),
               if (_filtrados.isEmpty)
-                const _Vazio('Nenhuma organização encontrada.'),
+                const _Vazio('Nenhuma empresa encontrada.'),
             ],
           ),
   );
@@ -222,7 +222,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Estabelecimentos',
-    subtitulo: '${_lojas.length} lojas na organização selecionada',
+    subtitulo: '${_lojas.length} lojas na empresa selecionada',
     icone: Icons.storefront_rounded,
     onAtualizar: _inicializar,
     child: Column(
@@ -367,7 +367,7 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Usuários',
-    subtitulo: '${_usuarios.length} usuários na organização selecionada',
+    subtitulo: '${_usuarios.length} usuários na empresa selecionada',
     icone: Icons.manage_accounts_rounded,
     onAtualizar: _inicializar,
     child: Column(
@@ -806,7 +806,7 @@ class _SeletorOrganizacao extends StatelessWidget {
     initialValue: valor,
     isExpanded: true,
     decoration: const InputDecoration(
-      labelText: 'Organização',
+      labelText: 'Empresa',
       prefixIcon: Icon(Icons.business_rounded),
       border: OutlineInputBorder(),
     ),
@@ -814,7 +814,7 @@ class _SeletorOrganizacao extends StatelessWidget {
       if (permitirTodos)
         const DropdownMenuItem<int?>(
           value: null,
-          child: Text('Todas as organizações'),
+          child: Text('Todas as empresas'),
         ),
       ...itens.map(
         (e) => DropdownMenuItem<int?>(

@@ -20,10 +20,10 @@ class ClubbarPageHeader extends StatefulWidget {
 
   final Widget? trailing;
 
-  /// Permite esconder organização, usuário, cargo, data e hora.
+  /// Permite esconder empresa, usuário, cargo, data e hora.
   final bool mostrarDadosSessao;
 
-  /// Permite esconder a organização sem remover usuário, cargo, data e hora.
+  /// Permite esconder a empresa sem remover usuário, cargo, data e hora.
   final bool mostrarOrganizacao;
 
   /// Permite esconder somente a data e a hora.
@@ -123,7 +123,7 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
 
       setState(() {
         _nomeOrganizacao = nomeOrganizacao.isEmpty
-            ? 'Organização não identificada'
+            ? 'Empresa não identificada'
             : nomeOrganizacao;
 
         _nomeUsuario = nomeUsuario.isEmpty
@@ -141,7 +141,7 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
       if (!mounted) return;
 
       setState(() {
-        _nomeOrganizacao = 'Organização não identificada';
+        _nomeOrganizacao = 'Empresa não identificada';
 
         _nomeUsuario = 'Usuário não identificado';
 

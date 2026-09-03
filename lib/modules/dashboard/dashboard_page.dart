@@ -73,7 +73,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (organizacaoId == null || organizacaoId == 0) {
       if (!context.mounted) return;
 
-      AppSnackBar.erro(context, 'Organização não encontrada no login.');
+      AppSnackBar.erro(context, 'Empresa não encontrada no login.');
 
       return;
     }
@@ -185,7 +185,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final modulos = <_DashboardItem>[
       const _DashboardItem(
         chave: 'organizacao',
-        titulo: 'Organização',
+        titulo: 'Empresa',
         subtitulo: 'Dados da empresa',
         icone: Icons.business_rounded,
       ),
@@ -198,7 +198,7 @@ class _DashboardPageState extends State<DashboardPage> {
       const _DashboardItem(
         chave: 'categorias',
         titulo: 'Categorias',
-        subtitulo: 'Organização do menu',
+        subtitulo: 'Empresa do menu',
         icone: Icons.category_rounded,
       ),
       const _DashboardItem(
@@ -312,7 +312,7 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             ClubbarPageHeader(
               titulo: 'Painel Administrativo',
-              subtitulo: 'Gerencie a sua organização',
+              subtitulo: 'Gerencie a sua empresa',
               icone: Icons.dashboard_rounded,
             ),
 

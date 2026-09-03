@@ -408,7 +408,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               _cardLeads(),
 
               _cardIndicador(
-                titulo: 'Organizações Parceiras',
+                titulo: 'Empresas Parceiras',
                 valor: '${_totalParceiros()}',
                 icone: Icons.business_rounded,
                 onTap: _abrirParceiros,

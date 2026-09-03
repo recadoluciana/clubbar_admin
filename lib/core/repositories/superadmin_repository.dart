@@ -25,7 +25,7 @@ class SuperAdminRepository {
     final response = await ApiService.get('/superadmin/organizacoes');
     final data = _decodificarResposta(
       response,
-      'Erro ao carregar as organizações parceiras.',
+      'Erro ao carregar as empresas parceiras.',
     );
     return (data as List)
         .map((item) => Map<String, dynamic>.from(item as Map))

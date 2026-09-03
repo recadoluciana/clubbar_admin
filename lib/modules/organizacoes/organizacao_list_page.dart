@@ -93,7 +93,7 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
         _organizacao = null;
       });
 
-      AppSnackBar.erro(context, 'Não foi possível carregar a organização.');
+      AppSnackBar.erro(context, 'Não foi possível carregar a empresa.');
     } finally {
       if (mounted) {
         setState(() {
@@ -107,7 +107,7 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
     final organizacao = _organizacao;
 
     if (organizacao == null) {
-      AppSnackBar.aviso(context, 'Organização não encontrada.');
+      AppSnackBar.aviso(context, 'Empresa não encontrada.');
 
       return;
     }
@@ -125,7 +125,7 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
 
       if (!mounted) return;
 
-      AppSnackBar.sucesso(context, 'Organização atualizada com sucesso.');
+      AppSnackBar.sucesso(context, 'Empresa atualizada com sucesso.');
     }
   }
 
@@ -322,7 +322,7 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
               child: ElevatedButton.icon(
                 onPressed: _editarOrganizacao,
                 icon: const Icon(Icons.edit_rounded),
-                label: const Text('Alterar organização'),
+                label: const Text('Alterar empresa'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ClubbarColors.ambar,
                   foregroundColor: ClubbarColors.preto,
@@ -393,7 +393,7 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
                 const SizedBox(height: 12),
 
                 const Text(
-                  'Organização não encontrada',
+                  'Empresa não encontrada',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 17,
@@ -405,7 +405,7 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
                 const SizedBox(height: 6),
 
                 const Text(
-                  'Não foi possível carregar os dados da organização vinculada ao usuário.',
+                  'Não foi possível carregar os dados da empresa vinculada ao usuário.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
@@ -475,7 +475,7 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
         child: Column(
           children: [
             const ClubbarPageHeader(
-              titulo: 'Organização',
+              titulo: 'Empresa',
               subtitulo: 'Dados cadastrais da empresa',
               icone: Icons.business_rounded,
             ),

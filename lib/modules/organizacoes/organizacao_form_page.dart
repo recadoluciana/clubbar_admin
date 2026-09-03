@@ -151,7 +151,7 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
         _carregando = false;
       });
     } catch (e) {
-      debugPrint('Erro ao carregar organização: $e');
+      debugPrint('Erro ao carregar empresa: $e');
 
       if (!mounted) return;
 
@@ -304,8 +304,8 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
       AppSnackBar.sucesso(
         context,
         editando
-            ? 'Organização atualizada com sucesso.'
-            : 'Organização criada com sucesso.',
+            ? 'Empresa atualizada com sucesso.'
+            : 'Empresa criada com sucesso.',
       );
 
       Navigator.of(context).pop(true);
@@ -333,8 +333,8 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
             inputFormatters: [LengthLimitingTextInputFormatter(120)],
             textCapitalization: TextCapitalization.words,
             decoration: const InputDecoration(
-              labelText: 'Nome da organização',
-              hintText: 'Digite o nome da organização',
+              labelText: 'Nome da empresa',
+              hintText: 'Digite o nome da empresa',
               prefixIcon: Icon(Icons.business_outlined),
               border: OutlineInputBorder(),
               counterText: '',
@@ -343,7 +343,7 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
               final texto = valor?.trim() ?? '';
 
               if (texto.isEmpty) {
-                return 'Informe o nome da organização.';
+                return 'Informe o nome da empresa.';
               }
 
               if (texto.length < 3) {
@@ -555,7 +555,7 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
         child: Column(
           children: [
             ClubbarPageHeader(
-              titulo: editando ? 'Organização' : 'Nova Organização',
+              titulo: editando ? 'Empresa' : 'Nova Empresa',
               subtitulo: editando
                   ? 'Gerencie os dados da empresa'
                   : 'Cadastre os dados da empresa',

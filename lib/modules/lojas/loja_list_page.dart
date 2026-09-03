@@ -622,7 +622,7 @@ class _LojaListPageState extends State<LojaListPage> {
             Text(
               temBusca
                   ? 'Tente pesquisar usando outro nome, bairro ou endereço.'
-                  : 'Cadastre a primeira loja da sua organização.',
+                  : 'Cadastre a primeira loja da sua empresa.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,

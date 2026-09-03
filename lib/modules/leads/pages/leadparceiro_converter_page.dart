@@ -139,7 +139,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                             controller: _organizacao,
                             validator: _obrigatorio,
                             decoration: _decoracao(
-                              'Nome da organização',
+                              'Nome da empresa',
                               Icons.business_rounded,
                             ),
                           ),

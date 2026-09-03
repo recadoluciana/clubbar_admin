@@ -324,7 +324,7 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: 'Buscar lead',
-                  hintText: 'Nome, organização, e-mail ou telefone',
+                  hintText: 'Nome, empresa, e-mail ou telefone',
                   prefixIcon: const Icon(Icons.search_rounded),
                   suffixIcon: _buscaController.text.isEmpty
                       ? null

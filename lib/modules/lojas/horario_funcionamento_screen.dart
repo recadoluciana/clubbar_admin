@@ -84,7 +84,8 @@ class _HorarioFuncionamentoScreenState
     final atual = abertura ? dia.abertura : dia.fechamento;
     final selecionada = await showTimePicker(
       context: context,
-      initialTime: atual ??
+      initialTime:
+          atual ??
           (abertura
               ? const TimeOfDay(hour: 18, minute: 0)
               : const TimeOfDay(hour: 2, minute: 0)),
@@ -132,8 +133,8 @@ class _HorarioFuncionamentoScreenState
     }
 
     final dados = _horarios.map((dia) {
-      final cruzaMeiaNoite = !dia.fechado &&
-          _minutos(dia.fechamento!) < _minutos(dia.abertura!);
+      final cruzaMeiaNoite =
+          !dia.fechado && _minutos(dia.fechamento!) < _minutos(dia.abertura!);
       return <String, dynamic>{
         'loja_id': widget.lojaId,
         'dia_semana': dia.diaSemana,
@@ -191,7 +192,9 @@ class _HorarioFuncionamentoScreenState
                 decoration: BoxDecoration(
                   color: _painel,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: .06)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: .06),
+                  ),
                   boxShadow: const [
                     BoxShadow(
                       color: Colors.black38,
@@ -238,32 +241,32 @@ class _HorarioFuncionamentoScreenState
   }
 
   Widget _cabecalho() => const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _IconeVerde(icone: Icons.access_time_rounded, tamanho: 46),
-          SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Horário de Funcionamento',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Informe os dias da semana e os respectivos horários da sua loja.',
-                  style: TextStyle(color: Colors.white60),
-                ),
-              ],
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _IconeVerde(icone: Icons.access_time_rounded, tamanho: 46),
+      SizedBox(width: 14),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Horário de Funcionamento',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-          ),
-        ],
-      );
+            SizedBox(height: 4),
+            Text(
+              'Informe os dias da semana e os respectivos horários da sua loja.',
+              style: TextStyle(color: Colors.white60),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 
   Widget _linhaDia(_HorarioDia dia) {
     return Container(
@@ -297,10 +300,7 @@ class _HorarioFuncionamentoScreenState
                     _fechado(dia),
                   ],
                 ),
-                if (!dia.fechado) ...[
-                  const SizedBox(height: 9),
-                  horarios,
-                ],
+                if (!dia.fechado) ...[const SizedBox(height: 9), horarios],
               ],
             );
           }
@@ -319,12 +319,12 @@ class _HorarioFuncionamentoScreenState
   }
 
   Widget _nomeDia(_HorarioDia dia) => Text(
-        dia.nome,
-        style: TextStyle(
-          color: dia.fechado ? Colors.white54 : Colors.white,
-          fontWeight: FontWeight.w700,
-        ),
-      );
+    dia.nome,
+    style: TextStyle(
+      color: dia.fechado ? Colors.white54 : Colors.white,
+      fontWeight: FontWeight.w700,
+    ),
+  );
 
   Widget _campoHora(_HorarioDia dia, bool abertura) {
     final hora = abertura ? dia.abertura : dia.fechamento;
@@ -364,65 +364,67 @@ class _HorarioFuncionamentoScreenState
   }
 
   Widget _fechado(_HorarioDia dia) => CheckboxListTile(
-        value: dia.fechado,
-        onChanged: (valor) => setState(() => dia.fechado = valor ?? false),
-        controlAffinity: ListTileControlAffinity.leading,
-        contentPadding: EdgeInsets.zero,
-        dense: true,
-        activeColor: _verde,
-        side: const BorderSide(color: Colors.white54),
-        title: const Text(
-          'Fechado',
-          style: TextStyle(color: Colors.white, fontSize: 13),
+    value: dia.fechado,
+    onChanged: (valor) => setState(() => dia.fechado = valor ?? false),
+    controlAffinity: ListTileControlAffinity.leading,
+    contentPadding: EdgeInsets.zero,
+    dense: true,
+    activeColor: _verde,
+    side: const BorderSide(color: Colors.white54),
+    title: const Text(
+      'Fechado',
+      style: TextStyle(color: Colors.white, fontSize: 13),
+    ),
+  );
+
+  Widget _rodape() => LayoutBuilder(
+    builder: (context, constraints) {
+      final dica = const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline, color: _verde, size: 18),
+          SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              'Você pode alterar esses horários quando quiser.',
+              style: TextStyle(color: Colors.white60, fontSize: 12),
+            ),
+          ),
+        ],
+      );
+      final botao = FilledButton.icon(
+        onPressed: _salvando ? null : _salvar,
+        icon: _salvando
+            ? const SizedBox(
+                width: 17,
+                height: 17,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.save_outlined),
+        label: Text(_salvando ? 'Salvando...' : 'Salvar horários'),
+        style: FilledButton.styleFrom(
+          backgroundColor: _verde,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 17),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
 
-  Widget _rodape() => LayoutBuilder(
-        builder: (context, constraints) {
-          final dica = const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.info_outline, color: _verde, size: 18),
-              SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  'Você pode alterar esses horários quando quiser.',
-                  style: TextStyle(color: Colors.white60, fontSize: 12),
-                ),
-              ),
-            ],
-          );
-          final botao = FilledButton.icon(
-            onPressed: _salvando ? null : _salvar,
-            icon: _salvando
-                ? const SizedBox(
-                    width: 17,
-                    height: 17,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.save_outlined),
-            label: Text(_salvando ? 'Salvando...' : 'Salvar horários'),
-            style: FilledButton.styleFrom(
-              backgroundColor: _verde,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 17),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          );
-
-          if (constraints.maxWidth < 560) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [dica, const SizedBox(height: 14), botao],
-            );
-          }
-          return Row(
-            children: [Expanded(child: dica), const SizedBox(width: 16), botao],
-          );
-        },
+      if (constraints.maxWidth < 560) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [dica, const SizedBox(height: 14), botao],
+        );
+      }
+      return Row(
+        children: [
+          Expanded(child: dica),
+          const SizedBox(width: 16),
+          botao,
+        ],
       );
+    },
+  );
 }
 
 class _IconeVerde extends StatelessWidget {
@@ -433,14 +435,14 @@ class _IconeVerde extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: tamanho,
-        height: tamanho,
-        decoration: BoxDecoration(
-          color: const Color(0xFF35B866).withValues(alpha: .13),
-          borderRadius: BorderRadius.circular(9),
-        ),
-        child: Icon(icone, color: const Color(0xFF35B866)),
-      );
+    width: tamanho,
+    height: tamanho,
+    decoration: BoxDecoration(
+      color: const Color(0xFF35B866).withValues(alpha: .13),
+      borderRadius: BorderRadius.circular(9),
+    ),
+    child: Icon(icone, color: const Color(0xFF35B866)),
+  );
 }
 
 class _HorarioDia {

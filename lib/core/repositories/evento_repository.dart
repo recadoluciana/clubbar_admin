@@ -28,7 +28,9 @@ class EventoRepository {
     XFile imagem,
   ) async {
     final mimeType =
-        lookupMimeType(imagem.name) ?? lookupMimeType(imagem.path) ?? 'image/jpeg';
+        lookupMimeType(imagem.name) ??
+        lookupMimeType(imagem.path) ??
+        'image/jpeg';
 
     final parts = mimeType.split('/');
 
@@ -107,9 +109,7 @@ class EventoRepository {
     }
 
     if (imagem != null) {
-      request.files.add(
-        await _montarArquivoImagem('urlbannerevento', imagem),
-      );
+      request.files.add(await _montarArquivoImagem('urlbannerevento', imagem));
     }
 
     final response = await request.send();
@@ -175,9 +175,7 @@ class EventoRepository {
     }
 
     if (imagem != null) {
-      request.files.add(
-        await _montarArquivoImagem('urlbannerevento', imagem),
-      );
+      request.files.add(await _montarArquivoImagem('urlbannerevento', imagem));
     }
 
     final response = await request.send();

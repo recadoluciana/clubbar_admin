@@ -15,18 +15,12 @@ class PainelGerencialPage extends StatelessWidget {
           children: [
             const Text(
               'Painel gerencial',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-              ),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
             Text(
               'Indicadores gerenciais e acompanhamento de vendas',
-              style: TextStyle(
-                color: Colors.grey.shade700,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
             ),
             const SizedBox(height: 22),
 
@@ -216,10 +210,7 @@ class _KpiCard extends StatelessWidget {
               children: [
                 Text(
                   titulo,
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -323,10 +314,7 @@ class _ListaRanking extends StatelessWidget {
   final String titulo;
   final List<String> itens;
 
-  const _ListaRanking({
-    required this.titulo,
-    required this.itens,
-  });
+  const _ListaRanking({required this.titulo, required this.itens});
 
   @override
   Widget build(BuildContext context) {
@@ -341,19 +329,13 @@ class _ListaRanking extends StatelessWidget {
         children: [
           Text(
             titulo,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 14),
           ...itens.map(
             (item) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: Text(
-                item,
-                style: const TextStyle(fontSize: 15),
-              ),
+              child: Text(item, style: const TextStyle(fontSize: 15)),
             ),
           ),
         ],
