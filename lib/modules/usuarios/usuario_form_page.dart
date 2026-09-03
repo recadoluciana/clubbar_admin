@@ -106,7 +106,7 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
   String _nomeCargo(String cargo) {
     switch (cargo) {
       case 'SUPERADMIN':
-        return 'Superadministrador';
+        return 'Super administrador';
 
       case 'ADMIN':
         return 'Administrador';
@@ -163,7 +163,10 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
         _carregandoLojas = false;
       });
 
-      AppSnackBar.erro(context, 'Não foi possível carregar os estabelecimentos.');
+      AppSnackBar.erro(
+        context,
+        'Não foi possível carregar os estabelecimentos.',
+      );
     }
   }
 
@@ -646,7 +649,9 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                                   items: [
                                     const DropdownMenuItem<int?>(
                                       value: null,
-                                      child: Text('Sem estabelecimento vinculado'),
+                                      child: Text(
+                                        'Sem estabelecimento vinculado',
+                                      ),
                                     ),
                                     ..._lojas.map(
                                       (loja) => DropdownMenuItem<int?>(

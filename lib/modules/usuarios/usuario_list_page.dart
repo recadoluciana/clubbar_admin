@@ -116,7 +116,7 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
   String _nomeCargo(String cargo) {
     switch (cargo.trim().toUpperCase()) {
       case 'SUPERADMIN':
-        return 'Superadministrador';
+        return 'Super administrador';
 
       case 'ADMIN':
         return 'Administrador';

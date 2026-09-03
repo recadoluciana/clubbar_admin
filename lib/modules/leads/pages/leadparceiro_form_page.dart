@@ -26,25 +26,14 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
   final _responsavelController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _mensagemController = TextEditingController();
 
-  late String _tipoSelecionado;
   bool _salvando = false;
-
-  static const _tipos = [
-    'BAR',
-    'CASA_NOTURNA',
-    'PRODUTOR_EVENTOS',
-    'CASA_EVENTOS',
-  ];
   @override
   void initState() {
     super.initState();
     _responsavelController.text = widget.lead.nmresponsavel;
     _telefoneController.text = _formatarTelefone(widget.lead.telefone);
     _emailController.text = widget.lead.email;
-    _mensagemController.text = widget.lead.mensagem ?? '';
-    _tipoSelecionado = widget.lead.tipo;
   }
 
   @override
@@ -52,7 +41,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
     _responsavelController.dispose();
     _telefoneController.dispose();
     _emailController.dispose();
-    _mensagemController.dispose();
     super.dispose();
   }
 
@@ -67,19 +55,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
       return '(${numeros.substring(0, 2)}) ${numeros.substring(2, 6)}-${numeros.substring(6)}';
     }
     return valor;
-  }
-
-  String _nomeTipo(String tipo) {
-    switch (tipo) {
-      case 'CASA_NOTURNA':
-        return 'Casa noturna';
-      case 'PRODUTOS_EVENTOS':
-        return 'Produtor de Eventos';
-      case 'CASA_EVENTOS':
-        return 'Casa de eventos';
-      default:
-        return 'Bar';
-    }
   }
 
   String _formatarData(DateTime? data) {
@@ -151,10 +126,8 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
       await _repository.atualizar(
         leadparceiroId: widget.lead.leadparceiroId,
         nmresponsavel: _responsavelController.text.trim(),
-        tipo: _tipoSelecionado,
         telefone: _somenteNumeros(_telefoneController.text),
         email: _emailController.text.trim().toLowerCase(),
-        mensagem: _mensagemController.text.trim(),
       );
 
       if (!mounted) return;
@@ -193,63 +166,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
-                    ClubbarCard(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 58,
-                            height: 58,
-                            decoration: const BoxDecoration(
-                              color: ClubbarColors.ambarClaro,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.storefront_rounded,
-                              size: 30,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.lead.nmestabelecimento,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${widget.lead.nmcidade}/${widget.lead.sgestado}',
-                                  style: const TextStyle(
-                                    color: ClubbarColors.textoSecundario,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: ClubbarColors.ambarClaro,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '#${widget.lead.leadparceiroId}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     ClubbarCard(
                       child: Column(
                         children: [
@@ -311,29 +227,6 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 14),
-                          DropdownButtonFormField<String>(
-                            initialValue: _tipoSelecionado,
-                            isExpanded: true,
-                            decoration: _decoracao(
-                              label: 'Tipo Lead',
-                              icone: Icons.category_outlined,
-                            ),
-                            items: _tipos
-                                .map(
-                                  (tipo) => DropdownMenuItem(
-                                    value: tipo,
-                                    child: Text(_nomeTipo(tipo)),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: _salvando
-                                ? null
-                                : (value) {
-                                    if (value == null) return;
-                                    setState(() => _tipoSelecionado = value);
-                                  },
-                          ),
                         ],
                       ),
                     ),
@@ -342,33 +235,12 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                       child: Column(
                         children: [
                           _campoLeitura(
-                            label: 'Nome estabelecimento',
-                            valor: widget.lead.nmestabelecimento,
-                            icone: Icons.storefront_outlined,
-                          ),
-                          const SizedBox(height: 14),
-                          _campoLeitura(
-                            label: 'Estado',
+                            label: 'Empresa',
                             valor:
-                                '${widget.lead.nmestado} - ${widget.lead.sgestado}',
-                            icone: Icons.map_outlined,
-                          ),
-                          const SizedBox(height: 14),
-                          _campoLeitura(
-                            label: 'Cidade',
-                            valor: widget.lead.nmcidade,
-                            icone: Icons.location_city_outlined,
-                          ),
-                          const SizedBox(height: 14),
-                          TextFormField(
-                            controller: _mensagemController,
-                            enabled: !_salvando,
-                            maxLength: 1000,
-                            maxLines: 4,
-                            decoration: _decoracao(
-                              label: 'Descrição do seu negócio',
-                              icone: Icons.business_outlined,
-                            ),
+                                (widget.lead.nmorganizacao ?? '').trim().isEmpty
+                                ? 'Não informada'
+                                : widget.lead.nmorganizacao!.trim(),
+                            icone: Icons.business_outlined,
                           ),
                           const SizedBox(height: 14),
                           _campoLeitura(

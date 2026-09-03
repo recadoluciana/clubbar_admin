@@ -304,7 +304,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
       if (!mounted) return;
 
       _mostrarMensagem(
-        editando ? 'Estabelecimento atualizado com sucesso.' : 'Estabelecimento criado com sucesso.',
+        editando
+            ? 'Estabelecimento atualizado com sucesso.'
+            : 'Estabelecimento criado com sucesso.',
       );
 
       Navigator.of(context).pop(true);
@@ -377,7 +379,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
-        title: Text(editando ? 'Editar estabelecimento' : 'Novo estabelecimento'),
+        title: Text(
+          editando ? 'Editar estabelecimento' : 'Novo estabelecimento',
+        ),
         centerTitle: true,
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
@@ -703,7 +707,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
                                   label: 'Taxa sobre produtos',
                                   icone: Icons.shopping_bag_outlined,
                                   helperText:
-                                      'Somente o superadministrador pode alterar.',
+                                      'Somente o super administrador pode alterar.',
                                   suffixIcon: const Icon(Icons.lock_outline),
                                 ).copyWith(fillColor: Colors.grey.shade100),
                               );
@@ -716,7 +720,7 @@ class _LojaFormPageState extends State<LojaFormPage> {
                                   label: 'Taxa sobre ingressos',
                                   icone: Icons.confirmation_number_outlined,
                                   helperText:
-                                      'Somente o superadministrador pode alterar.',
+                                      'Somente o super administrador pode alterar.',
                                   suffixIcon: const Icon(Icons.lock_outline),
                                 ).copyWith(fillColor: Colors.grey.shade100),
                               );
@@ -766,7 +770,9 @@ class _LojaFormPageState extends State<LojaFormPage> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.save_outlined),
-                      label: Text(_salvando ? 'Salvando...' : 'Salvar estabelecimento'),
+                      label: Text(
+                        _salvando ? 'Salvando...' : 'Salvar estabelecimento',
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber,
                         foregroundColor: Colors.black,

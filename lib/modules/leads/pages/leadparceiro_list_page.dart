@@ -180,6 +180,11 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                             spacing: 8,
                             runSpacing: 5,
                             children: [
+                              const Icon(
+                                Icons.person_rounded,
+                                size: 20,
+                                color: ClubbarColors.info,
+                              ),
                               Text(
                                 'Lead #${lead.leadparceiroId}',
                                 style: const TextStyle(
@@ -188,14 +193,10 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
-                              const Icon(
-                                Icons.person_rounded,
-                                size: 18,
-                                color: ClubbarColors.info,
-                              ),
                               Text(
                                 lead.nmresponsavel,
                                 style: const TextStyle(
+                                  color: ClubbarColors.info,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -206,7 +207,10 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                         IconButton(
                           tooltip: 'Editar lead',
                           onPressed: () => _abrirEdicao(lead),
-                          icon: const Icon(Icons.edit_rounded),
+                          icon: const Icon(
+                            Icons.edit_rounded,
+                            color: ClubbarColors.info,
+                          ),
                         ),
                       ],
                     ),
