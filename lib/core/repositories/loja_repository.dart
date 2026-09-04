@@ -50,7 +50,6 @@ class LojaRepository {
     required String nome,
     String? bairro,
     String? telefone,
-    String? horario,
     int? diasValidade,
     String? endereco,
     String? instagram,
@@ -70,7 +69,6 @@ class LojaRepository {
     request.fields['nmloja'] = nome;
     request.fields['dsbairroloja'] = bairro ?? '';
     request.fields['nrtelloja'] = telefone ?? '';
-    request.fields['dshorarioloja'] = horario ?? '';
 
     request.fields['endloja'] = endereco ?? '';
     request.fields['dsinstaloja'] = instagram ?? '';
@@ -98,7 +96,6 @@ class LojaRepository {
     required String nome,
     String? bairro,
     String? telefone,
-    String? horario,
     int? diasValidade,
     String? endereco,
     String? instagram,
@@ -118,7 +115,6 @@ class LojaRepository {
     request.fields['nmloja'] = nome;
     request.fields['dsbairroloja'] = bairro ?? '';
     request.fields['nrtelloja'] = telefone ?? '';
-    request.fields['dshorarioloja'] = horario ?? '';
 
     request.fields['endloja'] = endereco ?? '';
     request.fields['dsinstaloja'] = instagram ?? '';

@@ -115,7 +115,6 @@ class _LojaListPageState extends State<LojaListPage> {
       final bairro = (loja.dsbairroloja ?? '').toLowerCase();
       final instagram = (loja.dsinstaloja ?? '').toLowerCase();
       final telefone = (loja.nrtelloja ?? '').toLowerCase();
-      final horario = (loja.dshorarioloja ?? '').toLowerCase();
       final status = (loja.sitloja ?? '').toLowerCase();
 
       return loja.lojaId.toString().contains(busca) ||
@@ -124,7 +123,6 @@ class _LojaListPageState extends State<LojaListPage> {
           bairro.contains(busca) ||
           instagram.contains(busca) ||
           telefone.contains(busca) ||
-          horario.contains(busca) ||
           status.contains(busca);
     }).toList();
   }
@@ -368,7 +366,6 @@ class _LojaListPageState extends State<LojaListPage> {
     final endereco = (loja.endloja ?? '').trim();
     final bairro = (loja.dsbairroloja ?? '').trim();
     final telefone = (loja.nrtelloja ?? '').trim();
-    final horario = (loja.dshorarioloja ?? '').trim();
     final instagram = (loja.dsinstaloja ?? '').trim();
 
     final enderecoCompleto = [
@@ -427,12 +424,6 @@ class _LojaListPageState extends State<LojaListPage> {
                       _linhaInformacao(
                         icone: Icons.phone_outlined,
                         texto: telefone,
-                      ),
-
-                    if (horario.isNotEmpty)
-                      _linhaInformacao(
-                        icone: Icons.schedule_outlined,
-                        texto: horario,
                       ),
 
                     if (instagram.isNotEmpty)
@@ -612,7 +603,9 @@ class _LojaListPageState extends State<LojaListPage> {
             const SizedBox(height: 16),
 
             Text(
-              temBusca ? 'Nenhum estabelecimento encontrado' : 'Nenhum estabelecimento cadastrado',
+              temBusca
+                  ? 'Nenhum estabelecimento encontrado'
+                  : 'Nenhum estabelecimento cadastrado',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),

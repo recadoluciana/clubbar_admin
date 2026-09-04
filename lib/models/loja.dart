@@ -5,7 +5,6 @@ class Loja {
   final String nmloja;
   final String? dsbairroloja;
   final String? nrtelloja;
-  final String? dshorarioloja;
   final int? nrdiavalidade;
   final String? sitloja;
   final String? urllogoloja;
@@ -24,7 +23,6 @@ class Loja {
     required this.nmloja,
     this.dsbairroloja,
     this.nrtelloja,
-    this.dshorarioloja,
     this.nrdiavalidade,
     this.sitloja,
     this.urllogoloja,
@@ -43,7 +41,6 @@ class Loja {
       nmloja: (json['nmloja'] ?? '').toString(),
       dsbairroloja: json['dsbairroloja']?.toString(),
       nrtelloja: json['nrtelloja']?.toString(),
-      dshorarioloja: json['dshorarioloja']?.toString(),
       nrdiavalidade: json['nrdiavalidade'],
       sitloja: json['sitloja']?.toString(),
       urllogoloja: json['urllogoloja']?.toString(),
@@ -63,7 +60,6 @@ class Loja {
       'nmloja': nmloja,
       'dsbairroloja': dsbairroloja,
       'nrtelloja': nrtelloja,
-      'dshorarioloja': dshorarioloja,
       'nrdiavalidade': nrdiavalidade,
       'sitloja': sitloja,
       'urllogoloja': urllogoloja,

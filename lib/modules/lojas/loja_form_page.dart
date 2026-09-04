@@ -28,7 +28,6 @@ class _LojaFormPageState extends State<LojaFormPage> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _bairroController = TextEditingController();
   final TextEditingController _telefoneController = TextEditingController();
-  final TextEditingController _horarioController = TextEditingController();
   final TextEditingController _diasValidadeController = TextEditingController();
   final TextEditingController _enderecoController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
@@ -91,7 +90,6 @@ class _LojaFormPageState extends State<LojaFormPage> {
     final endereco = _enderecoController.text.trim();
     final instagram = _instagramController.text.trim();
     final telefone = _somenteNumeros(_telefoneController.text);
-    final horario = _horarioController.text.trim();
     final diasValidade = int.tryParse(_diasValidadeController.text.trim());
 
     if (nome.isEmpty) return 'Informe o nome do estabelecimento.';
@@ -132,9 +130,6 @@ class _LojaFormPageState extends State<LojaFormPage> {
       }
     }
 
-    if (horario.length > 255) {
-      return 'O horário pode ter no máximo 255 caracteres.';
-    }
     if (diasValidade == null) {
       return 'Informe a quantidade de dias de validade.';
     }
@@ -164,7 +159,6 @@ class _LojaFormPageState extends State<LojaFormPage> {
       _nomeController.text = widget.loja!.nmloja;
       _bairroController.text = widget.loja!.dsbairroloja ?? '';
       _telefoneController.text = _formatarTelefone(widget.loja!.nrtelloja);
-      _horarioController.text = widget.loja!.dshorarioloja ?? '';
       _diasValidadeController.text =
           widget.loja!.nrdiavalidade?.toString() ?? '90';
       _cidadeIdSelecionada = widget.loja!.cidadeId;
@@ -182,7 +176,6 @@ class _LojaFormPageState extends State<LojaFormPage> {
     _nomeController.dispose();
     _bairroController.dispose();
     _telefoneController.dispose();
-    _horarioController.dispose();
     _diasValidadeController.dispose();
     _enderecoController.dispose();
     _instagramController.dispose();
@@ -280,7 +273,6 @@ class _LojaFormPageState extends State<LojaFormPage> {
           nome: _nomeController.text.trim(),
           bairro: _bairroController.text.trim(),
           telefone: telefoneSemMascara,
-          horario: _horarioController.text.trim(),
           diasValidade: diasValidade,
           endereco: _enderecoController.text.trim(),
           instagram: _instagramController.text.trim(),
@@ -293,7 +285,6 @@ class _LojaFormPageState extends State<LojaFormPage> {
           nome: _nomeController.text.trim(),
           bairro: _bairroController.text.trim(),
           telefone: telefoneSemMascara,
-          horario: _horarioController.text.trim(),
           diasValidade: diasValidade,
           endereco: _enderecoController.text.trim(),
           instagram: _instagramController.text.trim(),
@@ -636,20 +627,6 @@ class _LojaFormPageState extends State<LojaFormPage> {
                               }
                               return null;
                             },
-                          ),
-                          const SizedBox(height: 14),
-                          TextFormField(
-                            controller: _horarioController,
-                            textCapitalization: TextCapitalization.sentences,
-                            maxLength: 255,
-                            inputFormatters: [
-                              LengthLimitingTextInputFormatter(255),
-                            ],
-                            decoration: _decoracaoCampo(
-                              label: 'Horário de funcionamento',
-                              icone: Icons.schedule_outlined,
-                              hint: 'Ex.: Segunda a sábado, das 18h às 2h',
-                            ).copyWith(counterText: ''),
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
