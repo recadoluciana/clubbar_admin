@@ -359,11 +359,22 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
   }
 
   Future<void> _contrato() async {
-    if (widget.lead.estabelecimentos.isEmpty) {
-      AppSnackBar.aviso(context, 'Cadastre um estabelecimento para o lead.');
+    final estabelecimentosDisponiveis = widget.lead.estabelecimentos
+        .where(
+          (item) =>
+              item.status != 'ACEITOU_PARCERIA' && item.status != 'CONVERTIDO',
+        )
+        .toList();
+    if (estabelecimentosDisponiveis.isEmpty) {
+      AppSnackBar.aviso(
+        context,
+        widget.lead.estabelecimentos.isEmpty
+            ? 'Cadastre um estabelecimento para o lead.'
+            : 'Todos os contratos já foram aceitos ou os estabelecimentos já foram convertidos.',
+      );
       return;
     }
-    var estabelecimento = widget.lead.estabelecimentos.first;
+    var estabelecimento = estabelecimentosDisponiveis.first;
     final taxaProdutos = TextEditingController(text: '5,00');
     final taxaIngressos = TextEditingController(text: '5,00');
     final confirmar = await showDialog<bool>(
@@ -382,7 +393,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                     labelText: 'Estabelecimento',
                     border: OutlineInputBorder(),
                   ),
-                  items: widget.lead.estabelecimentos
+                  items: estabelecimentosDisponiveis
                       .map(
                         (item) => DropdownMenuItem(
                           value: item,
@@ -395,7 +406,9 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                   },
                 ),
                 const SizedBox(height: 12),
-                const Text('Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.'),
+                const Text(
+                  'Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.',
+                ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -445,10 +458,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       if (produtos == null || ingressos == null) {
         AppSnackBar.aviso(context, 'Informe taxas válidas.');
       } else {
-        final dados = {
-          'vrtaxaprod': produtos,
-          'vrtaxaing': ingressos,
-        };
+        final dados = {'vrtaxaprod': produtos, 'vrtaxaing': ingressos};
         try {
           final conteudo = await _repo.previsualizarContrato(
             estabelecimento.id,

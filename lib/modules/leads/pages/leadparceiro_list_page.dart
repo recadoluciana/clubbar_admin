@@ -1231,7 +1231,10 @@ class _LeadEstabelecimentoListPageState
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: estabelecimento.dadosContratuaisCompletos
+              onPressed:
+                  estabelecimento.dadosContratuaisCompletos &&
+                      status != 'ACEITOU_PARCERIA' &&
+                      status != 'CONVERTIDO'
                   ? () => _disponibilizarContrato(estabelecimento)
                   : null,
               icon: const Icon(Icons.description_rounded),
