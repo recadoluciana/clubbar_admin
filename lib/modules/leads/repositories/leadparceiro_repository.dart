@@ -91,6 +91,19 @@ class LeadParceiroRepository {
     }
   }
 
+  Future<void> excluirMensagem(
+    int leadId,
+    int estabelecimentoId,
+    int mensagemId,
+  ) async {
+    final r = await ApiService.delete(
+      '/lead-atendimento/$leadId/mensagens/$mensagemId?leadestabelecimento_id=$estabelecimentoId',
+    );
+    if (r.statusCode != 200) {
+      throw Exception(_extrairErro(r.body, 'Erro ao excluir mensagem.'));
+    }
+  }
+
   Future<void> criarAgendamento(
     int id,
     int estabelecimentoId,

@@ -25,8 +25,10 @@ class LeadAtendimentoPage extends StatefulWidget {
 
 class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
   final _repo = LeadParceiroRepository();
+  final _mensagemController = TextEditingController();
   Map<String, dynamic> _dados = {};
   bool _carregando = true;
+  bool _enviandoMensagem = false;
   late LeadEstabelecimento _estabelecimentoSelecionado;
   List<Map<String, dynamic>> _lista(String chave) =>
       ((_dados[chave] as List?) ?? [])
@@ -45,6 +47,12 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       orElse: () => widget.lead.estabelecimentos.first,
     );
     _carregar();
+  }
+
+  @override
+  void dispose() {
+    _mensagemController.dispose();
+    super.dispose();
   }
 
   Future<void> _carregar() async {
@@ -148,18 +156,56 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     }
   }
 
-  Future<void> _mensagem() async {
-    final t = await _texto('Nova mensagem', 'Mensagem para o lead');
-    if (t != null && t.isNotEmpty) {
-      await _acao(
-        () => _repo.enviarMensagem(
-          widget.lead.leadparceiroId,
-          _estabelecimentoSelecionado.id,
-          t,
-        ),
-        'Mensagem enviada.',
+  Future<void> _enviarMensagemDireta() async {
+    final texto = _mensagemController.text.trim();
+    if (texto.isEmpty || _enviandoMensagem) return;
+    setState(() => _enviandoMensagem = true);
+    try {
+      await _repo.enviarMensagem(
+        widget.lead.leadparceiroId,
+        _estabelecimentoSelecionado.id,
+        texto,
       );
+      _mensagemController.clear();
+      await _carregar();
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _enviandoMensagem = false);
     }
+  }
+
+  Future<void> _excluirMensagem(int mensagemId) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Excluir mensagem?'),
+        content: const Text(
+          'A última mensagem enviada pelo Clubbar será excluída.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true) return;
+    await _acao(
+      () => _repo.excluirMensagem(
+        widget.lead.leadparceiroId,
+        _estabelecimentoSelecionado.id,
+        mensagemId,
+      ),
+      'Mensagem excluída.',
+    );
   }
 
   Future<void> materialLegado() async {
@@ -635,7 +681,10 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     ),
   );
 
-  Widget _mensagemChat(Map<String, dynamic> mensagem) {
+  Widget _mensagemChat(
+    Map<String, dynamic> mensagem, {
+    required bool podeExcluir,
+  }) {
     final enviadaPeloLead = mensagem['origem'] == 'LEAD';
     final cor = enviadaPeloLead ? Colors.blue : Colors.deepPurple;
     return Align(
@@ -676,6 +725,29 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                       fontWeight: FontWeight.w900,
                     ),
                   ),
+                  if (podeExcluir) ...[
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'Excluir última mensagem enviada',
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 30,
+                        minHeight: 30,
+                      ),
+                      onPressed: () {
+                        final id = int.tryParse(
+                          mensagem['leadmensagem_id']?.toString() ?? '',
+                        );
+                        if (id != null) _excluirMensagem(id);
+                      },
+                      icon: Icon(
+                        Icons.delete_outline_rounded,
+                        size: 18,
+                        color: cor,
+                      ),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 6),
@@ -692,6 +764,100 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _conversa(List<Map<String, dynamic>> mensagens) {
+    int? ultimaMensagemClubbarId;
+    for (final mensagem in mensagens.reversed) {
+      if (mensagem['origem'] == 'CLUBBAR') {
+        ultimaMensagemClubbarId = int.tryParse(
+          mensagem['leadmensagem_id']?.toString() ?? '',
+        );
+        break;
+      }
+    }
+    return Column(
+      children: [
+        Expanded(
+          child: mensagens.isEmpty
+              ? const Center(child: Text('Nenhuma mensagem até agora.'))
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  children: mensagens.map((mensagem) {
+                    final id = int.tryParse(
+                      mensagem['leadmensagem_id']?.toString() ?? '',
+                    );
+                    return _mensagemChat(
+                      mensagem,
+                      podeExcluir:
+                          mensagem['origem'] == 'CLUBBAR' &&
+                          id == ultimaMensagemClubbarId,
+                    );
+                  }).toList(),
+                ),
+        ),
+        SafeArea(
+          top: false,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Colors.grey.shade300)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 10,
+                  offset: Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _mensagemController,
+                    minLines: 1,
+                    maxLines: 4,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText: 'Digite uma mensagem',
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  tooltip: 'Enviar mensagem',
+                  onPressed: _enviandoMensagem ? null : _enviarMensagemDireta,
+                  style: IconButton.styleFrom(
+                    backgroundColor: ClubbarColors.ambar,
+                    foregroundColor: ClubbarColors.preto,
+                    minimumSize: const Size(48, 48),
+                  ),
+                  icon: _enviandoMensagem
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.add_rounded, size: 28),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -772,12 +938,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     final aguardandoResposta =
         mensagens.isNotEmpty && mensagens.last['origem'] == 'LEAD';
     final conteudoSecao = switch (widget.secao) {
-      'MENSAGENS' => _secao(
-        'Mensagens',
-        Icons.chat_bubble_outline,
-        _mensagem,
-        mensagens.map(_mensagemChat).toList(),
-      ),
+      'MENSAGENS' => null,
       'AGENDAMENTOS' => _secao(
         'Agendamentos',
         Icons.event_available,
@@ -878,6 +1039,8 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
           Expanded(
             child: _carregando
                 ? const Center(child: CircularProgressIndicator())
+                : widget.secao == 'MENSAGENS'
+                ? _conversa(mensagens)
                 : RefreshIndicator(
                     onRefresh: _carregar,
                     child: ListView(
@@ -893,16 +1056,16 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                             secao: 'MENSAGENS',
                           ),
                           _opcao(
-                            titulo: 'Agendamentos',
-                            subtitulo: '${agendas.length} agendamento(s)',
-                            icone: Icons.event_available,
-                            secao: 'AGENDAMENTOS',
-                          ),
-                          _opcao(
                             titulo: 'Materiais',
                             subtitulo: '${materiais.length} material(is)',
                             icone: Icons.folder_open_rounded,
                             secao: 'MATERIAIS',
+                          ),
+                          _opcao(
+                            titulo: 'Agendamentos',
+                            subtitulo: '${agendas.length} agendamento(s)',
+                            icone: Icons.event_available,
+                            secao: 'AGENDAMENTOS',
                           ),
                         ],
                       ],
