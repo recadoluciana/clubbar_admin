@@ -10,6 +10,7 @@ import '../auth/login_page.dart';
 import '../leads/pages/leadparceiro_list_page.dart';
 import '../financeiro/financeiro_admin_page.dart';
 import 'admin_modules_pages.dart';
+import '../estilos_musicais/estilo_musical_admin_page.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -57,6 +58,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   void _abrirVendasHoje() => Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const VendasHojeAdminPage()));
+
+  void _abrirEstilosMusicais() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const EstiloMusicalAdminPage()));
 
   Future<void> _inicializar() async {
     await _carregarDashboard();
@@ -464,6 +469,16 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 valor: 'Financeiro',
                 icone: Icons.account_balance_wallet_rounded,
                 onTap: _abrirFinanceiro,
+              ),
+            ]),
+            const SizedBox(height: 18),
+            titulo('Cadastros gerais'),
+            grade([
+              _cardIndicador(
+                titulo: 'Estilos musicais',
+                valor: 'Catálogo geral do Clubbar',
+                icone: Icons.music_note_rounded,
+                onTap: _abrirEstilosMusicais,
               ),
             ]),
           ],
