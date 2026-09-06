@@ -364,7 +364,6 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       return;
     }
     var estabelecimento = widget.lead.estabelecimentos.first;
-    final versao = TextEditingController(text: '1.0');
     final taxaProdutos = TextEditingController(text: '5,00');
     final taxaIngressos = TextEditingController(text: '5,00');
     final confirmar = await showDialog<bool>(
@@ -396,13 +395,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                   },
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: versao,
-                  decoration: const InputDecoration(
-                    labelText: 'Versão',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
+                const Text('Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.'),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -449,11 +442,10 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       final ingressos = double.tryParse(
         taxaIngressos.text.replaceAll(',', '.'),
       );
-      if (produtos == null || ingressos == null || versao.text.trim().isEmpty) {
-        AppSnackBar.aviso(context, 'Informe a versão e taxas válidas.');
+      if (produtos == null || ingressos == null) {
+        AppSnackBar.aviso(context, 'Informe taxas válidas.');
       } else {
         final dados = {
-          'versao': versao.text.trim(),
           'vrtaxaprod': produtos,
           'vrtaxaing': ingressos,
         };
@@ -500,7 +492,6 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
         }
       }
     }
-    versao.dispose();
     taxaProdutos.dispose();
     taxaIngressos.dispose();
   }

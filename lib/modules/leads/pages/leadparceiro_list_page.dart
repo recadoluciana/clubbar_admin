@@ -567,7 +567,6 @@ class _LeadEstabelecimentoListPageState
       return;
     }
 
-    final versao = TextEditingController(text: '1.0');
     final taxaProdutos = TextEditingController(
       text: estabelecimento.taxaProdutos
           .toStringAsFixed(2)
@@ -587,13 +586,7 @@ class _LeadEstabelecimentoListPageState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: versao,
-                decoration: const InputDecoration(
-                  labelText: 'Versão',
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              const Text('Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.'),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -639,12 +632,11 @@ class _LeadEstabelecimentoListPageState
       final ingressos = double.tryParse(
         taxaIngressos.text.replaceAll(',', '.'),
       );
-      if (produtos == null || ingressos == null || versao.text.trim().isEmpty) {
-        AppSnackBar.aviso(context, 'Informe a versão e taxas válidas.');
+      if (produtos == null || ingressos == null) {
+        AppSnackBar.aviso(context, 'Informe taxas válidas.');
       } else {
         try {
           final dados = {
-            'versao': versao.text.trim(),
             'vrtaxaprod': produtos,
             'vrtaxaing': ingressos,
           };
@@ -693,7 +685,6 @@ class _LeadEstabelecimentoListPageState
         }
       }
     }
-    versao.dispose();
     taxaProdutos.dispose();
     taxaIngressos.dispose();
   }
