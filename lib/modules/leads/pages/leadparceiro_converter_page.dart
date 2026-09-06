@@ -31,6 +31,9 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   final _taxaIngressos = TextEditingController(text: '5,00');
   late String _tipoLoja;
   bool _convertendo = false;
+  bool _carregandoContrato = true;
+  Map<String, dynamic>? _contrato;
+  String? _erroContrato;
 
   @override
   void initState() {
@@ -43,6 +46,56 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
     _loja = TextEditingController(text: widget.estabelecimento.nome);
     _email = TextEditingController(text: widget.lead.email);
     _tipoLoja = widget.estabelecimento.tipo;
+    _carregarContrato();
+  }
+
+  Future<void> _carregarContrato() async {
+    try {
+      final contratos = await _repository.listarContratos(
+        widget.estabelecimento.id,
+      );
+      final aceitos = contratos.where((item) => item['status'] == 'ACEITO');
+      final contrato = aceitos.isEmpty ? null : aceitos.first;
+      if (!mounted) return;
+      setState(() {
+        _contrato = contrato;
+        _carregandoContrato = false;
+        if (contrato == null) _erroContrato = 'Contrato aceito não encontrado.';
+        final razao = contrato?['nmrazaosocial']?.toString().trim() ?? '';
+        if (razao.isNotEmpty) _organizacao.text = razao;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _carregandoContrato = false;
+        _erroContrato = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  String _documentoFormatado(String valor) {
+    final n = valor.replaceAll(RegExp(r'\D'), '');
+    if (n.length == 11) {
+      return '${n.substring(0, 3)}.${n.substring(3, 6)}.${n.substring(6, 9)}-${n.substring(9)}';
+    }
+    if (n.length == 14) {
+      return '${n.substring(0, 2)}.${n.substring(2, 5)}.${n.substring(5, 8)}/${n.substring(8, 12)}-${n.substring(12)}';
+    }
+    return valor;
+  }
+
+  String get _enderecoContrato {
+    final c = _contrato ?? const <String, dynamic>{};
+    final partes = <String>[
+      [
+        c['enderecocontratante'],
+        c['numerocontratante'],
+      ].where((item) => item?.toString().trim().isNotEmpty == true).join(', '),
+      c['complementocontratante']?.toString() ?? '',
+      c['bairrocontratante']?.toString() ?? '',
+      c['cepcontratante']?.toString() ?? '',
+    ].where((item) => item.trim().isNotEmpty).toList();
+    return partes.isEmpty ? 'Não informado' : partes.join(' • ');
   }
 
   @override
@@ -62,6 +115,13 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       valor == null || valor.trim().isEmpty ? 'Campo obrigatório' : null;
 
   Future<void> _converter() async {
+    if (_contrato == null) {
+      AppSnackBar.aviso(
+        context,
+        'Carregue um contrato aceito antes de converter.',
+      );
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     final produtos = _percentual(_taxaProdutos);
     final ingressos = _percentual(_taxaIngressos);
@@ -122,7 +182,8 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
         children: [
           const ClubbarPageHeader(
             titulo: 'Converter estabelecimento em parceiro',
-            subtitulo: 'Criação do estabelecimento com documentação financeira pendente',
+            subtitulo:
+                'Criação do estabelecimento com documentação financeira pendente',
           ),
           Expanded(
             child: Form(
@@ -230,18 +291,41 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Card(
+                  Card(
                     color: ClubbarColors.infoClaro,
                     child: Padding(
-                      padding: EdgeInsets.all(14),
-                      child: Text(
-                        'CPF/CNPJ, razão social, endereço cadastral e documentos serão preenchidos pelo parceiro no onboarding financeiro.',
-                      ),
+                      padding: const EdgeInsets.all(14),
+                      child: _carregandoContrato
+                          ? const Center(child: CircularProgressIndicator())
+                          : _erroContrato != null
+                          ? Text(_erroContrato!)
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Dados cadastrais do contrato',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'CPF/CNPJ: ${_documentoFormatado(_contrato?['cpfcnpjcontratante']?.toString() ?? '')}',
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${_contrato?['tipopessoa'] == 'PJ' ? 'Razão social' : 'Nome completo'}: ${_contrato?['nmrazaosocial'] ?? 'Não informado'}',
+                                ),
+                                const SizedBox(height: 6),
+                                Text('Endereço cadastral: $_enderecoContrato'),
+                              ],
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    onPressed: _convertendo ? null : _converter,
+                    onPressed:
+                        _convertendo || _carregandoContrato || _contrato == null
+                        ? null
+                        : _converter,
                     icon: _convertendo
                         ? const SizedBox.square(
                             dimension: 18,

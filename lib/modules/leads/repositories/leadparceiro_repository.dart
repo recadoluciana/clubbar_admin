@@ -308,6 +308,23 @@ class LeadParceiroRepository {
     }
   }
 
+  Future<List<Map<String, dynamic>>> listarContratos(
+    int leadestabelecimentoId,
+  ) async {
+    final response = await ApiService.get(
+      '/lead-estabelecimento-contratos/estabelecimento/$leadestabelecimentoId',
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao carregar contrato.'),
+      );
+    }
+    return (jsonDecode(response.body) as List)
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
   Future<Map<String, dynamic>> consultarImplantacao(
     int leadestabelecimentoId,
   ) async {

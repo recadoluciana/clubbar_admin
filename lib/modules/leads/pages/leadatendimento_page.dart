@@ -423,6 +423,16 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     var estabelecimento = estabelecimentosDisponiveis.first;
     final taxaProdutos = TextEditingController(text: '5,00');
     final taxaIngressos = TextEditingController(text: '5,00');
+    final cpfCnpj = TextEditingController(text: estabelecimento.cpfCnpj ?? '');
+    final razaoSocial = TextEditingController(
+      text:
+          (estabelecimento.cpfCnpj ?? '')
+                  .replaceAll(RegExp(r'\D'), '')
+                  .length ==
+              11
+          ? (estabelecimento.nomeResponsavel ?? widget.lead.nmresponsavel)
+          : '',
+    );
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -430,56 +440,89 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
           title: const Text('Disponibilizar contrato'),
           content: SizedBox(
             width: 520,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<LeadEstabelecimento>(
-                  initialValue: estabelecimento,
-                  decoration: const InputDecoration(
-                    labelText: 'Estabelecimento',
-                    border: OutlineInputBorder(),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<LeadEstabelecimento>(
+                    initialValue: estabelecimento,
+                    decoration: const InputDecoration(
+                      labelText: 'Estabelecimento',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: estabelecimentosDisponiveis
+                        .map(
+                          (item) => DropdownMenuItem(
+                            value: item,
+                            child: Text(item.nome),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (item) {
+                      if (item != null) {
+                        setLocal(() {
+                          estabelecimento = item;
+                          cpfCnpj.text = item.cpfCnpj ?? '';
+                          final numeros = cpfCnpj.text.replaceAll(
+                            RegExp(r'\D'),
+                            '',
+                          );
+                          razaoSocial.text = numeros.length == 11
+                              ? (item.nomeResponsavel ??
+                                    widget.lead.nmresponsavel)
+                              : '';
+                        });
+                      }
+                    },
                   ),
-                  items: estabelecimentosDisponiveis
-                      .map(
-                        (item) => DropdownMenuItem(
-                          value: item,
-                          child: Text(item.nome),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (item) {
-                    if (item != null) setLocal(() => estabelecimento = item);
-                  },
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.',
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: taxaProdutos,
-                        decoration: const InputDecoration(
-                          labelText: 'Taxa produtos %',
-                          border: OutlineInputBorder(),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: cpfCnpj,
+                    decoration: const InputDecoration(
+                      labelText: 'CPF/CNPJ do contratante',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: razaoSocial,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome completo / razão social',
+                      helperText:
+                          'Para CNPJ, informe obrigatoriamente a razão social.',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.',
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: taxaProdutos,
+                          decoration: const InputDecoration(
+                            labelText: 'Taxa produtos %',
+                            border: OutlineInputBorder(),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: taxaIngressos,
-                        decoration: const InputDecoration(
-                          labelText: 'Taxa ingressos %',
-                          border: OutlineInputBorder(),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: taxaIngressos,
+                          decoration: const InputDecoration(
+                            labelText: 'Taxa ingressos %',
+                            border: OutlineInputBorder(),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -504,7 +547,27 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       if (produtos == null || ingressos == null) {
         AppSnackBar.aviso(context, 'Informe taxas válidas.');
       } else {
-        final dados = {'vrtaxaprod': produtos, 'vrtaxaing': ingressos};
+        final documento = cpfCnpj.text.replaceAll(RegExp(r'\D'), '');
+        if ((documento.length != 11 && documento.length != 14) ||
+            razaoSocial.text.trim().isEmpty) {
+          AppSnackBar.aviso(
+            context,
+            documento.length == 14
+                ? 'Informe a razão social da empresa.'
+                : 'Informe um CPF/CNPJ válido e o nome do contratante.',
+          );
+          taxaProdutos.dispose();
+          taxaIngressos.dispose();
+          cpfCnpj.dispose();
+          razaoSocial.dispose();
+          return;
+        }
+        final dados = {
+          'vrtaxaprod': produtos,
+          'vrtaxaing': ingressos,
+          'cpfcnpj': documento,
+          'nmrazaosocial': razaoSocial.text.trim(),
+        };
         try {
           final conteudo = await _repo.previsualizarContrato(
             estabelecimento.id,
@@ -550,6 +613,8 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     }
     taxaProdutos.dispose();
     taxaIngressos.dispose();
+    cpfCnpj.dispose();
+    razaoSocial.dispose();
   }
 
   Future<void> _agendamento() async {

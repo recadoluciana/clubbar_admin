@@ -548,6 +548,7 @@ class _LeadEstabelecimentoListPageState
   }
 
   Future<void> _disponibilizarContrato(
+    LeadParceiro lead,
     LeadEstabelecimento estabelecimento,
   ) async {
     if (!estabelecimento.dadosContratuaisCompletos) {
@@ -568,43 +569,73 @@ class _LeadEstabelecimentoListPageState
           .toStringAsFixed(2)
           .replaceAll('.', ','),
     );
+    final cpfCnpj = TextEditingController(text: estabelecimento.cpfCnpj ?? '');
+    final razaoSocial = TextEditingController(
+      text:
+          (estabelecimento.cpfCnpj ?? '')
+                  .replaceAll(RegExp(r'\D'), '')
+                  .length ==
+              11
+          ? (estabelecimento.nomeResponsavel ?? lead.nmresponsavel)
+          : '',
+    );
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Contrato de ${estabelecimento.nome}'),
         content: SizedBox(
           width: 520,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.',
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: taxaProdutos,
-                      decoration: const InputDecoration(
-                        labelText: 'Taxa produtos %',
-                        border: OutlineInputBorder(),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: cpfCnpj,
+                  decoration: const InputDecoration(
+                    labelText: 'CPF/CNPJ do contratante',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: razaoSocial,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome completo / razão social',
+                    helperText:
+                        'Para CNPJ, informe obrigatoriamente a razão social.',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.',
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: taxaProdutos,
+                        decoration: const InputDecoration(
+                          labelText: 'Taxa produtos %',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: taxaIngressos,
-                      decoration: const InputDecoration(
-                        labelText: 'Taxa ingressos %',
-                        border: OutlineInputBorder(),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: taxaIngressos,
+                        decoration: const InputDecoration(
+                          labelText: 'Taxa ingressos %',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
@@ -629,7 +660,23 @@ class _LeadEstabelecimentoListPageState
         AppSnackBar.aviso(context, 'Informe taxas válidas.');
       } else {
         try {
-          final dados = {'vrtaxaprod': produtos, 'vrtaxaing': ingressos};
+          final documento = cpfCnpj.text.replaceAll(RegExp(r'\D'), '');
+          if ((documento.length != 11 && documento.length != 14) ||
+              razaoSocial.text.trim().isEmpty) {
+            AppSnackBar.aviso(
+              context,
+              documento.length == 14
+                  ? 'Informe a razão social da empresa.'
+                  : 'Informe um CPF/CNPJ válido e o nome do contratante.',
+            );
+            return;
+          }
+          final dados = {
+            'vrtaxaprod': produtos,
+            'vrtaxaing': ingressos,
+            'cpfcnpj': documento,
+            'nmrazaosocial': razaoSocial.text.trim(),
+          };
           final conteudo = await _repository.previsualizarContrato(
             estabelecimento.id,
             dados,
@@ -677,6 +724,8 @@ class _LeadEstabelecimentoListPageState
     }
     taxaProdutos.dispose();
     taxaIngressos.dispose();
+    cpfCnpj.dispose();
+    razaoSocial.dispose();
   }
 
   Future<void> _abrirImplantacao(LeadEstabelecimento estabelecimento) async {
@@ -1226,7 +1275,7 @@ class _LeadEstabelecimentoListPageState
                   estabelecimento.dadosContratuaisCompletos &&
                       status != 'ACEITOU_PARCERIA' &&
                       status != 'CONVERTIDO'
-                  ? () => _disponibilizarContrato(estabelecimento)
+                  ? () => _disponibilizarContrato(lead, estabelecimento)
                   : null,
               icon: const Icon(Icons.description_rounded),
               label: const Text('Gerar e disponibilizar contrato'),
