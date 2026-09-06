@@ -295,6 +295,37 @@ class LeadParceiroRepository {
     }
   }
 
+  Future<Map<String, dynamic>> consultarImplantacao(
+    int leadestabelecimentoId,
+  ) async {
+    final response = await ApiService.get(
+      '/lead-estabelecimento-contratos/estabelecimento/'
+      '$leadestabelecimentoId/implantacao',
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao consultar a implantação.'),
+      );
+    }
+    return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+  }
+
+  Future<Map<String, dynamic>> isentarImplantacao({
+    required int cobrancaId,
+    required String justificativa,
+  }) async {
+    final response = await ApiService.patch(
+      '/lead-estabelecimento-contratos/implantacao/$cobrancaId/isentar',
+      {'justificativa': justificativa.trim()},
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao registrar a isenção.'),
+      );
+    }
+    return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+  }
+
   Future<String> previsualizarContrato(
     int leadestabelecimentoId,
     Map<String, dynamic> dados,

@@ -586,7 +586,9 @@ class _LeadEstabelecimentoListPageState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.'),
+              const Text(
+                'Será utilizada automaticamente a versão ativa do contrato padrão Clubbar.',
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -636,10 +638,7 @@ class _LeadEstabelecimentoListPageState
         AppSnackBar.aviso(context, 'Informe taxas válidas.');
       } else {
         try {
-          final dados = {
-            'vrtaxaprod': produtos,
-            'vrtaxaing': ingressos,
-          };
+          final dados = {'vrtaxaprod': produtos, 'vrtaxaing': ingressos};
           final conteudo = await _repository.previsualizarContrato(
             estabelecimento.id,
             dados,
@@ -687,6 +686,131 @@ class _LeadEstabelecimentoListPageState
     }
     taxaProdutos.dispose();
     taxaIngressos.dispose();
+  }
+
+  Future<void> _abrirImplantacao(LeadEstabelecimento estabelecimento) async {
+    try {
+      var cobranca = await _repository.consultarImplantacao(estabelecimento.id);
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) {
+            final status = cobranca['status']?.toString() ?? 'PENDENTE';
+            final valor = (cobranca['valor'] as num?)?.toDouble() ?? 0;
+            final liberada = status == 'PAGA' || status == 'ISENTA';
+            return AlertDialog(
+              title: const Text('Taxa de implantação'),
+              content: SizedBox(
+                width: 430,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: ClubbarColors.info,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Chip(
+                      avatar: Icon(
+                        liberada ? Icons.check_circle : Icons.schedule,
+                        size: 18,
+                      ),
+                      label: Text(status),
+                    ),
+                    if (status == 'PAGA')
+                      Text(
+                        'Pagamento: ${cobranca['dtpagamento'] ?? 'confirmado'}',
+                      ),
+                    if (status == 'ISENTA')
+                      Text('Motivo: ${cobranca['justificativaisencao'] ?? ''}'),
+                    if (!liberada) ...[
+                      const SizedBox(height: 12),
+                      const Text(
+                        'A conversão em parceiro será liberada após a confirmação oficial do Asaas.',
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton.icon(
+                  onPressed: () async {
+                    cobranca = await _repository.consultarImplantacao(
+                      estabelecimento.id,
+                    );
+                    setDialogState(() {});
+                  },
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Verificar pagamento'),
+                ),
+                if (!liberada)
+                  TextButton(
+                    onPressed: () async {
+                      final justificativa = TextEditingController();
+                      final motivo = await showDialog<String>(
+                        context: dialogContext,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Isentar taxa de implantação'),
+                          content: TextField(
+                            controller: justificativa,
+                            minLines: 2,
+                            maxLines: 4,
+                            decoration: const InputDecoration(
+                              labelText: 'Justificativa obrigatória',
+                              hintText: 'Informe o motivo da isenção',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('Cancelar'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  Navigator.pop(ctx, justificativa.text.trim()),
+                              child: const Text('Confirmar isenção'),
+                            ),
+                          ],
+                        ),
+                      );
+                      justificativa.dispose();
+                      if (motivo == null || motivo.length < 10) {
+                        if (context.mounted && motivo != null) {
+                          AppSnackBar.aviso(
+                            context,
+                            'Informe uma justificativa com pelo menos 10 caracteres.',
+                          );
+                        }
+                        return;
+                      }
+                      cobranca = await _repository.isentarImplantacao(
+                        cobrancaId: cobranca['cobrancaimplantacao_id'] as int,
+                        justificativa: motivo,
+                      );
+                      setDialogState(() {});
+                    },
+                    child: const Text('Conceder isenção'),
+                  ),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Fechar'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+    }
   }
 
   String _nomeStatusBadge(String status) {
@@ -1118,6 +1242,17 @@ class _LeadEstabelecimentoListPageState
               ),
             ),
           ),
+          if (status == 'ACEITOU_PARCERIA') ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _abrirImplantacao(estabelecimento),
+                icon: const Icon(Icons.payments_rounded),
+                label: const Text('Consultar taxa de implantação'),
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
