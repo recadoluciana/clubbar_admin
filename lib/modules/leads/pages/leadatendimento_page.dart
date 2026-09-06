@@ -854,15 +854,8 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
           if (!_carregando &&
               aguardandoResposta &&
               (widget.secao == null || widget.secao == 'MENSAGENS'))
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                border: Border.all(color: Colors.orange.shade300),
-                borderRadius: BorderRadius.circular(14),
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
               child: Row(
                 children: [
                   Icon(

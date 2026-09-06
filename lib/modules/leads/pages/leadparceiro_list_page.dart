@@ -257,17 +257,8 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
                     ),
                     if (lead.aguardandoResposta) ...[
                       const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
-                          border: Border.all(color: Colors.orange.shade300),
-                          borderRadius: BorderRadius.circular(13),
-                        ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
                         child: Row(
                           children: [
                             Icon(
