@@ -12,6 +12,7 @@ import '../financeiro/financeiro_admin_page.dart';
 import 'admin_modules_pages.dart';
 import '../estilos_musicais/estilo_musical_admin_page.dart';
 import '../contratos/contrato_padrao_page.dart';
+import '../categorias/categoria_padrao_admin_page.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -63,6 +64,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   void _abrirEstilosMusicais() => Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const EstiloMusicalAdminPage()));
+
+  void _abrirCategoriasPadrao() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const CategoriaPadraoAdminPage()));
 
   void _abrirContratoPadrao() => Navigator.of(
     context,
@@ -484,6 +489,12 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 valor: 'Catálogo geral do Clubbar',
                 icone: Icons.music_note_rounded,
                 onTap: _abrirEstilosMusicais,
+              ),
+              _cardIndicador(
+                titulo: 'Categorias de produtos',
+                valor: 'Catálogo geral do Clubbar',
+                icone: Icons.category_rounded,
+                onTap: _abrirCategoriasPadrao,
               ),
               _cardIndicador(
                 titulo: 'Contrato padrão',
