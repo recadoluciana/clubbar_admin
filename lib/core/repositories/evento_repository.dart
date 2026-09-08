@@ -59,8 +59,6 @@ class EventoRepository {
     required String titulo,
     String? descricao,
     String? politicaCancelamento,
-    String? politicaReembolso,
-    String? politicaCashback,
     required String dataInicio,
     String? dataFim,
     String? local,
@@ -88,12 +86,6 @@ class EventoRepository {
     }
     if (politicaCancelamento != null) {
       request.fields['dspoliticacancelamento'] = politicaCancelamento;
-    }
-    if (politicaReembolso != null) {
-      request.fields['dspoliticareembolso'] = politicaReembolso;
-    }
-    if (politicaCashback != null) {
-      request.fields['dspoliticacashback'] = politicaCashback;
     }
     if (dataFim != null && dataFim.isNotEmpty) {
       request.fields['dtfimevento'] = dataFim;
@@ -125,8 +117,6 @@ class EventoRepository {
     String? titulo,
     String? descricao,
     String? politicaCancelamento,
-    String? politicaReembolso,
-    String? politicaCashback,
     String? dataInicio,
     String? dataFim,
     String? local,
@@ -151,12 +141,6 @@ class EventoRepository {
     }
     if (politicaCancelamento != null) {
       request.fields['dspoliticacancelamento'] = politicaCancelamento;
-    }
-    if (politicaReembolso != null) {
-      request.fields['dspoliticareembolso'] = politicaReembolso;
-    }
-    if (politicaCashback != null) {
-      request.fields['dspoliticacashback'] = politicaCashback;
     }
     if (dataInicio != null && dataInicio.isNotEmpty) {
       request.fields['dtinicioevento'] = dataInicio;

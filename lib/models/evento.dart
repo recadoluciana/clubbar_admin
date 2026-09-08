@@ -6,8 +6,6 @@ class Evento {
 
   final String? dsdescevento;
   final String? dspoliticacancelamento;
-  final String? dspoliticareembolso;
-  final String? dspoliticacashback;
   final String? dtinicioevento;
   final String? dtfimevento;
   final String? statusevento;
@@ -23,8 +21,6 @@ class Evento {
     required this.nmtituloevento,
     this.dsdescevento,
     this.dspoliticacancelamento,
-    this.dspoliticareembolso,
-    this.dspoliticacashback,
     this.dtinicioevento,
     this.dtfimevento,
     this.statusevento,
@@ -42,8 +38,6 @@ class Evento {
 
       dsdescevento: json['dsdescevento']?.toString(),
       dspoliticacancelamento: json['dspoliticacancelamento']?.toString(),
-      dspoliticareembolso: json['dspoliticareembolso']?.toString(),
-      dspoliticacashback: json['dspoliticacashback']?.toString(),
       dtinicioevento: json['dtinicioevento']?.toString(),
       dtfimevento: json['dtfimevento']?.toString(),
       statusevento: json['statusevento']?.toString(),
