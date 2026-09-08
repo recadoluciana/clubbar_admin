@@ -51,12 +51,12 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
   static const List<String> _cargos = [
     'SUPERADMIN',
     'ADMIN',
-    'GERENTE',
-    'CAIXA',
+    'MANAGER',
+    'CASHIER',
     'TOTEM',
     'BARMAN',
-    'GARCOM',
-    'PORTEIRO',
+    'WAITER',
+    'TICKETMAN',
   ];
 
   @override
@@ -111,11 +111,11 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
       case 'ADMIN':
         return 'Administrador';
 
-      case 'GERENTE':
-        return 'Gerente';
+      case 'MANAGER':
+        return 'Manager';
 
-      case 'CAIXA':
-        return 'Caixa';
+      case 'CASHIER':
+        return 'Cashier';
 
       case 'TOTEM':
         return 'Totem';
@@ -123,11 +123,11 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
       case 'BARMAN':
         return 'Barman';
 
-      case 'GARCOM':
-        return 'Garçom';
+      case 'WAITER':
+        return 'Waiter';
 
-      case 'PORTEIRO':
-        return 'Porteiro';
+      case 'TICKETMAN':
+        return 'Ticketman';
 
       default:
         return cargo;

@@ -121,11 +121,11 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
       case 'ADMIN':
         return 'Administrador';
 
-      case 'GERENTE':
-        return 'Gerente';
+      case 'MANAGER':
+        return 'Manager';
 
-      case 'CAIXA':
-        return 'Caixa';
+      case 'CASHIER':
+        return 'Cashier';
 
       case 'TOTEM':
         return 'Totem';
@@ -133,11 +133,11 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
       case 'BARMAN':
         return 'Barman';
 
-      case 'GARCOM':
-        return 'Garçom';
+      case 'WAITER':
+        return 'Waiter';
 
-      case 'PORTEIRO':
-        return 'Porteiro';
+      case 'TICKETMAN':
+        return 'Ticketman';
 
       default:
         return cargo;
@@ -147,11 +147,11 @@ class _UsuarioListPageState extends State<UsuarioListPage> {
   Color _corCargo(String cargo) => switch (cargo.trim().toUpperCase()) {
     'SUPERADMIN' => Colors.deepPurple,
     'ADMIN' => Colors.blue,
-    'GERENTE' => Colors.deepOrange,
-    'CAIXA' => Colors.green,
+    'MANAGER' => Colors.deepOrange,
+    'CASHIER' => Colors.green,
     'BARMAN' => Colors.amber.shade800,
-    'GARCOM' => Colors.teal,
-    'PORTEIRO' => Colors.brown,
+    'WAITER' => Colors.teal,
+    'TICKETMAN' => Colors.brown,
     'TOTEM' => Colors.cyan.shade800,
     _ => Colors.blueGrey,
   };

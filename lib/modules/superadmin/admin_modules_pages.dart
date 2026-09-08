@@ -17,11 +17,11 @@ double _decimal(dynamic valor) =>
 Color _corCargo(dynamic cargo) => switch (_texto(cargo).toUpperCase()) {
   'SUPERADMIN' => Colors.deepPurple,
   'ADMIN' => Colors.blue,
-  'GERENTE' => Colors.deepOrange,
-  'CAIXA' => Colors.green,
+  'MANAGER' => Colors.deepOrange,
+  'CASHIER' => Colors.green,
   'BARMAN' => Colors.amber.shade800,
-  'GARCOM' => Colors.teal,
-  'PORTEIRO' => Colors.brown,
+  'WAITER' => Colors.teal,
+  'TICKETMAN' => Colors.brown,
   'TOTEM' => Colors.cyan.shade800,
   _ => Colors.blueGrey,
 };
