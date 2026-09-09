@@ -9,6 +9,7 @@ import '../../core/widgets/clubbar_page_header.dart';
 import '../auth/login_page.dart';
 import '../leads/pages/leadparceiro_list_page.dart';
 import '../financeiro/financeiro_admin_page.dart';
+import '../financeiro/taxa_padrao_admin_page.dart';
 import 'admin_modules_pages.dart';
 import '../estilos_musicais/estilo_musical_admin_page.dart';
 import '../contratos/contrato_padrao_page.dart';
@@ -46,6 +47,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   void _abrirFinanceiro() => Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const FinanceiroAdminPage()));
+
+  void _abrirTaxasPadrao() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const TaxaPadraoAdminPage()));
 
   void _abrirParceiros() => Navigator.of(
     context,
@@ -489,6 +494,12 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 valor: 'Financeiro',
                 icone: Icons.account_balance_wallet_rounded,
                 onTap: _abrirFinanceiro,
+              ),
+              _cardIndicador(
+                titulo: 'Taxas padrão',
+                valor: 'Versões e regras de cobrança',
+                icone: Icons.percent_rounded,
+                onTap: _abrirTaxasPadrao,
               ),
             ]),
             const SizedBox(height: 18),
