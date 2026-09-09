@@ -240,7 +240,14 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
       Icons.storefront_rounded => Colors.deepOrange,
       Icons.manage_accounts_rounded => Colors.teal,
       Icons.point_of_sale_rounded => Colors.green,
-      _ => Colors.indigo,
+      Icons.account_balance_wallet_rounded => Colors.blue.shade700,
+      Icons.percent_rounded => Colors.orange.shade800,
+      Icons.forum_rounded => Colors.lightBlue.shade700,
+      Icons.music_note_rounded => Colors.purple.shade600,
+      Icons.category_rounded => Colors.amber.shade800,
+      Icons.quiz_outlined => Colors.pink.shade600,
+      Icons.description_rounded => Colors.brown.shade600,
+      _ => Colors.indigo.shade600,
     };
     return Material(
       color: Colors.white,
@@ -275,7 +282,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      titulo,
+                      valor,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -286,7 +293,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      valor,
+                      titulo,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -565,6 +572,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               subtitulo: '',
               icone: Icons.dashboard_rounded,
               mostrarDataHora: true,
+              compactarDadosSessao: true,
               trailing: IconButton(
                 tooltip: 'Atualizar painel',
                 onPressed: _carregando ? null : _atualizar,

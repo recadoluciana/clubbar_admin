@@ -48,17 +48,20 @@ class ClubbarAppBar extends StatelessWidget implements PreferredSizeWidget {
         bottom: false,
         child: IgnorePointer(
           child: Center(
-            child: Image.asset(
-              logoPath,
-              height: 52,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => const Text(
-                'CLUBBAR',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
+            child: Transform.scale(
+              scale: 1.15,
+              child: Image.asset(
+                logoPath,
+                height: 52,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const Text(
+                  'CLUBBAR',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
             ),

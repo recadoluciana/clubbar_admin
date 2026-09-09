@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/repositories/taxa_padrao_repository.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -421,8 +422,26 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
       return;
     }
     var estabelecimento = estabelecimentosDisponiveis.first;
-    final taxaProdutos = TextEditingController(text: '5,00');
-    final taxaIngressos = TextEditingController(text: '5,00');
+    Map<String, dynamic> taxaVigente;
+    try {
+      taxaVigente = await TaxaPadraoRepository().consultarVigente();
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+      return;
+    }
+    if (!mounted) return;
+    final taxaProdutos = TextEditingController(
+      text: double.parse(
+        '${taxaVigente['pctaxaproduto']}',
+      ).toStringAsFixed(2).replaceAll('.', ','),
+    );
+    final taxaIngressos = TextEditingController(
+      text: double.parse(
+        '${taxaVigente['pctaxaingresso']}',
+      ).toStringAsFixed(2).replaceAll('.', ','),
+    );
     final cpfCnpj = TextEditingController(text: estabelecimento.cpfCnpj ?? '');
     final razaoSocial = TextEditingController(
       text:
@@ -503,6 +522,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                       Expanded(
                         child: TextField(
                           controller: taxaProdutos,
+                          readOnly: true,
                           decoration: const InputDecoration(
                             labelText: 'Taxa produtos %',
                             border: OutlineInputBorder(),
@@ -513,6 +533,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
                       Expanded(
                         child: TextField(
                           controller: taxaIngressos,
+                          readOnly: true,
                           decoration: const InputDecoration(
                             labelText: 'Taxa ingressos %',
                             border: OutlineInputBorder(),

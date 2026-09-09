@@ -46,6 +46,16 @@ class CategoriaPadraoRepository {
     }
   }
 
+  Future<void> criar(String nome, String icone) async {
+    final resposta = await ApiService.post('/admin/categorias-padrao', {
+      'nmcategoria': nome,
+      'dsicone': icone,
+    });
+    if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
+      throw Exception(_erro(resposta.body));
+    }
+  }
+
   String _erro(String body) {
     try {
       final dados = jsonDecode(body);

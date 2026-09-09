@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/repositories/taxa_padrao_repository.dart';
 
 import '../../../core/theme/clubbar_colors.dart';
 import '../../../core/utils/formatters.dart';
@@ -559,15 +560,25 @@ class _LeadEstabelecimentoListPageState
       return;
     }
 
+    Map<String, dynamic> taxaVigente;
+    try {
+      taxaVigente = await TaxaPadraoRepository().consultarVigente();
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
+      }
+      return;
+    }
+    if (!mounted) return;
     final taxaProdutos = TextEditingController(
-      text: estabelecimento.taxaProdutos
-          .toStringAsFixed(2)
-          .replaceAll('.', ','),
+      text: double.parse(
+        '${taxaVigente['pctaxaproduto']}',
+      ).toStringAsFixed(2).replaceAll('.', ','),
     );
     final taxaIngressos = TextEditingController(
-      text: estabelecimento.taxaIngressos
-          .toStringAsFixed(2)
-          .replaceAll('.', ','),
+      text: double.parse(
+        '${taxaVigente['pctaxaingresso']}',
+      ).toStringAsFixed(2).replaceAll('.', ','),
     );
     final cpfCnpj = TextEditingController(text: estabelecimento.cpfCnpj ?? '');
     final razaoSocial = TextEditingController(
@@ -616,6 +627,7 @@ class _LeadEstabelecimentoListPageState
                     Expanded(
                       child: TextField(
                         controller: taxaProdutos,
+                        readOnly: true,
                         decoration: const InputDecoration(
                           labelText: 'Taxa produtos %',
                           border: OutlineInputBorder(),
@@ -626,6 +638,7 @@ class _LeadEstabelecimentoListPageState
                     Expanded(
                       child: TextField(
                         controller: taxaIngressos,
+                        readOnly: true,
                         decoration: const InputDecoration(
                           labelText: 'Taxa ingressos %',
                           border: OutlineInputBorder(),

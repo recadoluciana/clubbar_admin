@@ -31,6 +31,7 @@ class ClubbarPageHeader extends StatefulWidget {
 
   /// Permite esconder somente a data e a hora.
   final bool mostrarDataHora;
+  final bool compactarDadosSessao;
 
   const ClubbarPageHeader({
     super.key,
@@ -46,6 +47,7 @@ class ClubbarPageHeader extends StatefulWidget {
     this.mostrarDadosSessao = true,
     this.mostrarOrganizacao = false,
     this.mostrarDataHora = true,
+    this.compactarDadosSessao = false,
   });
 
   @override
@@ -252,7 +254,7 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
 
   Widget _linhaInformacao({required IconData icone, required String texto}) {
     return Padding(
-      padding: const EdgeInsets.only(top: 4),
+      padding: EdgeInsets.only(top: widget.compactarDadosSessao ? 0 : 4),
       child: Row(
         children: [
           Icon(icone, size: 14, color: ClubbarColors.textoSecundario),
@@ -301,7 +303,7 @@ class _ClubbarPageHeaderState extends State<ClubbarPageHeader> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 7),
+        SizedBox(height: widget.compactarDadosSessao ? 0 : 7),
 
         if (widget.mostrarOrganizacao)
           _linhaInformacao(

@@ -19,6 +19,42 @@ class _CategoriaPadraoAdminPageState extends State<CategoriaPadraoAdminPage> {
   final Set<int> _alterando = {};
   bool _carregando = true;
 
+  static const _iconesDisponiveis = <String, IconData>{
+    'category': Icons.category_rounded,
+    'water_drop': Icons.water_drop_rounded,
+    'local_drink': Icons.local_drink_rounded,
+    'local_cafe': Icons.local_cafe_rounded,
+    'bolt': Icons.bolt_rounded,
+    'sports_bar': Icons.sports_bar_rounded,
+    'no_drinks': Icons.no_drinks_rounded,
+    'local_bar': Icons.local_bar_rounded,
+    'liquor': Icons.liquor_rounded,
+    'wine_bar': Icons.wine_bar_rounded,
+    'coffee': Icons.coffee_rounded,
+    'soup_kitchen': Icons.soup_kitchen_rounded,
+    'tapas': Icons.tapas_rounded,
+    'restaurant': Icons.restaurant_rounded,
+    'lunch_dining': Icons.lunch_dining_rounded,
+    'outdoor_grill': Icons.outdoor_grill_rounded,
+    'fastfood': Icons.fastfood_rounded,
+    'local_pizza': Icons.local_pizza_rounded,
+    'dinner_dining': Icons.dinner_dining_rounded,
+    'eco': Icons.eco_rounded,
+    'cake': Icons.cake_rounded,
+    'icecream': Icons.icecream_rounded,
+    'inventory_2': Icons.inventory_2_rounded,
+    'sell': Icons.sell_rounded,
+    'celebration': Icons.celebration_rounded,
+    'event_seat': Icons.event_seat_rounded,
+    'event': Icons.event_rounded,
+    'checkroom': Icons.checkroom_rounded,
+    'redeem': Icons.redeem_rounded,
+    'more_horiz': Icons.more_horiz_rounded,
+  };
+
+  IconData _icone(String nome) =>
+      _iconesDisponiveis[nome] ?? Icons.category_rounded;
+
   List<CategoriaPadraoAdmin> get _filtrados {
     final termo = _busca.text.trim().toLowerCase();
     return termo.isEmpty
@@ -61,6 +97,97 @@ class _CategoriaPadraoAdminPageState extends State<CategoriaPadraoAdminPage> {
       }
     } finally {
       if (mounted) setState(() => _alterando.remove(item.id));
+    }
+  }
+
+  Future<void> _adicionar() async {
+    final nome = TextEditingController();
+    var icone = 'category';
+    final chave = GlobalKey<FormState>();
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (_, atualizarDialog) => AlertDialog(
+          title: const Text('Adicionar categoria'),
+          content: SizedBox(
+            width: 420,
+            child: Form(
+              key: chave,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nome,
+                    autofocus: true,
+                    maxLength: 120,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome da categoria',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (valor) =>
+                        valor == null || valor.trim().length < 2
+                        ? 'Informe o nome da categoria'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: icone,
+                    decoration: const InputDecoration(
+                      labelText: 'Ícone',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _iconesDisponiveis.entries
+                        .map(
+                          (item) => DropdownMenuItem(
+                            value: item.key,
+                            child: Row(
+                              children: [
+                                Icon(item.value),
+                                const SizedBox(width: 10),
+                                Text(item.key),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (valor) =>
+                        atualizarDialog(() => icone = valor ?? 'category'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: Colors.green),
+              onPressed: () {
+                if (chave.currentState!.validate()) {
+                  Navigator.pop(dialogContext, true);
+                }
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmou != true) return;
+    try {
+      await _repo.criar(nome.text.trim(), icone);
+      await _carregar();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     }
   }
 
@@ -109,6 +236,17 @@ class _CategoriaPadraoAdminPageState extends State<CategoriaPadraoAdminPage> {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _adicionar,
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Adicionar categoria'),
+              ),
+            ),
+          ),
           Expanded(
             child: _carregando
                 ? const Center(child: CircularProgressIndicator())
@@ -139,7 +277,7 @@ class _CategoriaPadraoAdminPageState extends State<CategoriaPadraoAdminPage> {
                                     backgroundColor: ativa
                                         ? Colors.amber.shade100
                                         : Colors.grey.shade200,
-                                    child: const Icon(Icons.category_rounded),
+                                    child: Icon(_icone(item.icone)),
                                   ),
                                   title: Text(
                                     item.nome,
