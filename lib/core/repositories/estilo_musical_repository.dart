@@ -45,6 +45,16 @@ class EstiloMusicalRepository {
     }
   }
 
+  Future<void> alterarSituacao(EstiloMusicalAdmin item, String situacao) async {
+    final r = await ApiService.put('/admin/estilos-musicais/${item.id}', {
+      'nmestilomusical': item.nome,
+      'sitestilomusical': situacao,
+    });
+    if (r.statusCode < 200 || r.statusCode >= 300) {
+      throw Exception(_erro(r.body));
+    }
+  }
+
   String _erro(String body) {
     try {
       final j = jsonDecode(body);

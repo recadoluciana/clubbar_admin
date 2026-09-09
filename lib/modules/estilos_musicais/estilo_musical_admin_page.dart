@@ -12,8 +12,20 @@ class EstiloMusicalAdminPage extends StatefulWidget {
 
 class _State extends State<EstiloMusicalAdminPage> {
   final repo = EstiloMusicalRepository();
+  final busca = TextEditingController();
   List<EstiloMusicalAdmin> itens = [];
+  final Set<int> alterando = {};
   bool loading = true;
+
+  List<EstiloMusicalAdmin> get filtrados {
+    final termo = busca.text.trim().toLowerCase();
+    return termo.isEmpty
+        ? itens
+        : itens
+              .where((item) => item.nome.toLowerCase().contains(termo))
+              .toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,90 +47,84 @@ class _State extends State<EstiloMusicalAdminPage> {
     }
   }
 
-  Future<void> editar([EstiloMusicalAdmin? item]) async {
-    final c = TextEditingController(text: item?.nome);
-    var ativo = item?.situacao != 'INATIVO';
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (d) => StatefulBuilder(
-        builder: (_, setD) => AlertDialog(
-          title: Text(
-            item == null ? 'Novo estilo musical' : 'Editar estilo musical',
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: c,
-                decoration: const InputDecoration(labelText: 'Nome do estilo'),
-                maxLength: 120,
-              ),
-              SwitchListTile(
-                value: ativo,
-                onChanged: (v) => setD(() => ativo = v),
-                title: const Text('Ativo'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(d, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(d, true),
-              child: const Text('Salvar'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (ok != true || c.text.trim().isEmpty) return;
-    await repo.salvar(item, c.text.trim(), ativo ? 'ATIVO' : 'INATIVO');
-    await carregar();
+  Future<void> alternarSituacao(EstiloMusicalAdmin item, bool ativo) async {
+    setState(() => alterando.add(item.id));
+    try {
+      await repo.alterarSituacao(item, ativo ? 'ATIVO' : 'INATIVO');
+      await carregar();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => alterando.remove(item.id));
+    }
   }
 
-  Future<void> excluir(EstiloMusicalAdmin item) async {
-    final ok = await showDialog<bool>(
+  Future<void> adicionar() async {
+    final nome = TextEditingController();
+    final chave = GlobalKey<FormState>();
+    final confirmou = await showDialog<bool>(
       context: context,
-      builder: (d) => AlertDialog(
-        title: const Text('Excluir estilo?'),
-        content: Text('Deseja excluir “${item.nome}”?'),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Adicionar estilo musical'),
+        content: Form(
+          key: chave,
+          child: TextFormField(
+            controller: nome,
+            autofocus: true,
+            maxLength: 120,
+            decoration: const InputDecoration(
+              labelText: 'Nome do estilo',
+              border: OutlineInputBorder(),
+            ),
+            validator: (valor) => valor == null || valor.trim().isEmpty
+                ? 'Informe o nome do estilo'
+                : null,
+          ),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(d, false),
-            child: const Text('Cancelar'),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.red)),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(d, true),
-            child: const Text('Excluir'),
+            style: FilledButton.styleFrom(backgroundColor: Colors.green),
+            onPressed: () {
+              if (chave.currentState!.validate()) {
+                Navigator.pop(dialogContext, true);
+              }
+            },
+            child: const Text('Salvar'),
           ),
         ],
       ),
     );
-    if (ok == true) {
-      try {
-        await repo.excluir(item.id);
-        await carregar();
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('$e')));
-        }
+    if (confirmou != true) return;
+    try {
+      await repo.salvar(null, nome.text.trim(), 'ATIVO');
+      await carregar();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
       }
     }
+  }
+
+  @override
+  void dispose() {
+    busca.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFF6F6F6),
     appBar: const ClubbarAppBar(mostrarVoltar: true),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: () => editar(),
-      icon: const Icon(Icons.add),
-      label: const Text('Novo estilo'),
-    ),
     body: Column(
       children: [
         ClubbarPageHeader(
@@ -130,6 +136,38 @@ class _State extends State<EstiloMusicalAdminPage> {
             icon: const Icon(Icons.refresh),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+          child: TextField(
+            controller: busca,
+            onChanged: (_) => setState(() {}),
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search_rounded),
+              hintText: 'Buscar estilo musical',
+            ),
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(18, 6, 18, 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Os nomes do catálogo não podem ser alterados e os estilos não podem ser excluídos. Somente o status pode ser modificado.',
+              style: TextStyle(color: Colors.black54, fontSize: 12),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+          child: SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: adicionar,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Adicionar estilo'),
+            ),
+          ),
+        ),
         Expanded(
           child: loading
               ? const Center(child: CircularProgressIndicator())
@@ -137,10 +175,12 @@ class _State extends State<EstiloMusicalAdminPage> {
                   onRefresh: carregar,
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
-                    itemCount: itens.length,
+                    itemCount: filtrados.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (_, i) {
-                      final e = itens[i];
+                      final e = filtrados[i];
+                      final ativo = e.situacao == 'ATIVO';
+                      final estaAlterando = alterando.contains(e.id);
                       return Card(
                         child: ListTile(
                           leading: const CircleAvatar(
@@ -150,24 +190,54 @@ class _State extends State<EstiloMusicalAdminPage> {
                             e.nome,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          subtitle: Text(
-                            e.situacao == 'ATIVO' ? 'Ativo' : 'Inativo',
-                          ),
-                          trailing: Wrap(
-                            children: [
-                              IconButton(
-                                onPressed: () => editar(e),
-                                icon: const Icon(Icons.edit),
-                              ),
-                              IconButton(
-                                onPressed: () => excluir(e),
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.red,
+                          subtitle: const Text('Catálogo Clubbar'),
+                          trailing: estaAlterando
+                              ? const SizedBox(
+                                  width: 26,
+                                  height: 26,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: ativo
+                                            ? Colors.green.shade50
+                                            : Colors.red.shade50,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: ativo
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        ativo ? 'Ativo' : 'Inativo',
+                                        style: TextStyle(
+                                          color: ativo
+                                              ? Colors.green.shade800
+                                              : Colors.red.shade800,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Switch.adaptive(
+                                      value: ativo,
+                                      activeTrackColor: Colors.green,
+                                      onChanged: (valor) =>
+                                          alternarSituacao(e, valor),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
                         ),
                       );
                     },
