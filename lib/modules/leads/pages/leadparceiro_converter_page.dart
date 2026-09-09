@@ -27,8 +27,8 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   late final TextEditingController _organizacao;
   late final TextEditingController _loja;
   late final TextEditingController _email;
-  final _taxaProdutos = TextEditingController(text: '5,00');
-  final _taxaIngressos = TextEditingController(text: '5,00');
+  final _taxaProdutos = TextEditingController();
+  final _taxaIngressos = TextEditingController();
   late String _tipoLoja;
   bool _convertendo = false;
   bool _carregandoContrato = true;
@@ -63,6 +63,10 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
         if (contrato == null) _erroContrato = 'Contrato aceito não encontrado.';
         final razao = contrato?['nmrazaosocial']?.toString().trim() ?? '';
         if (razao.isNotEmpty) _organizacao.text = razao;
+        if (contrato != null) {
+          _taxaProdutos.text = _formatarTaxaContrato(contrato['vrtaxaprod']);
+          _taxaIngressos.text = _formatarTaxaContrato(contrato['vrtaxaing']);
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -72,6 +76,9 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       });
     }
   }
+
+  String _formatarTaxaContrato(dynamic valor) =>
+      (double.tryParse('$valor') ?? 0).toStringAsFixed(2).replaceAll('.', ',');
 
   String _documentoFormatado(String valor) {
     final n = valor.replaceAll(RegExp(r'\D'), '');
@@ -258,10 +265,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                               Expanded(
                                 child: TextFormField(
                                   controller: _taxaProdutos,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
+                                  readOnly: true,
                                   decoration: _decoracao(
                                     'Taxa de produtos',
                                     Icons.percent,
@@ -273,10 +277,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                               Expanded(
                                 child: TextFormField(
                                   controller: _taxaIngressos,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
+                                  readOnly: true,
                                   decoration: _decoracao(
                                     'Taxa de ingressos',
                                     Icons.percent,
