@@ -13,6 +13,8 @@ import 'admin_modules_pages.dart';
 import '../estilos_musicais/estilo_musical_admin_page.dart';
 import '../contratos/contrato_padrao_page.dart';
 import '../categorias/categoria_padrao_admin_page.dart';
+import '../cora/cora_atendimentos_admin_page.dart';
+import '../cora/cora_duvidas_admin_page.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -68,6 +70,14 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   void _abrirCategoriasPadrao() => Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const CategoriaPadraoAdminPage()));
+
+  void _abrirDuvidasCora() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const CoraDuvidasAdminPage()));
+
+  void _abrirAtendimentosCora() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const CoraAtendimentosAdminPage()));
 
   void _abrirContratoPadrao() => Navigator.of(
     context,
@@ -482,6 +492,16 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               ),
             ]),
             const SizedBox(height: 18),
+            titulo('Atendimento aos clientes'),
+            grade([
+              _cardIndicador(
+                titulo: 'Cora responde',
+                valor: 'Mensagens dos clientes',
+                icone: Icons.forum_rounded,
+                onTap: _abrirAtendimentosCora,
+              ),
+            ]),
+            const SizedBox(height: 18),
             titulo('Cadastros gerais'),
             grade([
               _cardIndicador(
@@ -495,6 +515,12 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 valor: 'Catálogo geral do Clubbar',
                 icone: Icons.category_rounded,
                 onTap: _abrirCategoriasPadrao,
+              ),
+              _cardIndicador(
+                titulo: 'Dúvidas frequentes da Cora',
+                valor: 'Perguntas e respostas',
+                icone: Icons.quiz_outlined,
+                onTap: _abrirDuvidasCora,
               ),
               _cardIndicador(
                 titulo: 'Contrato padrão',
