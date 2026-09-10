@@ -366,15 +366,7 @@ class _LeadEstabelecimentoListPageState
   String _statusSelecionado = 'TODOS';
   String _tipoSelecionado = 'TODOS';
 
-  static const _status = [
-    'TODOS',
-    'NOVO',
-    'CONTATADO',
-    'NEGOCIANDO',
-    'ACEITOU_PARCERIA',
-    'CONVERTIDO',
-    'RECUSOU_PARCERIA',
-  ];
+  static const _status = ['TODOS', 'NOVO', 'ACEITOU_PARCERIA', 'CONVERTIDO'];
 
   static const _tipos = [
     'TODOS',
@@ -675,15 +667,14 @@ class _LeadEstabelecimentoListPageState
   String _nomeStatusBadge(String status) {
     switch (status) {
       case 'CONTATADO':
-        return 'Contatado';
       case 'NEGOCIANDO':
-        return 'Negociando';
+        return 'Cadastrado';
       case 'ACEITOU_PARCERIA':
         return 'Aceitou parceria';
       case 'CONVERTIDO':
         return 'Convertido';
       case 'RECUSOU_PARCERIA':
-        return 'Recusou parceria';
+        return 'Cadastrado';
       case 'NOVO':
         return 'Novo';
       default:
@@ -712,15 +703,15 @@ class _LeadEstabelecimentoListPageState
   Color _corStatus(String status) {
     switch (status) {
       case 'CONTATADO':
-        return ClubbarColors.info;
       case 'NEGOCIANDO':
-        return Colors.orange.shade800;
+      case 'RECUSOU_PARCERIA':
+        return ClubbarColors.info;
       case 'ACEITOU_PARCERIA':
         return Colors.teal.shade700;
       case 'CONVERTIDO':
         return ClubbarColors.sucesso;
       case 'RECUSOU_PARCERIA':
-        return ClubbarColors.textoSecundario;
+        return ClubbarColors.info;
       default:
         return ClubbarColors.erro;
     }
@@ -729,15 +720,13 @@ class _LeadEstabelecimentoListPageState
   Color _fundoStatus(String status) {
     switch (status) {
       case 'CONTATADO':
-        return ClubbarColors.infoClaro;
       case 'NEGOCIANDO':
-        return Colors.orange.shade50;
+      case 'RECUSOU_PARCERIA':
+        return ClubbarColors.infoClaro;
       case 'ACEITOU_PARCERIA':
         return Colors.teal.shade50;
       case 'CONVERTIDO':
         return ClubbarColors.sucessoClaro;
-      case 'RECUSOU_PARCERIA':
-        return Colors.grey.shade200;
       default:
         return ClubbarColors.erroClaro;
     }

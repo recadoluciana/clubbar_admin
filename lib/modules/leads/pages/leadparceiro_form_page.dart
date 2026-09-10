@@ -169,6 +169,22 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                     ClubbarCard(
                       child: Column(
                         children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.person_outline_rounded),
+                              SizedBox(width: 10),
+                              Text(
+                                'Dados do lead',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Spacer(),
+                              Icon(Icons.chevron_right_rounded),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
                           TextFormField(
                             controller: _responsavelController,
                             textCapitalization: TextCapitalization.words,
@@ -183,6 +199,15 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                               }
                               return null;
                             },
+                          ),
+                          const SizedBox(height: 14),
+                          _campoLeitura(
+                            label: 'Empresa',
+                            valor:
+                                (widget.lead.nmorganizacao ?? '').trim().isEmpty
+                                ? 'Não informada'
+                                : widget.lead.nmorganizacao!.trim(),
+                            icone: Icons.business_outlined,
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
@@ -234,13 +259,15 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                     ClubbarCard(
                       child: Column(
                         children: [
-                          _campoLeitura(
-                            label: 'Empresa',
-                            valor:
-                                (widget.lead.nmorganizacao ?? '').trim().isEmpty
-                                ? 'Não informada'
-                                : widget.lead.nmorganizacao!.trim(),
-                            icone: Icons.business_outlined,
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Informações do sistema',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 14),
                           _campoLeitura(
