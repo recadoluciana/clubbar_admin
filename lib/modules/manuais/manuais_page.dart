@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/repositories/manual_repository.dart';
+import '../../core/widgets/clubbar_app_bar.dart';
 import 'manual_editor_page.dart';
 import 'manual_pdf_download.dart';
 
@@ -53,8 +54,8 @@ class _ManuaisPageState extends State<ManuaisPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFF3F6F9),
-    appBar: AppBar(
-      title: const Text('Roteiro de Implantação e Manual do Parceiro'),
+    appBar: ClubbarAppBar(
+      mostrarVoltar: true,
       actions: [
         IconButton(
           onPressed: _loading ? null : _load,
@@ -96,7 +97,26 @@ class _ManuaisPageState extends State<ManuaisPage> {
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.route_rounded, color: manualAmbar, size: 36),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.route_rounded,
+                              color: manualAmbar,
+                              size: 36,
+                            ),
+                            SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                'Roteiro de Implantação e Manual do Parceiro',
+                                style: TextStyle(
+                                  color: manualAmbar,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                         SizedBox(height: 14),
                         Text(
                           'Do primeiro contato à primeira venda.',

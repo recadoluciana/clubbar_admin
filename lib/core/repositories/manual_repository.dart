@@ -3,6 +3,24 @@ import 'dart:typed_data';
 import '../services/api_service.dart';
 
 class ManualRepository {
+  Future<Uint8List> exportarBackup() async {
+    final r = await ApiService.get('/manuais/backup/exportar');
+    if (r.statusCode != 200) _decode(r);
+    return r.bodyBytes;
+  }
+
+  Future<Map<String, dynamic>> importarBackup(
+    Map<String, dynamic> dados,
+  ) async {
+    final r = await ApiService.post('/manuais/backup/importar', dados);
+    if (r.statusCode == 422) {
+      throw Exception(
+        'Backup inválido ou incompatível. Nenhum manual foi alterado.',
+      );
+    }
+    return Map<String, dynamic>.from(_decode(r) as Map);
+  }
+
   dynamic _decode(dynamic response, [int expected = 200]) {
     final body = utf8.decode(response.bodyBytes as List<int>);
     if (response.statusCode != expected) {

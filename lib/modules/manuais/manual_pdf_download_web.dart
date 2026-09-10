@@ -4,10 +4,16 @@ import 'dart:typed_data';
 import 'package:web/web.dart' as web;
 
 Future<void> salvarManualPdf(Uint8List bytes, String nome) async {
-  final blob = web.Blob(
-    [bytes.toJS].toJS,
-    web.BlobPropertyBag(type: 'application/pdf'),
-  );
+  await salvarArquivoManual(bytes, nome);
+}
+
+Future<void> salvarArquivoManual(
+  Uint8List bytes,
+  String nome, {
+  String mimeType = 'application/pdf',
+  String extensao = 'pdf',
+}) async {
+  final blob = web.Blob([bytes.toJS].toJS, web.BlobPropertyBag(type: mimeType));
   final url = web.URL.createObjectURL(blob);
   final link = web.HTMLAnchorElement()
     ..href = url

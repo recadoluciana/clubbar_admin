@@ -122,6 +122,11 @@ void main() {
               .jumpTo(0);
           await tester.pumpAndSettle();
           expect(find.text('Gerar PDF • Lead / Interessado'), findsOneWidget);
+          await tester.scrollUntilVisible(
+            find.byType(TextField),
+            200,
+            scrollable: find.byType(Scrollable).first,
+          );
           await tester.enterText(
             find.byType(TextField),
             'não existe esta etapa',
@@ -141,6 +146,11 @@ void main() {
           );
           expect(button.onPressed, isNotNull);
           expect(tester.takeException(), isNull);
+          await tester.scrollUntilVisible(
+            find.byType(TextField),
+            200,
+            scrollable: find.byType(Scrollable).first,
+          );
           await tester.enterText(find.byType(TextField), '');
           await tester.pumpAndSettle();
           tester

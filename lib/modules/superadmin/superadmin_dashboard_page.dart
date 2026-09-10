@@ -14,6 +14,7 @@ import 'admin_modules_pages.dart';
 import '../estilos_musicais/estilo_musical_admin_page.dart';
 import '../contratos/contrato_padrao_page.dart';
 import '../manuais/manuais_page.dart';
+import '../manuais/manual_backup_actions.dart';
 import '../categorias/categoria_padrao_admin_page.dart';
 import '../cora/cora_atendimentos_admin_page.dart';
 import '../cora/cora_duvidas_admin_page.dart';
@@ -552,25 +553,34 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             titulo('Guias do ecossistema'),
             grade([
               Card(
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 14,
-                  ),
-                  leading: const Icon(
-                    Icons.menu_book_rounded,
-                    color: Color(0xFF162D46),
-                    size: 32,
-                  ),
-                  title: const Text(
-                    'Roteiro de Implantação e Manual do Parceiro',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-                  ),
-                  subtitle: const Text('Negociação e Venda • Guias e PDFs'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ManuaisPage()),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 14,
+                      ),
+                      leading: const Icon(
+                        Icons.menu_book_rounded,
+                        color: Color(0xFF162D46),
+                        size: 32,
+                      ),
+                      title: const Text(
+                        'Roteiro de Implantação e Manual do Parceiro',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                        ),
+                      ),
+                      subtitle: const Text('Negociação e Venda • Guias e PDFs'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ManuaisPage()),
+                      ),
+                    ),
+                    const ManualBackupActions(),
+                  ],
                 ),
               ),
             ]),
