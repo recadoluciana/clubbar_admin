@@ -400,16 +400,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                           Colors.red.shade700,
                         ),
                         _badgeStatusEstabelecimento(
-                          'CONTATADO',
-                          'contatados',
-                          Colors.blue.shade700,
-                        ),
-                        _badgeStatusEstabelecimento(
-                          'NEGOCIANDO',
-                          'negociando',
-                          Colors.orange.shade800,
-                        ),
-                        _badgeStatusEstabelecimento(
                           'ACEITOU_PARCERIA',
                           'aceitaram',
                           Colors.teal.shade700,
@@ -418,11 +408,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                           'CONVERTIDO',
                           'convertidos',
                           Colors.green.shade700,
-                        ),
-                        _badgeStatusEstabelecimento(
-                          'RECUSOU_PARCERIA',
-                          'recusaram',
-                          Colors.grey.shade700,
                         ),
                       ],
                     ),
