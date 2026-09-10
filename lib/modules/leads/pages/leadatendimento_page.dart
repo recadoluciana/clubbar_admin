@@ -958,48 +958,6 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
     };
   }
 
-  Widget _seletorEstabelecimentoCabecalho() {
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ClubbarColors.info),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<LeadEstabelecimento>(
-          value: _estabelecimentoSelecionado,
-          isExpanded: true,
-          iconEnabledColor: ClubbarColors.info,
-          style: const TextStyle(
-            color: ClubbarColors.info,
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-          ),
-          items: widget.lead.estabelecimentos
-              .map(
-                (item) => DropdownMenuItem(
-                  value: item,
-                  child: Text(item.nome, overflow: TextOverflow.ellipsis),
-                ),
-              )
-              .toList(),
-          onChanged: (item) {
-            if (item == null || item.id == _estabelecimentoSelecionado.id) {
-              return;
-            }
-            setState(() {
-              _estabelecimentoSelecionado = item;
-              _carregando = true;
-            });
-            _carregar();
-          },
-        ),
-      ),
-    );
-  }
-
   Widget _estabelecimentoCabecalho() {
     return Padding(
       padding: const EdgeInsets.only(top: 4),
@@ -1086,9 +1044,7 @@ class _LeadAtendimentoPageState extends State<LeadAtendimentoPage> {
           ClubbarPageHeader(
             titulo: widget.lead.nmresponsavel,
             subtitulo: '',
-            subtituloWidget: widget.secao == null
-                ? _seletorEstabelecimentoCabecalho()
-                : _estabelecimentoCabecalho(),
+            subtituloWidget: _estabelecimentoCabecalho(),
             mostrarIcone: false,
             estiloTitulo: const TextStyle(color: ClubbarColors.info),
             mostrarDadosSessao: false,

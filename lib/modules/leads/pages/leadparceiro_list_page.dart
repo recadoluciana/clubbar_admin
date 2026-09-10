@@ -1072,6 +1072,7 @@ class _LeadEstabelecimentoListPageState
     return ClubbarCard(
       margin: const EdgeInsets.only(bottom: 14),
       elevation: 1,
+      onTap: () => _abrirAtendimento(lead, estabelecimento),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1161,6 +1162,43 @@ class _LeadEstabelecimentoListPageState
             estabelecimento.emailResponsavel ?? lead.email,
           ),
           const SizedBox(height: 7),
+          _linha(
+            Icons.badge_outlined,
+            'CPF/CNPJ: ${(estabelecimento.cpfCnpj ?? '').trim().isEmpty ? 'não informado' : estabelecimento.cpfCnpj}',
+          ),
+          const SizedBox(height: 7),
+          _linha(
+            Icons.location_on_outlined,
+            [
+                      estabelecimento.endereco,
+                      estabelecimento.numero,
+                      estabelecimento.complemento,
+                      estabelecimento.bairro,
+                      estabelecimento.cep == null ||
+                              estabelecimento.cep!.trim().isEmpty
+                          ? null
+                          : 'CEP ${estabelecimento.cep}',
+                    ]
+                    .whereType<String>()
+                    .where((item) => item.trim().isNotEmpty)
+                    .join(' • ')
+                    .isEmpty
+                ? 'Endereço não informado'
+                : [
+                        estabelecimento.endereco,
+                        estabelecimento.numero,
+                        estabelecimento.complemento,
+                        estabelecimento.bairro,
+                        estabelecimento.cep == null ||
+                                estabelecimento.cep!.trim().isEmpty
+                            ? null
+                            : 'CEP ${estabelecimento.cep}',
+                      ]
+                      .whereType<String>()
+                      .where((item) => item.trim().isNotEmpty)
+                      .join(' • '),
+          ),
+          const SizedBox(height: 7),
           Row(
             children: [
               Expanded(
@@ -1175,7 +1213,7 @@ class _LeadEstabelecimentoListPageState
                 child: ElevatedButton.icon(
                   onPressed: () => _abrirAtendimento(lead, estabelecimento),
                   icon: const Icon(Icons.forum_rounded, size: 17),
-                  label: const Text('Atender'),
+                  label: const Text('Abrir atendimento'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ClubbarColors.info,
                     foregroundColor: ClubbarColors.branco,
