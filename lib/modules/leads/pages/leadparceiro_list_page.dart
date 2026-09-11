@@ -1334,7 +1334,7 @@ class _LeadEstabelecimentoListPageState
     final cards = <Widget>[
       for (final lead in _leadsFiltrados)
         for (final estabelecimento in _estabelecimentosFiltrados(lead))
-          _cardLead(lead, estabelecimento),
+          _cardLeadDetalhado(lead, estabelecimento),
     ];
 
     if (cards.isEmpty) {
