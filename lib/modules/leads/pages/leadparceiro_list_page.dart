@@ -937,7 +937,6 @@ class _LeadEstabelecimentoListPageState
     return ClubbarCard(
       margin: const EdgeInsets.only(bottom: 14),
       elevation: 1,
-      onTap: () => _abrirAtendimento(lead, estabelecimento),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
