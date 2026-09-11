@@ -169,20 +169,15 @@ class _LeadParceiroFormPageState extends State<LeadParceiroFormPage> {
                     ClubbarCard(
                       child: Column(
                         children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.person_outline_rounded),
-                              SizedBox(width: 10),
-                              Text(
-                                'Dados do lead',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Dados do lead',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
                               ),
-                              Spacer(),
-                              Icon(Icons.chevron_right_rounded),
-                            ],
+                            ),
                           ),
                           const SizedBox(height: 14),
                           TextFormField(

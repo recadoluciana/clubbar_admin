@@ -347,9 +347,18 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   }
 
   Widget _cardLeads() {
-    Widget linha({required String titulo, required int total}) {
-      return Row(
+    Widget linha({
+      required String titulo,
+      required int total,
+      IconData? icone,
+      VoidCallback? onTap,
+    }) {
+      final conteudo = Row(
         children: [
+          if (icone != null) ...[
+            Icon(icone, color: Colors.blue.shade700, size: 22),
+            const SizedBox(width: 10),
+          ],
           Expanded(
             child: Text(
               '$titulo  $total',
@@ -360,8 +369,21 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               ),
             ),
           ),
+          if (onTap != null)
+            Icon(Icons.chevron_right_rounded, color: Colors.grey.shade600),
         ],
       );
+
+      return onTap == null
+          ? conteudo
+          : InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: conteudo,
+              ),
+            );
     }
 
     return Material(
@@ -383,7 +405,12 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               Expanded(
                 child: Column(
                   children: [
-                    linha(titulo: 'Leads', total: _valorInteiro('total_leads')),
+                    linha(
+                      titulo: 'Leads',
+                      total: _valorInteiro('total_leads'),
+                      icone: Icons.handshake_rounded,
+                      onTap: _abrirLeads,
+                    ),
                     const Divider(height: 18),
                     linha(
                       titulo: 'Estabelecimentos',

@@ -862,6 +862,76 @@ class _LeadEstabelecimentoListPageState
 
   Widget _cardLead(LeadParceiro lead, LeadEstabelecimento estabelecimento) {
     final status = estabelecimento.status;
+    return ClubbarCard(
+      margin: const EdgeInsets.only(bottom: 14),
+      elevation: 1,
+      child: Row(
+        children: [
+          Icon(Icons.storefront_rounded, color: _corStatus(status), size: 30),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        estabelecimento.nome,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _fundoStatus(status),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _nomeStatusBadge(status),
+                        style: TextStyle(
+                          color: _corStatus(status),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 9),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 7,
+                  children: [
+                    _chip(
+                      Icons.nightlife_outlined,
+                      _nomeTipo(estabelecimento.tipo),
+                    ),
+                    _chip(
+                      Icons.location_on_outlined,
+                      '${lead.nmcidade}/${lead.sgestado}',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cardLeadDetalhado(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) {
+    final status = estabelecimento.status;
     final urgente = status == 'NOVO' && lead.diasEspera >= 7;
 
     return ClubbarCard(
@@ -1317,9 +1387,9 @@ class _LeadEstabelecimentoListPageState
                   ? 'Carregando lead...'
                   : _leads.isEmpty
                   ? 'Lead não encontrado'
-                  : _leads.first.nmresponsavel,
+                  : 'Lead #${_leads.first.leadparceiroId} • ${_leads.first.nmresponsavel}',
               subtitulo: 'Estabelecimentos do lead',
-              icone: Icons.storefront_rounded,
+              icone: Icons.person_outline_rounded,
               estiloTitulo: const TextStyle(
                 fontSize: 24,
                 color: ClubbarColors.info,
