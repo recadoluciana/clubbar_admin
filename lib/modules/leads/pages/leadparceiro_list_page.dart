@@ -943,21 +943,6 @@ class _LeadEstabelecimentoListPageState
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: _fundoStatus(status),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  urgente
-                      ? Icons.local_fire_department_rounded
-                      : Icons.handshake_rounded,
-                  color: _corStatus(status),
-                ),
-              ),
-              const SizedBox(width: 13),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -966,10 +951,11 @@ class _LeadEstabelecimentoListPageState
                       children: [
                         Expanded(
                           child: Text(
-                            estabelecimento.nome,
+                            'Estabelecimento ${estabelecimento.nome}',
                             style: const TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
+                              color: ClubbarColors.info,
                             ),
                           ),
                         ),
@@ -1386,8 +1372,8 @@ class _LeadEstabelecimentoListPageState
                   ? 'Carregando lead...'
                   : _leads.isEmpty
                   ? 'Lead não encontrado'
-                  : 'Lead #${_leads.first.leadparceiroId} • ${_leads.first.nmresponsavel}',
-              subtitulo: 'Estabelecimentos do lead',
+                  : 'Lead #${_leads.first.leadparceiroId} ${_leads.first.nmresponsavel}',
+              subtitulo: '',
               icone: Icons.person_outline_rounded,
               estiloTitulo: const TextStyle(
                 fontSize: 24,
