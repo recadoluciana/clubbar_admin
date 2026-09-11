@@ -959,6 +959,21 @@ class _LeadEstabelecimentoListPageState
                             ),
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 7,
+                      children: [
+                        _chip(
+                          Icons.category_outlined,
+                          _nomeTipo(estabelecimento.tipo),
+                        ),
+                        _chip(
+                          Icons.location_on_outlined,
+                          '${lead.nmcidade}/${lead.sgestado}',
+                        ),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 9,
@@ -979,21 +994,6 @@ class _LeadEstabelecimentoListPageState
                         ),
                       ],
                     ),
-                    const SizedBox(height: 7),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 7,
-                      children: [
-                        _chip(
-                          Icons.category_outlined,
-                          _nomeTipo(estabelecimento.tipo),
-                        ),
-                        _chip(
-                          Icons.location_on_outlined,
-                          '${lead.nmcidade}/${lead.sgestado}',
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -1010,43 +1010,6 @@ class _LeadEstabelecimentoListPageState
           _linha(
             Icons.email_outlined,
             estabelecimento.emailResponsavel ?? lead.email,
-          ),
-          const SizedBox(height: 7),
-          _linha(
-            Icons.badge_outlined,
-            'CPF/CNPJ: ${(estabelecimento.cpfCnpj ?? '').trim().isEmpty ? 'não informado' : estabelecimento.cpfCnpj}',
-          ),
-          const SizedBox(height: 7),
-          _linha(
-            Icons.location_on_outlined,
-            [
-                      estabelecimento.endereco,
-                      estabelecimento.numero,
-                      estabelecimento.complemento,
-                      estabelecimento.bairro,
-                      estabelecimento.cep == null ||
-                              estabelecimento.cep!.trim().isEmpty
-                          ? null
-                          : 'CEP ${estabelecimento.cep}',
-                    ]
-                    .whereType<String>()
-                    .where((item) => item.trim().isNotEmpty)
-                    .join(' • ')
-                    .isEmpty
-                ? 'Endereço não informado'
-                : [
-                        estabelecimento.endereco,
-                        estabelecimento.numero,
-                        estabelecimento.complemento,
-                        estabelecimento.bairro,
-                        estabelecimento.cep == null ||
-                                estabelecimento.cep!.trim().isEmpty
-                            ? null
-                            : 'CEP ${estabelecimento.cep}',
-                      ]
-                      .whereType<String>()
-                      .where((item) => item.trim().isNotEmpty)
-                      .join(' • '),
           ),
           const SizedBox(height: 7),
           Row(
@@ -1373,7 +1336,7 @@ class _LeadEstabelecimentoListPageState
                   : _leads.isEmpty
                   ? 'Lead não encontrado'
                   : 'Lead #${_leads.first.leadparceiroId} ${_leads.first.nmresponsavel}',
-              subtitulo: '',
+              subtitulo: 'Estabelecimentos do lead',
               icone: Icons.person_outline_rounded,
               estiloTitulo: const TextStyle(
                 fontSize: 24,
