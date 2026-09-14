@@ -10,6 +10,17 @@ import '../../core/widgets/clubbar_card.dart';
 import '../../core/widgets/clubbar_page_header.dart';
 
 String _texto(dynamic valor) => valor?.toString().trim() ?? '';
+String _documentoParceiro(dynamic valor) {
+  final n = _texto(valor).replaceAll(RegExp(r'\D'), '');
+  if (n.length == 11) {
+    return 'CPF: ${n.substring(0, 3)}.${n.substring(3, 6)}.${n.substring(6, 9)}-${n.substring(9)}';
+  }
+  if (n.length == 14) {
+    return 'CNPJ: ${n.substring(0, 2)}.${n.substring(2, 5)}.${n.substring(5, 8)}/${n.substring(8, 12)}-${n.substring(12)}';
+  }
+  return 'CPF/CNPJ: ${n.isEmpty ? 'Não informado' : n}';
+}
+
 int _inteiro(dynamic valor) =>
     valor is num ? valor.toInt() : int.tryParse('$valor') ?? 0;
 double _decimal(dynamic valor) =>
@@ -94,7 +105,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
             children: [
               _CampoBusca(
                 controller: _busca,
-                dica: 'Buscar empresa, CNPJ ou e-mail',
+                dica: 'Buscar empresa, CPF, CNPJ ou e-mail',
                 onChanged: (_) => setState(() {}),
                 comBorda: true,
               ),
@@ -117,9 +128,19 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 6),
-                        Text('CNPJ: ${_texto(item['cnpjorganizacao'])}'),
+                        if ((item['documentos_estabelecimentos'] as List? ?? [])
+                            .isEmpty)
+                          const Text('CPF/CNPJ: Não informado')
+                        else
+                          for (final documento
+                              in item['documentos_estabelecimentos'] as List)
+                            Text(
+                              '${_documentoParceiro(documento['cpfcnpj'])} — ${_texto(documento['estabelecimento'])}',
+                            ),
                         Text('E-mail: ${_texto(item['emailorganizacao'])}'),
-                        Text('Telefone: ${_texto(item['telorganizacao'])}'),
+                        Text(
+                          'Telefone: ${ClubbarFormatters.telefone(_texto(item['telorganizacao']))}',
+                        ),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
