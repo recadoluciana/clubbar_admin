@@ -407,7 +407,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     linha(
-                      titulo: 'Leads',
+                      titulo: 'Lead',
                       total: _valorInteiro('total_leads'),
                       icone: Icons.handshake_rounded,
                       onTap: _abrirLeads,
