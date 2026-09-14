@@ -404,6 +404,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             children: [
               Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     linha(
                       titulo: 'Leads',
@@ -423,17 +424,17 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                       children: [
                         _badgeStatusEstabelecimento(
                           'NOVO',
-                          'novos',
+                          'interessado',
                           Colors.red.shade700,
                         ),
                         _badgeStatusEstabelecimento(
                           'ACEITOU_PARCERIA',
-                          'aceitaram',
+                          'assinaram contrato',
                           Colors.teal.shade700,
                         ),
                         _badgeStatusEstabelecimento(
                           'CONVERTIDO',
-                          'convertidos',
+                          'aceitos como parceiro',
                           Colors.green.shade700,
                         ),
                       ],
