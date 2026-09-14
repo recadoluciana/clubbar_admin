@@ -180,8 +180,7 @@ class EstabelecimentosAdminPage extends StatefulWidget {
 class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   final _repo = SuperAdminRepository();
   final _busca = TextEditingController();
-  List<Map<String, dynamic>> _organizacoes = [], _lojas = [];
-  int? _organizacaoId;
+  List<Map<String, dynamic>> _lojas = [];
   bool _carregando = true;
 
   @override
@@ -199,31 +198,34 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   Future<void> _inicializar() async {
     setState(() => _carregando = true);
     try {
-      _organizacoes = await _repo.listarOrganizacoes();
-      _organizacaoId ??= _organizacoes.isEmpty
-          ? null
-          : _inteiro(_organizacoes.first['organizacao_id']);
-      _lojas = _organizacaoId == null
-          ? []
-          : await _repo.listarLojas(_organizacaoId!);
+      final organizacoes = await _repo.listarOrganizacoes();
+      final grupos = await Future.wait(
+        organizacoes.map((organizacao) async {
+          final lojas = await _repo.listarLojas(
+            _inteiro(organizacao['organizacao_id']),
+          );
+          return lojas
+              .map(
+                (loja) => <String, dynamic>{
+                  ...loja,
+                  'nmorganizacao': _texto(organizacao['nmorganizacao']),
+                },
+              )
+              .toList();
+        }),
+      );
+      _lojas = grupos.expand((lojas) => lojas).toList()
+        ..sort((a, b) {
+          final organizacao = _texto(
+            a['nmorganizacao'],
+          ).toLowerCase().compareTo(_texto(b['nmorganizacao']).toLowerCase());
+          return organizacao != 0
+              ? organizacao
+              : _texto(
+                  a['nmloja'],
+                ).toLowerCase().compareTo(_texto(b['nmloja']).toLowerCase());
+        });
       if (mounted) setState(() {});
-    } catch (e) {
-      if (mounted) {
-        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
-      }
-    } finally {
-      if (mounted) setState(() => _carregando = false);
-    }
-  }
-
-  Future<void> _trocarOrganizacao(int? id) async {
-    if (id == null) return;
-    setState(() {
-      _organizacaoId = id;
-      _carregando = true;
-    });
-    try {
-      _lojas = await _repo.listarLojas(id);
     } catch (e) {
       if (mounted) {
         AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
@@ -247,13 +249,9 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Estabelecimentos',
-    subtituloWidget: _SeletorOrganizacao(
-      itens: _organizacoes,
-      valor: _organizacaoId,
-      onChanged: _trocarOrganizacao,
-      noCabecalho: true,
-    ),
-    subtitulo: '',
+    subtitulo: _carregando
+        ? 'Carregando estabelecimentos...'
+        : '${_lojas.length} estabelecimentos',
     estiloTitulo: const TextStyle(color: ClubbarColors.info),
     icone: Icons.storefront_rounded,
     onAtualizar: _inicializar,
@@ -263,7 +261,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
           padding: const EdgeInsets.all(16),
           child: _CampoBusca(
             controller: _busca,
-            dica: 'Buscar estabelecimento',
+            dica: 'Buscar organização ou estabelecimento',
             onChanged: (_) => setState(() {}),
             comBorda: true,
           ),
@@ -284,7 +282,8 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _TituloStatus(
-                                titulo: _texto(item['nmloja']),
+                                titulo:
+                                    '${_texto(item['nmorganizacao'])} — ${_texto(item['nmloja'])}',
                                 status: _texto(item['sitloja']),
                                 icone: Icons.store_rounded,
                               ),
