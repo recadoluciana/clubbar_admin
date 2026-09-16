@@ -58,14 +58,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
     context,
   ).push(MaterialPageRoute(builder: (_) => const ParceirosAdminPage()));
 
-  void _abrirEstabelecimentos() => Navigator.of(
-    context,
-  ).push(MaterialPageRoute(builder: (_) => const EstabelecimentosAdminPage()));
-
-  void _abrirUsuarios() => Navigator.of(
-    context,
-  ).push(MaterialPageRoute(builder: (_) => const UsuariosAdminPage()));
-
   void _abrirVendasHoje() => Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const VendasHojeAdminPage()));
@@ -480,20 +472,6 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 valor: '${_totalParceiros()}',
                 icone: Icons.business_rounded,
                 onTap: _abrirParceiros,
-              ),
-
-              _cardIndicador(
-                titulo: 'Estabelecimentos Parceiros',
-                valor: '${_dados['total_estabelecimentos'] ?? 0}',
-                icone: Icons.storefront_rounded,
-                onTap: _abrirEstabelecimentos,
-              ),
-
-              _cardIndicador(
-                titulo: 'Usuários do Clubbar',
-                valor: '${_dados['usuarios'] ?? 0}',
-                icone: Icons.manage_accounts_rounded,
-                onTap: _abrirUsuarios,
               ),
             ]),
             const SizedBox(height: 18),
