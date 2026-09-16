@@ -150,11 +150,32 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                               '${_inteiro(item['quantidade_lojas'])} estabelecimentos',
                               Icons.storefront_rounded,
                               cor: Colors.blue,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => EstabelecimentosAdminPage(
+                                    organizacaoId: _inteiro(
+                                      item['organizacao_id'],
+                                    ),
+                                    nomeOrganizacao: _texto(
+                                      item['nmorganizacao'],
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                             _Pill(
                               '${_inteiro(item['quantidade_usuarios'])} usuários',
                               Icons.people_alt_rounded,
                               cor: Colors.deepPurple,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => UsuariosAdminPage(
+                                    organizacaoId: _inteiro(
+                                      item['organizacao_id'],
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -171,7 +192,13 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
 }
 
 class EstabelecimentosAdminPage extends StatefulWidget {
-  const EstabelecimentosAdminPage({super.key});
+  final int? organizacaoId;
+  final String? nomeOrganizacao;
+  const EstabelecimentosAdminPage({
+    super.key,
+    this.organizacaoId,
+    this.nomeOrganizacao,
+  });
   @override
   State<EstabelecimentosAdminPage> createState() =>
       _EstabelecimentosAdminPageState();
@@ -198,6 +225,22 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   Future<void> _inicializar() async {
     setState(() => _carregando = true);
     try {
+      if (widget.organizacaoId != null) {
+        final lojas = await _repo.listarLojas(widget.organizacaoId!);
+        if (mounted) {
+          setState(
+            () => _lojas = lojas
+                .map(
+                  (loja) => <String, dynamic>{
+                    ...loja,
+                    'nmorganizacao': widget.nomeOrganizacao ?? '',
+                  },
+                )
+                .toList(),
+          );
+        }
+        return;
+      }
       final organizacoes = await _repo.listarOrganizacoes();
       final grupos = await Future.wait(
         organizacoes.map((organizacao) async {
@@ -321,7 +364,8 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
 }
 
 class UsuariosAdminPage extends StatefulWidget {
-  const UsuariosAdminPage({super.key});
+  final int? organizacaoId;
+  const UsuariosAdminPage({super.key, this.organizacaoId});
   @override
   State<UsuariosAdminPage> createState() => _UsuariosAdminPageState();
 }
@@ -335,6 +379,7 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
   @override
   void initState() {
     super.initState();
+    _organizacaoId = widget.organizacaoId;
     _inicializar();
   }
 
@@ -395,12 +440,14 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Usuários',
-    tituloWidget: _SeletorOrganizacao(
-      itens: _organizacoes,
-      valor: _organizacaoId,
-      onChanged: _trocarOrganizacao,
-      noCabecalho: true,
-    ),
+    tituloWidget: _carregando && _organizacoes.isEmpty
+        ? null
+        : _SeletorOrganizacao(
+            itens: _organizacoes,
+            valor: _organizacaoId,
+            onChanged: _trocarOrganizacao,
+            noCabecalho: true,
+          ),
     subtitulo: _carregando
         ? 'Carregando usuários da empresa selecionada...'
         : '${_usuarios.length} ${_usuarios.length == 1 ? 'usuário' : 'usuários'} na empresa selecionada',
@@ -953,11 +1000,12 @@ class _Pill extends StatelessWidget {
   final String texto;
   final IconData icone;
   final Color? cor;
-  const _Pill(this.texto, this.icone, {this.cor});
+  final VoidCallback? onTap;
+  const _Pill(this.texto, this.icone, {this.cor, this.onTap});
   @override
   Widget build(BuildContext context) {
     final corBadge = cor;
-    return Container(
+    final badge = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
         color: corBadge?.withValues(alpha: 0.14) ?? ClubbarColors.ambarClaro,
@@ -977,6 +1025,15 @@ class _Pill extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+    if (onTap == null) return badge;
+    return Semantics(
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: badge,
       ),
     );
   }
