@@ -262,8 +262,6 @@ class LeadParceiroRepository {
   Future<Map<String, dynamic>> converterEmParceiro({
     required int leadparceiroId,
     required int leadestabelecimentoId,
-    required String nomeOrganizacao,
-    required String nomeLoja,
     required String tipoLoja,
     required String emailResponsavel,
     required double taxaProdutos,
@@ -273,8 +271,6 @@ class LeadParceiroRepository {
       '/parceiros/$leadparceiroId/converter-em-parceiro',
       {
         'leadestabelecimento_id': leadestabelecimentoId,
-        'nome_organizacao': nomeOrganizacao.trim(),
-        'nome_loja': nomeLoja.trim(),
         'tipo_loja': tipoLoja,
         'email_responsavel': emailResponsavel.trim().toLowerCase(),
         'taxa_produtos': taxaProdutos,

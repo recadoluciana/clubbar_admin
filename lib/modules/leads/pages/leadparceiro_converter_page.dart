@@ -39,9 +39,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   void initState() {
     super.initState();
     _organizacao = TextEditingController(
-      text: (widget.lead.nmorganizacao?.trim().isNotEmpty ?? false)
-          ? widget.lead.nmorganizacao!
-          : widget.lead.nmestabelecimento,
+      text: widget.lead.nmorganizacao?.trim() ?? '',
     );
     _loja = TextEditingController(text: widget.estabelecimento.nome);
     _email = TextEditingController(text: widget.lead.email);
@@ -61,8 +59,6 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
         _contrato = contrato;
         _carregandoContrato = false;
         if (contrato == null) _erroContrato = 'Contrato aceito não encontrado.';
-        final razao = contrato?['nmrazaosocial']?.toString().trim() ?? '';
-        if (razao.isNotEmpty) _organizacao.text = razao;
         if (contrato != null) {
           _taxaProdutos.text = _formatarTaxaContrato(contrato['vrtaxaprod']);
           _taxaIngressos.text = _formatarTaxaContrato(contrato['vrtaxaing']);
@@ -146,8 +142,6 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       final resultado = await _repository.converterEmParceiro(
         leadparceiroId: widget.lead.leadparceiroId,
         leadestabelecimentoId: widget.estabelecimento.id,
-        nomeOrganizacao: _organizacao.text,
-        nomeLoja: _loja.text,
         tipoLoja: _tipoLoja,
         emailResponsavel: _email.text,
         taxaProdutos: produtos,
@@ -205,6 +199,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                         children: [
                           TextFormField(
                             controller: _organizacao,
+                            readOnly: true,
                             validator: _obrigatorio,
                             decoration: _decoracao(
                               'Nome da empresa',
@@ -214,6 +209,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                           const SizedBox(height: 14),
                           TextFormField(
                             controller: _loja,
+                            readOnly: true,
                             validator: _obrigatorio,
                             decoration: _decoracao(
                               'Nome do estabelecimento',

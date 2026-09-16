@@ -173,6 +173,9 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                                     organizacaoId: _inteiro(
                                       item['organizacao_id'],
                                     ),
+                                    nomeOrganizacao: _texto(
+                                      item['nmorganizacao'],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -364,8 +367,13 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
 }
 
 class UsuariosAdminPage extends StatefulWidget {
-  final int? organizacaoId;
-  const UsuariosAdminPage({super.key, this.organizacaoId});
+  final int organizacaoId;
+  final String nomeOrganizacao;
+  const UsuariosAdminPage({
+    super.key,
+    required this.organizacaoId,
+    required this.nomeOrganizacao,
+  });
   @override
   State<UsuariosAdminPage> createState() => _UsuariosAdminPageState();
 }
@@ -373,13 +381,11 @@ class UsuariosAdminPage extends StatefulWidget {
 class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
   final _repo = SuperAdminRepository();
   final _busca = TextEditingController();
-  List<Map<String, dynamic>> _organizacoes = [], _usuarios = [];
-  int? _organizacaoId;
+  List<Map<String, dynamic>> _usuarios = [];
   bool _carregando = true;
   @override
   void initState() {
     super.initState();
-    _organizacaoId = widget.organizacaoId;
     _inicializar();
   }
 
@@ -392,31 +398,8 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
   Future<void> _inicializar() async {
     setState(() => _carregando = true);
     try {
-      _organizacoes = await _repo.listarOrganizacoes();
-      _organizacaoId ??= _organizacoes.isEmpty
-          ? null
-          : _inteiro(_organizacoes.first['organizacao_id']);
-      _usuarios = _organizacaoId == null
-          ? []
-          : await _repo.listarUsuarios(_organizacaoId!);
-      if (mounted) setState(() {});
-    } catch (e) {
-      if (mounted) {
-        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
-      }
-    } finally {
-      if (mounted) setState(() => _carregando = false);
-    }
-  }
-
-  Future<void> _trocarOrganizacao(int? id) async {
-    if (id == null) return;
-    setState(() {
-      _organizacaoId = id;
-      _carregando = true;
-    });
-    try {
-      _usuarios = await _repo.listarUsuarios(id);
+      final usuarios = await _repo.listarUsuarios(widget.organizacaoId);
+      if (mounted) setState(() => _usuarios = usuarios);
     } catch (e) {
       if (mounted) {
         AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
@@ -439,18 +422,11 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
 
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
-    titulo: 'Usuários',
-    tituloWidget: _carregando && _organizacoes.isEmpty
-        ? null
-        : _SeletorOrganizacao(
-            itens: _organizacoes,
-            valor: _organizacaoId,
-            onChanged: _trocarOrganizacao,
-            noCabecalho: true,
-          ),
+    titulo: widget.nomeOrganizacao,
+    estiloTitulo: const TextStyle(color: ClubbarColors.info),
     subtitulo: _carregando
-        ? 'Carregando usuários da empresa selecionada...'
-        : '${_usuarios.length} ${_usuarios.length == 1 ? 'usuário' : 'usuários'} na empresa selecionada',
+        ? 'Carregando usuários da empresa...'
+        : '${_usuarios.length} ${_usuarios.length == 1 ? 'usuário' : 'usuários'} na empresa',
     icone: Icons.manage_accounts_rounded,
     onAtualizar: _inicializar,
     child: Column(
@@ -781,8 +757,6 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
 
 class _EstruturaModulo extends StatelessWidget {
   final String titulo, subtitulo;
-  final Widget? tituloWidget;
-  final Widget? subtituloWidget;
   final TextStyle? estiloTitulo;
   final IconData icone;
   final Future<void> Function() onAtualizar;
@@ -790,8 +764,6 @@ class _EstruturaModulo extends StatelessWidget {
   final Widget child;
   const _EstruturaModulo({
     required this.titulo,
-    this.tituloWidget,
-    this.subtituloWidget,
     this.estiloTitulo,
     required this.subtitulo,
     required this.icone,
@@ -808,9 +780,7 @@ class _EstruturaModulo extends StatelessWidget {
         children: [
           ClubbarPageHeader(
             titulo: titulo,
-            tituloWidget: tituloWidget,
             subtitulo: subtitulo,
-            subtituloWidget: subtituloWidget,
             estiloTitulo: estiloTitulo,
             icone: icone,
             mostrarDadosSessao: false,
@@ -888,46 +858,25 @@ class _SeletorOrganizacao extends StatelessWidget {
   final int? valor;
   final ValueChanged<int?> onChanged;
   final bool permitirTodos;
-  final bool noCabecalho;
   const _SeletorOrganizacao({
     required this.itens,
     required this.valor,
     required this.onChanged,
     this.permitirTodos = false,
-    this.noCabecalho = false,
   });
   @override
   Widget build(BuildContext context) => DropdownButtonFormField<int?>(
     initialValue: valor,
     isExpanded: true,
-    style: TextStyle(
-      color: noCabecalho ? ClubbarColors.info : ClubbarColors.textoPrincipal,
-      fontSize: noCabecalho ? 17 : null,
-      fontWeight: noCabecalho ? FontWeight.w900 : null,
-    ),
-    decoration: InputDecoration(
-      labelText: noCabecalho ? null : 'Empresa',
-      labelStyle: TextStyle(
-        color: noCabecalho ? ClubbarColors.info : null,
-        fontWeight: noCabecalho ? FontWeight.w700 : null,
-      ),
-      prefixIcon: noCabecalho ? null : const Icon(Icons.business_rounded),
-      filled: noCabecalho,
-      fillColor: noCabecalho ? Colors.white.withValues(alpha: 0.72) : null,
-      contentPadding: noCabecalho
-          ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
-          : null,
+    style: const TextStyle(color: ClubbarColors.textoPrincipal),
+    decoration: const InputDecoration(
+      labelText: 'Empresa',
+      prefixIcon: Icon(Icons.business_rounded),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(noCabecalho ? 12 : 4),
-        borderSide: BorderSide(
-          color: noCabecalho ? ClubbarColors.info : ClubbarColors.borda,
-        ),
+        borderSide: BorderSide(color: ClubbarColors.borda),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(noCabecalho ? 12 : 4),
-        borderSide: BorderSide(
-          color: noCabecalho ? ClubbarColors.info : ClubbarColors.borda,
-        ),
+        borderSide: BorderSide(color: ClubbarColors.borda),
       ),
     ),
     items: [
