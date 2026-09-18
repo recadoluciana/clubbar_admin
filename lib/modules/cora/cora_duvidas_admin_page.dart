@@ -27,10 +27,11 @@ class _CoraDuvidasAdminPageState extends State<CoraDuvidasAdminPage> {
       final itens = await _repo.listarDuvidas();
       if (mounted) setState(() => _itens = itens);
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     } finally {
       if (mounted) setState(() => _carregando = false);
     }
@@ -105,10 +106,11 @@ class _CoraDuvidasAdminPageState extends State<CoraDuvidasAdminPage> {
         resposta.text.trim().length < 3 ||
         numero == null ||
         numero < 1) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Preencha pergunta, resposta e ordem.')),
         );
+      }
       return;
     }
     try {
@@ -121,10 +123,11 @@ class _CoraDuvidasAdminPageState extends State<CoraDuvidasAdminPage> {
       );
       await _carregar();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     } finally {
       pergunta.dispose();
       resposta.dispose();
@@ -156,10 +159,11 @@ class _CoraDuvidasAdminPageState extends State<CoraDuvidasAdminPage> {
       await _repo.excluirDuvida(item.id);
       await _carregar();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     }
   }
 

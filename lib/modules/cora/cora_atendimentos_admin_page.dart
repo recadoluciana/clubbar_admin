@@ -29,10 +29,11 @@ class _CoraAtendimentosAdminPageState extends State<CoraAtendimentosAdminPage> {
       final itens = await _repo.listarAtendimentos();
       if (mounted) setState(() => _itens = itens);
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     } finally {
       if (mounted) setState(() => _carregando = false);
     }
@@ -157,11 +158,12 @@ class _CoraConversaAdminPageState extends State<CoraConversaAdminPage> {
   Future<void> _carregar() async {
     try {
       final detalhe = await _repo.consultarAtendimento(widget.clienteId);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _detalhe = detalhe;
           _carregando = false;
         });
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _carregando = false);
@@ -181,10 +183,11 @@ class _CoraConversaAdminPageState extends State<CoraConversaAdminPage> {
       _texto.clear();
       await _carregar();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     } finally {
       if (mounted) setState(() => _enviando = false);
     }

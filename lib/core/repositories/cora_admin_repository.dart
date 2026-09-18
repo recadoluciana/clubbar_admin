@@ -97,14 +97,16 @@ class CoraAdminRepository {
     final r = item == null
         ? await ApiService.post('/cora/admin/duvidas', dados)
         : await ApiService.put('/cora/admin/duvidas/${item.id}', dados);
-    if (r.statusCode < 200 || r.statusCode >= 300)
+    if (r.statusCode < 200 || r.statusCode >= 300) {
       throw Exception(_erro(r.body));
+    }
   }
 
   Future<void> excluirDuvida(int id) async {
     final r = await ApiService.delete('/cora/admin/duvidas/$id');
-    if (r.statusCode < 200 || r.statusCode >= 300)
+    if (r.statusCode < 200 || r.statusCode >= 300) {
       throw Exception(_erro(r.body));
+    }
   }
 
   Future<List<CoraAtendimentoResumo>> listarAtendimentos() async {
@@ -135,8 +137,9 @@ class CoraAdminRepository {
       '/cora/admin/atendimentos/$clienteId/mensagens',
       {'mensagem': mensagem},
     );
-    if (r.statusCode < 200 || r.statusCode >= 300)
+    if (r.statusCode < 200 || r.statusCode >= 300) {
       throw Exception(_erro(r.body));
+    }
   }
 
   String _erro(String body) {
