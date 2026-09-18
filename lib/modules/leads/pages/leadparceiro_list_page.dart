@@ -15,6 +15,7 @@ import 'leadparceiro_converter_page.dart';
 import 'leadatendimento_page.dart';
 import 'leadestabelecimento_form_page.dart';
 import 'leadcontrato_retificacao_page.dart';
+import 'leadcontratos_page.dart';
 
 class LeadParceiroListPage extends StatefulWidget {
   const LeadParceiroListPage({super.key});
@@ -470,6 +471,18 @@ class _LeadEstabelecimentoListPageState
     if (mounted) await _carregar();
   }
 
+  Future<void> _abrirContratos(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) =>
+            LeadContratosPage(lead: lead, estabelecimento: estabelecimento),
+      ),
+    );
+  }
+
   Future<void> _abrirAtendimento(
     LeadParceiro lead,
     LeadEstabelecimento estabelecimento,
@@ -726,8 +739,6 @@ class _LeadEstabelecimentoListPageState
         return Colors.teal.shade700;
       case 'CONVERTIDO':
         return ClubbarColors.sucesso;
-      case 'RECUSOU_PARCERIA':
-        return ClubbarColors.info;
       default:
         return ClubbarColors.erro;
     }
@@ -873,73 +884,6 @@ class _LeadEstabelecimentoListPageState
           },
         ),
       ],
-    );
-  }
-
-  Widget _cardLead(LeadParceiro lead, LeadEstabelecimento estabelecimento) {
-    final status = estabelecimento.status;
-    return ClubbarCard(
-      margin: const EdgeInsets.only(bottom: 14),
-      elevation: 1,
-      child: Row(
-        children: [
-          Icon(Icons.storefront_rounded, color: _corStatus(status), size: 30),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        estabelecimento.nome,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _fundoStatus(status),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _nomeStatusBadge(status),
-                        style: TextStyle(
-                          color: _corStatus(status),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 9),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 7,
-                  children: [
-                    _chip(
-                      Icons.nightlife_outlined,
-                      _nomeTipo(estabelecimento.tipo),
-                    ),
-                    _chip(
-                      Icons.location_on_outlined,
-                      '${lead.nmcidade}/${lead.sgestado}',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1158,14 +1102,25 @@ class _LeadEstabelecimentoListPageState
               ),
             ),
           ],
-          if (status == 'NEGOCIANDO' || status == 'ACEITOU_PARCERIA' || status == 'CONVERTIDO') ...[
+          if (status == 'NEGOCIANDO' ||
+              status == 'ACEITOU_PARCERIA' ||
+              status == 'CONVERTIDO') ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _abrirContratos(lead, estabelecimento),
+                icon: const Icon(Icons.folder_copy_outlined),
+                label: const Text('Contratos e retificações'),
+              ),
+            ),
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => _abrirRetificacao(lead, estabelecimento),
                 icon: const Icon(Icons.edit_document),
-                label: const Text('Retificar contrato assinado'),
+                label: const Text('Nova retificação'),
               ),
             ),
           ],

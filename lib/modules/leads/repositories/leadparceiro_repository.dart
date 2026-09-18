@@ -321,6 +321,18 @@ class LeadParceiroRepository {
         .toList();
   }
 
+  Future<Uint8List> baixarContratoPdf(int contratoId) async {
+    final response = await ApiService.get(
+      '/lead-estabelecimento-contratos/$contratoId/pdf',
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao gerar o PDF do contrato.'),
+      );
+    }
+    return response.bodyBytes;
+  }
+
   Future<String> previsualizarRetificacao(
     int estabelecimentoId,
     Map<String, dynamic> dados,
@@ -330,18 +342,26 @@ class LeadParceiroRepository {
       dados,
     );
     if (response.statusCode != 200) {
-      throw Exception(_extrairErro(response.body, 'Erro ao pré-visualizar a retificação.'));
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao pré-visualizar a retificação.'),
+      );
     }
-    return (jsonDecode(response.body) as Map)['conteudocontrato']?.toString() ?? '';
+    return (jsonDecode(response.body) as Map)['conteudocontrato']?.toString() ??
+        '';
   }
 
-  Future<void> criarRetificacao(int estabelecimentoId, Map<String, dynamic> dados) async {
+  Future<void> criarRetificacao(
+    int estabelecimentoId,
+    Map<String, dynamic> dados,
+  ) async {
     final response = await ApiService.post(
       '/lead-estabelecimento-contratos/estabelecimento/$estabelecimentoId/retificacoes',
       dados,
     );
     if (response.statusCode != 201) {
-      throw Exception(_extrairErro(response.body, 'Erro ao enviar a retificação.'));
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao enviar a retificação.'),
+      );
     }
   }
 
@@ -351,7 +371,9 @@ class LeadParceiroRepository {
       {},
     );
     if (response.statusCode != 200) {
-      throw Exception(_extrairErro(response.body, 'Erro ao cancelar a retificação.'));
+      throw Exception(
+        _extrairErro(response.body, 'Erro ao cancelar a retificação.'),
+      );
     }
   }
 
