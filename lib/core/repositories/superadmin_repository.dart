@@ -59,16 +59,24 @@ class SuperAdminRepository {
   }
 
   Future<Map<String, dynamic>> vendasHoje({
-    DateTime? data,
+    DateTime? dataInicio,
+    DateTime? dataFim,
     int? organizacaoId,
     int? lojaId,
   }) async {
     final parametros = <String>[];
-    if (data != null) {
+    String formatarData(DateTime data) {
       final ano = data.year.toString().padLeft(4, '0');
       final mes = data.month.toString().padLeft(2, '0');
       final dia = data.day.toString().padLeft(2, '0');
-      parametros.add('data=$ano-$mes-$dia');
+      return '$ano-$mes-$dia';
+    }
+
+    if (dataInicio != null) {
+      parametros.add('data_inicio=${formatarData(dataInicio)}');
+    }
+    if (dataFim != null) {
+      parametros.add('data_fim=${formatarData(dataFim)}');
     }
     if (organizacaoId != null) {
       parametros.add('organizacao_id=$organizacaoId');

@@ -531,13 +531,14 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
   Map<String, dynamic> _dados = {};
   List<Map<String, dynamic>> _organizacoes = [];
   int? _organizacaoId, _lojaId;
-  DateTime _dataConsulta = DateTime.now();
+  DateTime _dataInicio = DateTime.now();
+  DateTime _dataFim = DateTime.now();
   bool _carregando = true;
   Future<void> _carregar() async {
     setState(() => _carregando = true);
     try {
       final resultados = await Future.wait([
-        _repo.vendasHoje(data: _dataConsulta),
+        _repo.vendasHoje(dataInicio: _dataInicio, dataFim: _dataFim),
         _repo.listarOrganizacoes(),
       ]);
       _dados = Map<String, dynamic>.from(resultados[0] as Map);
@@ -559,19 +560,25 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
   }
 
   Future<void> _selecionarData() async {
-    final data = await showDatePicker(
+    final periodo = await showDateRangePicker(
       context: context,
-      initialDate: _dataConsulta,
+      initialDateRange: DateTimeRange(start: _dataInicio, end: _dataFim),
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       locale: const Locale('pt', 'BR'),
-      helpText: 'Selecione a data das vendas',
+      helpText: 'Selecione um período de até 30 dias',
       cancelText: 'Cancelar',
-      confirmText: 'Consultar',
+      confirmText: 'Aplicar',
+      saveText: 'Aplicar',
     );
-    if (data == null || !mounted) return;
+    if (periodo == null || !mounted) return;
+    if (periodo.duration.inDays >= 30) {
+      AppSnackBar.aviso(context, 'Selecione um período de no máximo 30 dias.');
+      return;
+    }
     setState(() {
-      _dataConsulta = data;
+      _dataInicio = periodo.start;
+      _dataFim = periodo.end;
       _organizacaoId = null;
       _lojaId = null;
     });
@@ -608,13 +615,18 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
       _detalhes.fold(0, (s, e) => s + _decimal(e['taxa_produtos']));
   double get _taxasIngressos =>
       _detalhes.fold(0, (s, e) => s + _decimal(e['taxa_ingressos']));
+  String get _periodoSelecionado {
+    final formato = DateFormat('dd/MM/yyyy', 'pt_BR');
+    if (DateUtils.isSameDay(_dataInicio, _dataFim)) {
+      return formato.format(_dataInicio);
+    }
+    return '${formato.format(_dataInicio)} a ${formato.format(_dataFim)}';
+  }
+
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: widget.focoFaturamento ? 'Faturamento Clubbar' : 'Vendas Clubbar',
-    subtitulo: DateFormat(
-      "EEEE, dd 'de' MMMM 'de' yyyy",
-      'pt_BR',
-    ).format(_dataConsulta),
+    subtitulo: _periodoSelecionado,
     icone: widget.focoFaturamento
         ? Icons.paid_rounded
         : Icons.shopping_cart_checkout_rounded,
@@ -627,6 +639,38 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              _SeletorOrganizacao(
+                itens: _organizacoes,
+                valor: _organizacaoId,
+                permitirTodos: true,
+                onChanged: (id) => setState(() {
+                  _organizacaoId = id;
+                  _lojaId = null;
+                }),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<int?>(
+                initialValue: _lojaId,
+                decoration: const InputDecoration(
+                  labelText: 'Estabelecimento',
+                  prefixIcon: Icon(Icons.storefront_rounded),
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  const DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text('Todos os estabelecimentos'),
+                  ),
+                  ..._lojasFiltro.map(
+                    (e) => DropdownMenuItem<int?>(
+                      value: _inteiro(e['loja_id']),
+                      child: Text(_texto(e['nmloja'])),
+                    ),
+                  ),
+                ],
+                onChanged: (id) => setState(() => _lojaId = id),
+              ),
+              const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
@@ -669,38 +713,6 @@ class _MovimentoHojePageState extends State<_MovimentoHojePage> {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 14),
-              _SeletorOrganizacao(
-                itens: _organizacoes,
-                valor: _organizacaoId,
-                permitirTodos: true,
-                onChanged: (id) => setState(() {
-                  _organizacaoId = id;
-                  _lojaId = null;
-                }),
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<int?>(
-                initialValue: _lojaId,
-                decoration: const InputDecoration(
-                  labelText: 'Estabelecimento',
-                  prefixIcon: Icon(Icons.storefront_rounded),
-                  border: OutlineInputBorder(),
-                ),
-                items: [
-                  const DropdownMenuItem<int?>(
-                    value: null,
-                    child: Text('Todos os estabelecimentos'),
-                  ),
-                  ..._lojasFiltro.map(
-                    (e) => DropdownMenuItem<int?>(
-                      value: _inteiro(e['loja_id']),
-                      child: Text(_texto(e['nmloja'])),
-                    ),
-                  ),
-                ],
-                onChanged: (id) => setState(() => _lojaId = id),
               ),
               const SizedBox(height: 16),
               ..._detalhes.map(
