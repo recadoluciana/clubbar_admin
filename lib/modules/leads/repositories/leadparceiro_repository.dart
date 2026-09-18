@@ -321,6 +321,40 @@ class LeadParceiroRepository {
         .toList();
   }
 
+  Future<String> previsualizarRetificacao(
+    int estabelecimentoId,
+    Map<String, dynamic> dados,
+  ) async {
+    final response = await ApiService.post(
+      '/lead-estabelecimento-contratos/estabelecimento/$estabelecimentoId/retificacoes/previsualizar',
+      dados,
+    );
+    if (response.statusCode != 200) {
+      throw Exception(_extrairErro(response.body, 'Erro ao pré-visualizar a retificação.'));
+    }
+    return (jsonDecode(response.body) as Map)['conteudocontrato']?.toString() ?? '';
+  }
+
+  Future<void> criarRetificacao(int estabelecimentoId, Map<String, dynamic> dados) async {
+    final response = await ApiService.post(
+      '/lead-estabelecimento-contratos/estabelecimento/$estabelecimentoId/retificacoes',
+      dados,
+    );
+    if (response.statusCode != 201) {
+      throw Exception(_extrairErro(response.body, 'Erro ao enviar a retificação.'));
+    }
+  }
+
+  Future<void> cancelarRetificacao(int retificacaoId) async {
+    final response = await ApiService.patch(
+      '/lead-estabelecimento-contratos/retificacoes/$retificacaoId/cancelar',
+      {},
+    );
+    if (response.statusCode != 200) {
+      throw Exception(_extrairErro(response.body, 'Erro ao cancelar a retificação.'));
+    }
+  }
+
   Future<Map<String, dynamic>> consultarImplantacao(
     int leadestabelecimentoId,
   ) async {

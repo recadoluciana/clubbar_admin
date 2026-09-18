@@ -14,6 +14,7 @@ import 'leadparceiro_form_page.dart';
 import 'leadparceiro_converter_page.dart';
 import 'leadatendimento_page.dart';
 import 'leadestabelecimento_form_page.dart';
+import 'leadcontrato_retificacao_page.dart';
 
 class LeadParceiroListPage extends StatefulWidget {
   const LeadParceiroListPage({super.key});
@@ -453,6 +454,21 @@ class _LeadEstabelecimentoListPageState
   }
 
   void _filtrar() => setState(_aplicarFiltros);
+
+  Future<void> _abrirRetificacao(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => LeadContratoRetificacaoPage(
+          lead: lead,
+          estabelecimento: estabelecimento,
+        ),
+      ),
+    );
+    if (mounted) await _carregar();
+  }
 
   Future<void> _abrirAtendimento(
     LeadParceiro lead,
@@ -1139,6 +1155,17 @@ class _LeadEstabelecimentoListPageState
                 onPressed: () => _abrirImplantacao(estabelecimento),
                 icon: const Icon(Icons.payments_rounded),
                 label: const Text('Consultar taxa de implantação'),
+              ),
+            ),
+          ],
+          if (status == 'NEGOCIANDO' || status == 'ACEITOU_PARCERIA' || status == 'CONVERTIDO') ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _abrirRetificacao(lead, estabelecimento),
+                icon: const Icon(Icons.edit_document),
+                label: const Text('Retificar contrato assinado'),
               ),
             ),
           ],
