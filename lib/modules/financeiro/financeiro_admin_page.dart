@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/repositories/financeiro_repository.dart';
+import '../../core/theme/clubbar_colors.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/clubbar_app_bar.dart';
 import '../../core/widgets/clubbar_page_header.dart';
 
@@ -15,8 +17,10 @@ class FinanceiroAdminPage extends StatefulWidget {
 class _FinanceiroAdminPageState extends State<FinanceiroAdminPage> {
   final _repo = FinanceiroRepository();
   final _moeda = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-  List<Map<String, dynamic>> _repasses = [];
-  String? _filtro;
+  final _data = DateFormat('dd/MM/yyyy');
+  DateTime _inicio = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _fim = DateTime.now();
+  Map<String, dynamic> _dados = {};
   bool _carregando = true;
 
   @override
@@ -28,221 +32,298 @@ class _FinanceiroAdminPageState extends State<FinanceiroAdminPage> {
   Future<void> _carregar() async {
     setState(() => _carregando = true);
     try {
-      final dados = await _repo.listar();
-      if (mounted) setState(() => _repasses = dados);
+      final resultado = await _repo.consultarExtratoAsaas(
+        inicio: _inicio,
+        fim: _fim,
+      );
+      if (mounted) setState(() => _dados = resultado);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-        );
+        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
       }
     } finally {
       if (mounted) setState(() => _carregando = false);
     }
   }
 
-  double _total(String status) => _repasses
-      .where((e) => e['status'] == status)
-      .fold(0, (s, e) => s + ((e['vrrepasse'] as num?)?.toDouble() ?? 0));
-
-  List<Map<String, dynamic>> get _repassesVisiveis => _filtro == null
-      ? _repasses
-      : _repasses.where((item) => item['status'] == _filtro).toList();
-
-  Future<void> _editar(Map<String, dynamic> item) async {
-    var status = item['status']?.toString() ?? 'PENDENTE';
-    final transferencia = TextEditingController(
-      text: item['idtransferencia']?.toString() ?? '',
-    );
-    final observacao = TextEditingController(
-      text: item['observacao']?.toString() ?? '',
-    );
-    final salvar = await showDialog<bool>(
+  Future<void> _selecionarPeriodo() async {
+    final intervalo = await showDateRangePicker(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setLocal) => AlertDialog(
-          title: Text('Repasse #${item['repassefinanceiro_id']}'),
-          content: SizedBox(
-            width: 440,
-            child: Column(
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange: DateTimeRange(start: _inicio, end: _fim),
+      locale: const Locale('pt', 'BR'),
+      helpText: 'Selecione o período do extrato',
+      cancelText: 'Cancelar',
+      confirmText: 'Aplicar',
+      saveText: 'Aplicar',
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: ClubbarColors.ambar,
+            onPrimary: ClubbarColors.preto,
+            surface: ClubbarColors.branco,
+            onSurface: ClubbarColors.preto,
+          ),
+          dialogTheme: const DialogThemeData(
+            backgroundColor: ClubbarColors.branco,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (intervalo != null) {
+      _inicio = intervalo.start;
+      _fim = intervalo.end;
+      await _carregar();
+    }
+  }
+
+  double _numero(Object? valor) =>
+      valor is num ? valor.toDouble() : double.tryParse('$valor') ?? 0;
+
+  String _tipoTransacao(Object? valor) {
+    final tipo = valor?.toString().toUpperCase() ?? '';
+    if (tipo.contains('SPLIT')) return 'Split recebido';
+    if (tipo.contains('PIX')) return 'Pix';
+    if (tipo.contains('CARD')) return 'Cartão';
+    return valor?.toString() ?? 'Transação';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final itens = (_dados['transacoes'] as List? ?? const []).cast<Map>();
+    final pendentes = (_dados['recebimentos_pendentes'] as List? ?? const [])
+        .cast<Map>();
+    return Scaffold(
+      backgroundColor: ClubbarColors.fundo,
+      appBar: const ClubbarAppBar(mostrarVoltar: true),
+      body: Column(
+        children: [
+          ClubbarPageHeader(
+            titulo: 'Clubbar',
+            subtitulo: 'Extrato de transações Asaas',
+            estiloTitulo: const TextStyle(
+              color: ClubbarColors.info,
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+            ),
+            mostrarDadosSessao: false,
+            trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<String>(
-                  initialValue: status,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items:
-                      const [
-                            'BLOQUEADO',
-                            'PENDENTE',
-                            'AGENDADO',
-                            'PAGO',
-                            'CANCELADO',
-                          ]
-                          .map(
-                            (s) => DropdownMenuItem(value: s, child: Text(s)),
-                          )
-                          .toList(),
-                  onChanged: (v) => setLocal(() => status = v!),
+                IconButton(
+                  tooltip: 'Alterar período',
+                  onPressed: _selecionarPeriodo,
+                  icon: const Icon(Icons.date_range_rounded),
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: transferencia,
-                  decoration: const InputDecoration(
-                    labelText: 'Identificação da transferência',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: observacao,
-                  maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Observação'),
+                IconButton(
+                  tooltip: 'Atualizar',
+                  onPressed: _carregar,
+                  icon: const Icon(Icons.refresh_rounded),
                 ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Salvar'),
-            ),
-          ],
-        ),
+          Expanded(
+            child: _carregando
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _carregar,
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        Card(
+                          color: ClubbarColors.infoClaro,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  backgroundColor: ClubbarColors.info,
+                                  child: Icon(
+                                    Icons.account_balance_wallet_rounded,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('Saldo disponível no Asaas'),
+                                      Text(
+                                        _moeda.format(_numero(_dados['saldo'])),
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w900,
+                                          color: ClubbarColors.info,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${_data.format(_inicio)} a ${_data.format(_fim)}',
+                                        style: const TextStyle(
+                                          color: ClubbarColors.textoSecundario,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (pendentes.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          Card(
+                            color: ClubbarColors.avisoClaro,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  const CircleAvatar(
+                                    backgroundColor: Color(0xFFFFE0B2),
+                                    child: Icon(
+                                      Icons.schedule_rounded,
+                                      color: Colors.deepOrange,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Splits aguardando liberação',
+                                        ),
+                                        Text(
+                                          _moeda.format(
+                                            _numero(_dados['total_pendente']),
+                                          ),
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.deepOrange,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'Valores do Clubbar confirmados que ainda não entraram no saldo disponível.',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color:
+                                                ClubbarColors.textoSecundario,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          ...pendentes.map((item) {
+                            final valor = _numero(item['valor_liquido']);
+                            final credito = DateTime.tryParse(
+                              item['data_prevista_credito']?.toString() ?? '',
+                            );
+                            return Card(
+                              child: ListTile(
+                                leading: const CircleAvatar(
+                                  backgroundColor: ClubbarColors.avisoClaro,
+                                  child: Icon(
+                                    Icons.call_split_rounded,
+                                    color: Colors.deepOrange,
+                                  ),
+                                ),
+                                title: Text(
+                                  'Split Clubbar • ${_moeda.format(valor)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  credito == null
+                                      ? 'Aguardando definição da data de crédito'
+                                      : 'Crédito previsto para ${_data.format(credito)}',
+                                ),
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 12),
+                        ],
+                        const Text(
+                          'Movimentações no saldo',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        if (itens.isEmpty)
+                          const Card(
+                            child: Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Center(
+                                child: Text(
+                                  'Nenhuma movimentação no saldo neste período.',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ...itens.map((item) {
+                          final valor = _numero(item['valor']);
+                          final positivo = valor >= 0;
+                          final data = DateTime.tryParse(
+                            item['data']?.toString() ?? '',
+                          );
+                          final descricao =
+                              item['descricao']?.toString().trim() ?? '';
+                          return Card(
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor:
+                                    (positivo ? Colors.green : Colors.red)
+                                        .withValues(alpha: .12),
+                                child: Icon(
+                                  positivo
+                                      ? Icons.south_west_rounded
+                                      : Icons.north_east_rounded,
+                                  color: positivo ? Colors.green : Colors.red,
+                                ),
+                              ),
+                              title: Text(
+                                descricao.isNotEmpty
+                                    ? descricao
+                                    : _tipoTransacao(item['tipo']),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              subtitle: Text(
+                                data == null
+                                    ? _tipoTransacao(item['tipo'])
+                                    : '${_tipoTransacao(item['tipo'])} • ${_data.format(data)}',
+                              ),
+                              trailing: Text(
+                                _moeda.format(valor),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  color: positivo
+                                      ? Colors.green.shade700
+                                      : Colors.red.shade700,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
-    if (salvar != true) return;
-    await _repo.atualizar(item['repassefinanceiro_id'] as int, {
-      'status': status,
-      'idtransferencia': transferencia.text.trim().isEmpty
-          ? null
-          : transferencia.text.trim(),
-      'observacao': observacao.text.trim().isEmpty
-          ? null
-          : observacao.text.trim(),
-    });
-    await _carregar();
   }
-
-  Widget _indicador(String titulo, String status, Color cor) => Expanded(
-    child: Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Text(
-              _moeda.format(_total(status)),
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: cor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFFF6F6F6),
-    appBar: ClubbarAppBar(
-      mostrarVoltar: true,
-      actions: [
-        IconButton(onPressed: _carregar, icon: const Icon(Icons.refresh)),
-      ],
-    ),
-    body: Column(
-      children: [
-        const ClubbarPageHeader(
-          titulo: 'Financeiro',
-          subtitulo: 'Gerenciar repasses ao parceiro',
-          icone: Icons.account_balance_wallet,
-          mostrarDataHora: false,
-        ),
-        Expanded(
-          child: _carregando
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
-                  onRefresh: _carregar,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Row(
-                        children: [
-                          _indicador('Pendentes', 'PENDENTE', Colors.orange),
-                          _indicador('Agendados', 'AGENDADO', Colors.blue),
-                          _indicador('Pagos', 'PAGO', Colors.green),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        children:
-                            [
-                                  null,
-                                  'BLOQUEADO',
-                                  'PENDENTE',
-                                  'AGENDADO',
-                                  'PAGO',
-                                  'CANCELADO',
-                                ]
-                                .map(
-                                  (s) => ChoiceChip(
-                                    label: Text(s ?? 'TODOS'),
-                                    selected: _filtro == s,
-                                    onSelected: (_) {
-                                      setState(() => _filtro = s);
-                                    },
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                      const SizedBox(height: 12),
-                      if (_repassesVisiveis.isEmpty)
-                        const Card(
-                          child: Padding(
-                            padding: EdgeInsets.all(32),
-                            child: Center(
-                              child: Text('Nenhum repasse encontrado.'),
-                            ),
-                          ),
-                        ),
-                      ..._repassesVisiveis.map(
-                        (r) => Card(
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.amber.shade100,
-                              child: const Icon(
-                                Icons.payments,
-                                color: Colors.black,
-                              ),
-                            ),
-                            title: Text(
-                              '${r['nmloja'] ?? 'Estabelecimento ${r['loja_id']}'} • ${_moeda.format(r['vrrepasse'] ?? 0)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'Venda #${r['venda_id']} • Bruto ${_moeda.format(r['vrbruto'] ?? 0)} • Taxa ${_moeda.format(r['vrtaxaclubbar'] ?? 0)}\nStatus: ${r['status']}',
-                            ),
-                            isThreeLine: true,
-                            trailing: const Icon(Icons.edit_outlined),
-                            onTap: () => _editar(r),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-        ),
-      ],
-    ),
-  );
 }

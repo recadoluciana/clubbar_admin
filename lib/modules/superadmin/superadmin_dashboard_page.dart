@@ -475,10 +475,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
               ),
             ]),
             const SizedBox(height: 18),
-            titulo('Movimento de hoje'),
+            titulo('Vendas Clubbar'),
             grade([
               _cardIndicador(
-                titulo: 'Vendas e faturamento hoje',
+                titulo: 'Vendas e faturamento',
                 valor:
                     '${_dados['vendas_hoje'] ?? 0} vendas  •  '
                     '${_formatarMoeda(_valorFaturamentoHoje())}',
@@ -490,8 +490,8 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
             titulo('Gestão financeira'),
             grade([
               _cardIndicador(
-                titulo: 'Gerenciar repasses ao parceiro',
-                valor: 'Financeiro',
+                titulo: 'Extrato de transações Asaas',
+                valor: 'Conta Clubbar',
                 icone: Icons.account_balance_wallet_rounded,
                 onTap: _abrirFinanceiro,
               ),

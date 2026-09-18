@@ -3,27 +3,28 @@ import 'dart:convert';
 import '../services/api_service.dart';
 
 class FinanceiroRepository {
-  Future<List<Map<String, dynamic>>> listar({String? status}) async {
-    final filtro = status == null ? '' : '?status=$status';
-    final response = await ApiService.get('/financeiro/repasses$filtro');
-    if (response.statusCode != 200) throw Exception(_mensagem(response.body));
-    return (jsonDecode(response.body) as List)
-        .map((e) => Map<String, dynamic>.from(e as Map))
-        .toList();
-  }
+  Future<Map<String, dynamic>> consultarExtratoAsaas({
+    required DateTime inicio,
+    required DateTime fim,
+  }) async {
+    String data(DateTime valor) =>
+        '${valor.year.toString().padLeft(4, '0')}-'
+        '${valor.month.toString().padLeft(2, '0')}-'
+        '${valor.day.toString().padLeft(2, '0')}';
 
-  Future<void> atualizar(int id, Map<String, dynamic> dados) async {
-    final response = await ApiService.patch('/financeiro/repasses/$id', dados);
-    if (response.statusCode != 200) throw Exception(_mensagem(response.body));
-  }
-
-  String _mensagem(String body) {
-    try {
-      final data = jsonDecode(body);
-      return data['detail']?.toString() ??
-          'Erro ao processar operação financeira.';
-    } catch (_) {
-      return 'Erro ao processar operação financeira.';
+    final response = await ApiService.get(
+      '/financeiro/extrato-asaas'
+      '?data_inicio=${data(inicio)}&data_fim=${data(fim)}&limite=100',
+    );
+    final body = response.body.trim().isEmpty
+        ? <String, dynamic>{}
+        : Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+    if (response.statusCode != 200) {
+      throw Exception(
+        body['detail']?.toString() ??
+            'Não foi possível consultar o extrato do Clubbar no Asaas.',
+      );
     }
+    return body;
   }
 }
