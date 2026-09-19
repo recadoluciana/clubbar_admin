@@ -12,7 +12,6 @@ import '../repositories/leadparceiro_repository.dart';
 
 import 'leadparceiro_form_page.dart';
 import 'leadparceiro_converter_page.dart';
-import 'leadatendimento_page.dart';
 import 'leadestabelecimento_form_page.dart';
 import 'leadcontrato_retificacao_page.dart';
 import 'leadcontratos_page.dart';
@@ -481,21 +480,6 @@ class _LeadEstabelecimentoListPageState
             LeadContratosPage(lead: lead, estabelecimento: estabelecimento),
       ),
     );
-  }
-
-  Future<void> _abrirAtendimento(
-    LeadParceiro lead,
-    LeadEstabelecimento estabelecimento,
-  ) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) => LeadAtendimentoPage(
-          lead: lead,
-          estabelecimentoInicialId: estabelecimento.id,
-        ),
-      ),
-    );
-    if (mounted) await _carregar();
   }
 
   Future<void> _abrirConversao(
@@ -1001,29 +985,9 @@ class _LeadEstabelecimentoListPageState
             estabelecimento.emailResponsavel ?? lead.email,
           ),
           const SizedBox(height: 7),
-          Row(
-            children: [
-              Expanded(
-                child: _linha(
-                  Icons.calendar_today_outlined,
-                  'Cadastrado em ${_formatarData(lead.dtcriacao)}',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Tooltip(
-                message: 'Atender estabelecimento',
-                child: ElevatedButton.icon(
-                  onPressed: () => _abrirAtendimento(lead, estabelecimento),
-                  icon: const Icon(Icons.forum_rounded, size: 17),
-                  label: const Text('Abrir atendimento'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ClubbarColors.info,
-                    foregroundColor: ClubbarColors.branco,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ),
-            ],
+          _linha(
+            Icons.calendar_today_outlined,
+            'Cadastrado em ${_formatarData(lead.dtcriacao)}',
           ),
           const SizedBox(height: 12),
           Container(
@@ -1120,17 +1084,20 @@ class _LeadEstabelecimentoListPageState
               ],
             ),
           ),
-          if (status == 'ACEITOU_PARCERIA') ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _abrirImplantacao(estabelecimento),
-                icon: const Icon(Icons.payments_rounded),
-                label: const Text('Consultar taxa de implantação'),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _abrirImplantacao(estabelecimento),
+              icon: const Icon(Icons.payments_rounded),
+              label: const Text('Consultar taxa de implantação'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: ClubbarColors.info,
+                backgroundColor: ClubbarColors.infoClaro,
+                side: const BorderSide(color: ClubbarColors.info),
               ),
             ),
-          ],
+          ),
           if (status == 'NEGOCIANDO' ||
               status == 'ACEITOU_PARCERIA' ||
               status == 'CONVERTIDO') ...[
@@ -1141,6 +1108,11 @@ class _LeadEstabelecimentoListPageState
                 onPressed: () => _abrirContratos(lead, estabelecimento),
                 icon: const Icon(Icons.folder_copy_outlined),
                 label: const Text('Contratos e retificações'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ClubbarColors.sucesso,
+                  backgroundColor: ClubbarColors.sucessoClaro,
+                  side: const BorderSide(color: ClubbarColors.sucesso),
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -1150,6 +1122,11 @@ class _LeadEstabelecimentoListPageState
                 onPressed: () => _abrirRetificacao(lead, estabelecimento),
                 icon: const Icon(Icons.edit_document),
                 label: const Text('Nova retificação'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.deepOrange.shade700,
+                  backgroundColor: Colors.deepOrange.shade50,
+                  side: BorderSide(color: Colors.deepOrange.shade400),
+                ),
               ),
             ),
           ],
@@ -1183,6 +1160,11 @@ class _LeadEstabelecimentoListPageState
                 onPressed: () => _reenviarConvite(lead),
                 icon: const Icon(Icons.mark_email_read_rounded),
                 label: const Text('Reenviar convite de acesso'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.purple.shade700,
+                  backgroundColor: Colors.purple.shade50,
+                  side: BorderSide(color: Colors.purple.shade400),
+                ),
               ),
             ),
           ],
