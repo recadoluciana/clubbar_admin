@@ -160,7 +160,13 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       );
       Navigator.pop(context, true);
     } catch (e) {
-      if (mounted) AppSnackBar.erro(context, e.toString());
+      if (mounted) {
+        final mensagem = e
+            .toString()
+            .replaceFirst(RegExp(r'^Exception:\s*'), '')
+            .trim();
+        AppSnackBar.erro(context, mensagem);
+      }
     } finally {
       if (mounted) setState(() => _convertendo = false);
     }
