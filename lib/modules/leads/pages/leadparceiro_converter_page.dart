@@ -153,7 +153,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       AppSnackBar.sucesso(
         context,
         !criouUsuario
-            ? 'Estabelecimento convertido e nova estabelecimento criado.'
+            ? 'Estabelecimento convertido e novo estabelecimento criado.'
             : convite
             ? 'Parceiro criado e convite enviado por e-mail.'
             : 'Parceiro criado. O convite não pôde ser enviado; informe a senha inicial ao responsável.',
