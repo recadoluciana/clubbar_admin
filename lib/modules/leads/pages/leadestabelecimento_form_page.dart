@@ -53,12 +53,17 @@ class _LeadEstabelecimentoFormPageState
   bool _carregando = true;
   bool _salvando = false;
   bool _buscandoCep = false;
+  bool _usarResponsavelPrincipal = true;
   Timer? _cepDebounce;
 
   @override
   void initState() {
     super.initState();
     final estabelecimento = widget.estabelecimento;
+    _usarResponsavelPrincipal =
+        (estabelecimento.nomeResponsavel ?? '').trim().isEmpty &&
+        (estabelecimento.telefoneResponsavel ?? '').trim().isEmpty &&
+        (estabelecimento.emailResponsavel ?? '').trim().isEmpty;
     _nome.text = estabelecimento.nome;
     _responsavel.text =
         estabelecimento.nomeResponsavel ?? widget.lead.nmresponsavel;
@@ -217,9 +222,15 @@ class _LeadEstabelecimentoFormPageState
         widget.estabelecimento.id,
         {
           'nmestabelecimento': _nome.text.trim(),
-          'nmresponsavel': _opcional(_responsavel),
-          'telefone_responsavel': _opcional(_telefoneResponsavel),
-          'email_responsavel': _opcional(_emailResponsavel),
+          'nmresponsavel': _usarResponsavelPrincipal
+              ? null
+              : _opcional(_responsavel),
+          'telefone_responsavel': _usarResponsavelPrincipal
+              ? null
+              : _opcional(_telefoneResponsavel),
+          'email_responsavel': _usarResponsavelPrincipal
+              ? null
+              : _opcional(_emailResponsavel),
           'tipo': _tipo,
           'tipovenda': _tipoVenda,
           'cpfcnpj': _opcional(_documento),
@@ -571,46 +582,68 @@ class _LeadEstabelecimentoFormPageState
                           titulo: 'Dados do responsável',
                           icone: Icons.person_rounded,
                           children: [
-                            TextFormField(
-                              controller: _responsavel,
-                              decoration: _decoracao(
-                                'Nome do responsável',
-                                Icons.person_rounded,
+                            SwitchListTile.adaptive(
+                              contentPadding: EdgeInsets.zero,
+                              value: _usarResponsavelPrincipal,
+                              title: const Text(
+                                'Usar o responsável principal da empresa',
                               ),
-                              validator: (v) => (v?.trim().length ?? 0) < 2
-                                  ? 'Informe o responsável.'
-                                  : null,
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _telefoneResponsavel,
-                              keyboardType: TextInputType.phone,
-                              decoration: _decoracao(
-                                'Telefone do responsável',
-                                Icons.phone_rounded,
+                              subtitle: Text(
+                                '${widget.lead.nmresponsavel}\n${widget.lead.telefone} • ${widget.lead.email}',
                               ),
-                              validator: (v) => (v?.trim().isEmpty ?? true)
-                                  ? 'Informe o telefone do responsável.'
-                                  : null,
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _emailResponsavel,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: _decoracao(
-                                'E-mail do responsável',
-                                Icons.email_rounded,
-                              ),
-                              validator: (v) {
-                                final email = v?.trim() ?? '';
-                                if (email.isEmpty) {
-                                  return 'Informe o e-mail do responsável.';
+                              onChanged: (valor) => setState(() {
+                                _usarResponsavelPrincipal = valor;
+                                if (!valor) {
+                                  _responsavel.text = widget.lead.nmresponsavel;
+                                  _telefoneResponsavel.text =
+                                      widget.lead.telefone;
+                                  _emailResponsavel.text = widget.lead.email;
                                 }
-                                return email.contains('@')
-                                    ? null
-                                    : 'E-mail inválido.';
-                              },
+                              }),
                             ),
+                            if (!_usarResponsavelPrincipal) ...[
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _responsavel,
+                                decoration: _decoracao(
+                                  'Nome do responsável',
+                                  Icons.person_rounded,
+                                ),
+                                validator: (v) => (v?.trim().length ?? 0) < 2
+                                    ? 'Informe o responsável.'
+                                    : null,
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _telefoneResponsavel,
+                                keyboardType: TextInputType.phone,
+                                decoration: _decoracao(
+                                  'Telefone do responsável',
+                                  Icons.phone_rounded,
+                                ),
+                                validator: (v) => (v?.trim().isEmpty ?? true)
+                                    ? 'Informe o telefone do responsável.'
+                                    : null,
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _emailResponsavel,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: _decoracao(
+                                  'E-mail do responsável',
+                                  Icons.email_rounded,
+                                ),
+                                validator: (v) {
+                                  final email = v?.trim() ?? '';
+                                  if (email.isEmpty) {
+                                    return 'Informe o e-mail do responsável.';
+                                  }
+                                  return email.contains('@')
+                                      ? null
+                                      : 'E-mail inválido.';
+                                },
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 18),

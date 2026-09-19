@@ -46,9 +46,6 @@ class LeadEstabelecimento {
   });
 
   bool get dadosContratuaisCompletos =>
-      (nomeResponsavel ?? '').trim().isNotEmpty &&
-      (telefoneResponsavel ?? '').trim().isNotEmpty &&
-      (emailResponsavel ?? '').trim().isNotEmpty &&
       (cpfCnpj ?? '').trim().isNotEmpty &&
       (telefone ?? '').trim().isNotEmpty &&
       (email ?? '').trim().isNotEmpty &&
