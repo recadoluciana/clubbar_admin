@@ -1073,7 +1073,7 @@ class _LeadEstabelecimentoListPageState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'CPF/CNPJ: ${(estabelecimento.cpfCnpj ?? '').isEmpty ? 'não informado' : estabelecimento.cpfCnpj}',
+                  'CPF/CNPJ: ${(estabelecimento.cpfCnpj ?? '').isEmpty ? 'não informado' : ClubbarFormatters.cpfCnpj(estabelecimento.cpfCnpj)}',
                 ),
                 Text(
                   'Endereço: ${(estabelecimento.endereco ?? '').isEmpty ? 'não informado' : '${estabelecimento.endereco}, ${estabelecimento.numero ?? ''}'}',

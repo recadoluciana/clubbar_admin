@@ -7,6 +7,7 @@ import 'package:vibration/vibration.dart';
 
 import '../../core/services/api_service.dart';
 import '../../core/config/api_config.dart';
+import '../../core/utils/formatters.dart';
 
 class LeitorQrRetiradaIngressoScreen extends StatefulWidget {
   const LeitorQrRetiradaIngressoScreen({super.key});
@@ -188,7 +189,7 @@ class _LeitorQrRetiradaIngressoScreenState
               if ((cpf ?? '').toString().trim().isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
-                  'CPF: $cpf',
+                  'CPF: ${ClubbarFormatters.cpf(cpf.toString())}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 15),
                 ),

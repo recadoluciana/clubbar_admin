@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/repositories/organizacao_repository.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/theme/clubbar_colors.dart';
+import '../../core/utils/formatters.dart';
 import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/clubbar_app_bar.dart';
 import '../../core/widgets/clubbar_footer.dart';
@@ -22,42 +23,6 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
 
   bool _carregando = true;
   Organizacao? _organizacao;
-
-  String _somenteNumeros(String? valor) {
-    return (valor ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-  }
-
-  String _formatarCnpj(String? valor) {
-    final numeros = _somenteNumeros(valor);
-
-    if (numeros.length != 14) {
-      return _valorOuTraco(valor);
-    }
-
-    return '${numeros.substring(0, 2)}.'
-        '${numeros.substring(2, 5)}.'
-        '${numeros.substring(5, 8)}/'
-        '${numeros.substring(8, 12)}-'
-        '${numeros.substring(12, 14)}';
-  }
-
-  String _formatarTelefone(String? valor) {
-    final numeros = _somenteNumeros(valor);
-
-    if (numeros.length == 11) {
-      return '(${numeros.substring(0, 2)}) '
-          '${numeros.substring(2, 7)}-'
-          '${numeros.substring(7, 11)}';
-    }
-
-    if (numeros.length == 10) {
-      return '(${numeros.substring(0, 2)}) '
-          '${numeros.substring(2, 6)}-'
-          '${numeros.substring(6, 10)}';
-    }
-
-    return _valorOuTraco(valor);
-  }
 
   @override
   void initState() {
@@ -295,7 +260,9 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
             _linhaInformacao(
               icone: Icons.badge_outlined,
               titulo: 'CNPJ',
-              valor: _formatarCnpj(organizacao.cnpjorganizacao),
+              valor: _valorOuTraco(
+                ClubbarFormatters.cnpj(organizacao.cnpjorganizacao),
+              ),
             ),
 
             const Divider(color: ClubbarColors.divisor, height: 1),
@@ -311,7 +278,9 @@ class _OrganizacaoListPageState extends State<OrganizacaoListPage> {
             _linhaInformacao(
               icone: Icons.phone_outlined,
               titulo: 'Telefone',
-              valor: _formatarTelefone(organizacao.telorganizacao),
+              valor: _valorOuTraco(
+                ClubbarFormatters.telefone(organizacao.telorganizacao ?? ''),
+              ),
             ),
 
             const SizedBox(height: 14),

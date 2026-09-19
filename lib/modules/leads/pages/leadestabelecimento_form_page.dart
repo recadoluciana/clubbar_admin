@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/theme/clubbar_colors.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/clubbar_app_bar.dart';
 import '../../../core/widgets/clubbar_page_header.dart';
@@ -71,10 +72,10 @@ class _LeadEstabelecimentoFormPageState
         estabelecimento.telefoneResponsavel ?? widget.lead.telefone;
     _emailResponsavel.text =
         estabelecimento.emailResponsavel ?? widget.lead.email;
-    _documento.text = estabelecimento.cpfCnpj ?? '';
+    _documento.text = ClubbarFormatters.cpfCnpj(estabelecimento.cpfCnpj);
     _telefone.text = estabelecimento.telefone ?? widget.lead.telefone;
     _email.text = estabelecimento.email ?? widget.lead.email;
-    _cep.text = estabelecimento.cep ?? '';
+    _cep.text = ClubbarFormatters.cep(estabelecimento.cep);
     _endereco.text = estabelecimento.endereco ?? '';
     _numero.text = estabelecimento.numero ?? '';
     _complemento.text = estabelecimento.complemento ?? '';
@@ -233,12 +234,12 @@ class _LeadEstabelecimentoFormPageState
               : _opcional(_emailResponsavel),
           'tipo': _tipo,
           'tipovenda': _tipoVenda,
-          'cpfcnpj': _opcional(_documento),
+          'cpfcnpj': ClubbarFormatters.somenteNumeros(_documento.text),
           'telefone': _opcional(_telefone),
           'email': _opcional(_email),
           'estado_id': _estadoId,
           'cidade_id': _cidadeId,
-          'cep': _opcional(_cep),
+          'cep': ClubbarFormatters.somenteNumeros(_cep.text),
           'endereco': _opcional(_endereco),
           'numero': _opcional(_numero),
           'complemento': _opcional(_complemento),
@@ -389,13 +390,19 @@ class _LeadEstabelecimentoFormPageState
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: _documento,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: const [CpfCnpjInputFormatter()],
                               decoration: _decoracao(
                                 'CPF/CNPJ',
                                 Icons.badge_rounded,
                               ),
-                              validator: (v) => (v?.trim().isEmpty ?? true)
-                                  ? 'Informe o CPF/CNPJ.'
-                                  : null,
+                              validator: (v) {
+                                final tamanho =
+                                    ClubbarFormatters.somenteNumeros(v).length;
+                                return tamanho == 11 || tamanho == 14
+                                    ? null
+                                    : 'Informe um CPF ou CNPJ completo.';
+                              },
                             ),
                             const SizedBox(height: 12),
                             TextFormField(
@@ -444,6 +451,7 @@ class _LeadEstabelecimentoFormPageState
                             TextFormField(
                               controller: _cep,
                               keyboardType: TextInputType.number,
+                              inputFormatters: const [CepInputFormatter()],
                               decoration:
                                   _decoracao(
                                     'CEP',
@@ -458,9 +466,11 @@ class _LeadEstabelecimentoFormPageState
                                           )
                                         : const Icon(Icons.search_rounded),
                                   ),
-                              validator: (v) => (v?.trim().isEmpty ?? true)
-                                  ? 'Informe o CEP.'
-                                  : null,
+                              validator: (v) =>
+                                  ClubbarFormatters.somenteNumeros(v).length ==
+                                      8
+                                  ? null
+                                  : 'Informe um CEP completo.',
                             ),
                             const SizedBox(height: 12),
                             TextFormField(

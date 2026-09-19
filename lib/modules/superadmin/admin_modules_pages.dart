@@ -11,12 +11,12 @@ import '../../core/widgets/clubbar_page_header.dart';
 
 String _texto(dynamic valor) => valor?.toString().trim() ?? '';
 String _documentoParceiro(dynamic valor) {
-  final n = _texto(valor).replaceAll(RegExp(r'\D'), '');
+  final n = ClubbarFormatters.somenteNumeros(_texto(valor));
   if (n.length == 11) {
-    return 'CPF: ${n.substring(0, 3)}.${n.substring(3, 6)}.${n.substring(6, 9)}-${n.substring(9)}';
+    return 'CPF: ${ClubbarFormatters.cpf(n)}';
   }
   if (n.length == 14) {
-    return 'CNPJ: ${n.substring(0, 2)}.${n.substring(2, 5)}.${n.substring(5, 8)}/${n.substring(8, 12)}-${n.substring(12)}';
+    return 'CNPJ: ${ClubbarFormatters.cnpj(n)}';
   }
   return 'CPF/CNPJ: ${n.isEmpty ? 'Não informado' : n}';
 }

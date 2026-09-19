@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/repositories/organizacao_repository.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/theme/clubbar_colors.dart';
+import '../../core/utils/formatters.dart';
 import '../../core/widgets/app_snackbar.dart';
 import '../../core/widgets/clubbar_card.dart';
 import '../../models/organizacao.dart';
@@ -114,9 +115,9 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
 
   void _preencherCampos(Organizacao org) {
     _nomeController.text = org.nmorganizacao;
-    _cnpjController.text = org.cnpjorganizacao ?? '';
+    _cnpjController.text = ClubbarFormatters.cnpj(org.cnpjorganizacao);
     _emailController.text = org.emailorganizacao ?? '';
-    _telefoneController.text = org.telorganizacao ?? '';
+    _telefoneController.text = _formatarTelefone(org.telorganizacao ?? '');
     _status = org.sitorganizacao ?? 'ATIVA';
   }
 
@@ -176,30 +177,6 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
 
   String _somenteNumeros(String valor) {
     return valor.replaceAll(RegExp(r'[^0-9]'), '');
-  }
-
-  String _formatarCnpj(String valor) {
-    final numeros = _somenteNumeros(valor);
-
-    if (numeros.isEmpty) return '';
-
-    final limitado = numeros.length > 14 ? numeros.substring(0, 14) : numeros;
-
-    final buffer = StringBuffer();
-
-    for (var i = 0; i < limitado.length; i++) {
-      if (i == 2 || i == 5) {
-        buffer.write('.');
-      } else if (i == 8) {
-        buffer.write('/');
-      } else if (i == 12) {
-        buffer.write('-');
-      }
-
-      buffer.write(limitado[i]);
-    }
-
-    return buffer.toString();
   }
 
   String _formatarTelefone(String valor) {
@@ -364,7 +341,7 @@ class _OrganizacaoFormPageState extends State<OrganizacaoFormPage> {
             controller: _cnpjController,
             keyboardType: TextInputType.number,
             inputFormatters: [
-              CnpjInputFormatter(),
+              const CnpjInputFormatter(),
               LengthLimitingTextInputFormatter(18),
             ],
             decoration: const InputDecoration(
@@ -602,45 +579,6 @@ class TelefoneInputFormatter extends TextInputFormatter {
           '${numeros.substring(2, 7)}-'
           '${numeros.substring(7)}';
     }
-
-    return TextEditingValue(
-      text: texto,
-      selection: TextSelection.collapsed(offset: texto.length),
-    );
-  }
-}
-
-class CnpjInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    var numeros = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-
-    if (numeros.length > 14) {
-      numeros = numeros.substring(0, 14);
-    }
-
-    final buffer = StringBuffer();
-
-    for (var i = 0; i < numeros.length; i++) {
-      if (i == 2 || i == 5) {
-        buffer.write('.');
-      }
-
-      if (i == 8) {
-        buffer.write('/');
-      }
-
-      if (i == 12) {
-        buffer.write('-');
-      }
-
-      buffer.write(numeros[i]);
-    }
-
-    final texto = buffer.toString();
 
     return TextEditingValue(
       text: texto,

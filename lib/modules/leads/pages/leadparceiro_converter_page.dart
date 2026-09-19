@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/clubbar_colors.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/clubbar_app_bar.dart';
 import '../../../core/widgets/clubbar_page_header.dart';
@@ -76,17 +77,6 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
   String _formatarTaxaContrato(dynamic valor) =>
       (double.tryParse('$valor') ?? 0).toStringAsFixed(2).replaceAll('.', ',');
 
-  String _documentoFormatado(String valor) {
-    final n = valor.replaceAll(RegExp(r'\D'), '');
-    if (n.length == 11) {
-      return '${n.substring(0, 3)}.${n.substring(3, 6)}.${n.substring(6, 9)}-${n.substring(9)}';
-    }
-    if (n.length == 14) {
-      return '${n.substring(0, 2)}.${n.substring(2, 5)}.${n.substring(5, 8)}/${n.substring(8, 12)}-${n.substring(12)}';
-    }
-    return valor;
-  }
-
   String get _enderecoContrato {
     final c = _contrato ?? const <String, dynamic>{};
     final partes = <String>[
@@ -96,7 +86,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
       ].where((item) => item?.toString().trim().isNotEmpty == true).join(', '),
       c['complementocontratante']?.toString() ?? '',
       c['bairrocontratante']?.toString() ?? '',
-      c['cepcontratante']?.toString() ?? '',
+      ClubbarFormatters.cep(c['cepcontratante']?.toString()),
     ].where((item) => item.trim().isNotEmpty).toList();
     return partes.isEmpty ? 'Não informado' : partes.join(' • ');
   }
@@ -311,7 +301,7 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  'CPF/CNPJ: ${_documentoFormatado(_contrato?['cpfcnpjcontratante']?.toString() ?? '')}',
+                                  'CPF/CNPJ: ${ClubbarFormatters.cpfCnpj(_contrato?['cpfcnpjcontratante']?.toString())}',
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
