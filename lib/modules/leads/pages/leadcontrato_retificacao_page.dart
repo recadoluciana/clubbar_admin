@@ -16,7 +16,6 @@ class LeadContratoRetificacaoPage extends StatefulWidget {
   @override
   State<LeadContratoRetificacaoPage> createState() => _LeadContratoRetificacaoPageState();
 }
-
 class _LeadContratoRetificacaoPageState extends State<LeadContratoRetificacaoPage> {
   final _repo = LeadParceiroRepository();
   final _form = GlobalKey<FormState>();
@@ -282,7 +281,7 @@ class _LeadContratoRetificacaoPageState extends State<LeadContratoRetificacaoPag
                 const SizedBox(height: 12),
                 _campo('Taxa de ingressos (%)', _taxaIngressos, tipo: TextInputType.number),
                 const SizedBox(height: 12),
-                _campo('Taxa mínima por ingresso (R\$)', _taxaMinima, tipo: TextInputType.number),
+                _campo('Valor mínimo cobrado por ingresso (R\$)', _taxaMinima, tipo: TextInputType.number),
                 const SizedBox(height: 16),
                 FilledButton(onPressed: _salvando ? null : _enviar, child: Text(_salvando ? 'Enviando...' : 'Revisar e enviar para assinatura')),
               ])),
