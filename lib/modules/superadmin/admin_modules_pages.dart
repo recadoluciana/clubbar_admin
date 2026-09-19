@@ -25,6 +25,62 @@ int _inteiro(dynamic valor) =>
     valor is num ? valor.toInt() : int.tryParse('$valor') ?? 0;
 double _decimal(dynamic valor) =>
     valor is num ? valor.toDouble() : double.tryParse('$valor') ?? 0;
+String _valorInformado(dynamic valor) {
+  final texto = _texto(valor);
+  return texto.isEmpty ? 'Não informado' : texto;
+}
+
+String _simNao(dynamic valor) {
+  final texto = _texto(valor).toUpperCase();
+  if (texto == 'S' || texto == 'SIM' || texto == 'TRUE' || texto == '1') {
+    return 'Sim';
+  }
+  if (texto == 'N' ||
+      texto == 'NÃO' ||
+      texto == 'NAO' ||
+      texto == 'FALSE' ||
+      texto == '0') {
+    return 'Não';
+  }
+  return 'Não informado';
+}
+
+String _descricaoEnum(dynamic valor) {
+  final texto = _texto(valor).replaceAll('_', ' ').trim();
+  if (texto.isEmpty) return 'Não informado';
+  if (texto.length <= 3) return texto.toUpperCase();
+  return texto
+      .toLowerCase()
+      .split(RegExp(r'\s+'))
+      .map(
+        (parte) => parte.isEmpty
+            ? parte
+            : '${parte.substring(0, 1).toUpperCase()}${parte.substring(1)}',
+      )
+      .join(' ');
+}
+
+String _dataHoraBrasil(dynamic valor) {
+  final texto = _texto(valor);
+  if (texto.isEmpty) return 'Não informado';
+  final data = DateTime.tryParse(texto);
+  return data == null ? texto : DateFormat('dd/MM/yyyy HH:mm').format(data);
+}
+
+String _percentualBrasil(dynamic valor) =>
+    '${NumberFormat('0.00', 'pt_BR').format(_decimal(valor))}%';
+
+String _moedaBrasil(dynamic valor) => NumberFormat.currency(
+  locale: 'pt_BR',
+  symbol: 'R\$',
+).format(_decimal(valor));
+
+String _raizCnpj(dynamic valor) {
+  final numeros = ClubbarFormatters.somenteNumeros(_texto(valor));
+  if (numeros.length != 8) return _valorInformado(valor);
+  return '${numeros.substring(0, 2)}.${numeros.substring(2, 5)}.${numeros.substring(5)}';
+}
+
 Color _corCargo(dynamic cargo) => switch (_texto(cargo).toUpperCase()) {
   'SUPERADMIN' => Colors.deepPurple,
   'ADMIN' => Colors.blue,
@@ -344,24 +400,6 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                                 icone: Icons.store_rounded,
                               ),
                               const SizedBox(height: 10),
-                              Text(
-                                [
-                                      [
-                                            _texto(item['endloja']),
-                                            _texto(item['nrendeloja']),
-                                          ]
-                                          .where((valor) => valor.isNotEmpty)
-                                          .join(', '),
-                                      _texto(item['dsbairroloja']),
-                                    ]
-                                    .where((valor) => valor.isNotEmpty)
-                                    .join(' • '),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                'Telefone: ${ClubbarFormatters.telefone(_texto(item['nrtelloja']))}',
-                              ),
-                              const SizedBox(height: 10),
                               _Pill(
                                 '$quantidadeUsuarios ${quantidadeUsuarios == 1 ? 'usuário' : 'usuários'}',
                                 Icons.people_alt_rounded,
@@ -381,6 +419,207 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                                   ),
                                 ),
                               ),
+                              const Divider(height: 28),
+                              _SecaoDadosLoja(
+                                titulo: 'Dados cadastrais',
+                                dados: [
+                                  MapEntry(
+                                    'Nome da loja',
+                                    _valorInformado(item['nmloja']),
+                                  ),
+                                  MapEntry(
+                                    'Razão social',
+                                    _valorInformado(item['nmrazaosocial']),
+                                  ),
+                                  MapEntry(
+                                    'CPF/CNPJ',
+                                    _valorInformado(
+                                      ClubbarFormatters.cpfCnpj(
+                                        _texto(item['cpfcnpjloja']),
+                                      ),
+                                    ),
+                                  ),
+                                  MapEntry(
+                                    'Raiz do CNPJ',
+                                    _raizCnpj(item['cnpjraiz']),
+                                  ),
+                                  MapEntry(
+                                    'Tipo de pessoa',
+                                    _descricaoEnum(item['tipoestabelecimento']),
+                                  ),
+                                  MapEntry(
+                                    'Tipo de loja',
+                                    _descricaoEnum(item['tipoloja']),
+                                  ),
+                                  MapEntry(
+                                    'Telefone',
+                                    _valorInformado(
+                                      ClubbarFormatters.telefone(
+                                        _texto(item['nrtelloja']),
+                                      ),
+                                    ),
+                                  ),
+                                  MapEntry(
+                                    'Situação',
+                                    _descricaoEnum(item['sitloja']),
+                                  ),
+                                ],
+                              ),
+                              _SecaoDadosLoja(
+                                titulo: 'Endereço',
+                                dados: [
+                                  MapEntry(
+                                    'CEP',
+                                    _valorInformado(
+                                      ClubbarFormatters.cep(
+                                        _texto(item['nrceploja']),
+                                      ),
+                                    ),
+                                  ),
+                                  MapEntry(
+                                    'Logradouro',
+                                    _valorInformado(item['endloja']),
+                                  ),
+                                  MapEntry(
+                                    'Número',
+                                    _valorInformado(item['nrendeloja']),
+                                  ),
+                                  MapEntry(
+                                    'Complemento',
+                                    _valorInformado(item['complementoloja']),
+                                  ),
+                                  MapEntry(
+                                    'Bairro',
+                                    _valorInformado(item['dsbairroloja']),
+                                  ),
+                                  MapEntry(
+                                    'Cidade',
+                                    _valorInformado(item['nmcidade']),
+                                  ),
+                                  MapEntry(
+                                    'Estado',
+                                    [
+                                          _texto(item['nmestado']),
+                                          _texto(item['sgestado']),
+                                        ]
+                                        .where((valor) => valor.isNotEmpty)
+                                        .join(' — '),
+                                  ),
+                                  MapEntry(
+                                    'Descrição da instalação',
+                                    _valorInformado(item['dsinstaloja']),
+                                  ),
+                                  MapEntry(
+                                    'Ponto de referência',
+                                    _valorInformado(item['dsrefeloja']),
+                                  ),
+                                ],
+                              ),
+                              _SecaoDadosLoja(
+                                titulo: 'Operação',
+                                dados: [
+                                  MapEntry(
+                                    'Aberto 24 horas',
+                                    _simNao(item['aberto24x7']),
+                                  ),
+                                  MapEntry(
+                                    'Atendimento físico',
+                                    _simNao(item['atendimentofisico']),
+                                  ),
+                                  MapEntry(
+                                    'Venda de produtos',
+                                    _simNao(item['vendaprodutos']),
+                                  ),
+                                  MapEntry(
+                                    'Venda de ingressos',
+                                    _simNao(item['vendaingressos']),
+                                  ),
+                                  MapEntry(
+                                    'Controla validade de produtos',
+                                    _simNao(item['idvalidadeprod']),
+                                  ),
+                                  MapEntry(
+                                    'Dias de validade padrão',
+                                    '${_inteiro(item['nrdiavalidade'])}',
+                                  ),
+                                  MapEntry(
+                                    'Quantidade de PDVs',
+                                    _valorInformado(item['qtcpdloja']),
+                                  ),
+                                ],
+                              ),
+                              _SecaoDadosLoja(
+                                titulo: 'Taxas',
+                                dados: [
+                                  MapEntry(
+                                    'Taxa sobre produtos',
+                                    _percentualBrasil(item['vrtaxaprod']),
+                                  ),
+                                  MapEntry(
+                                    'Taxa sobre ingressos',
+                                    _percentualBrasil(item['vrtaxaing']),
+                                  ),
+                                  MapEntry(
+                                    'Valor mínimo por ingresso',
+                                    _moedaBrasil(item['vrtaxaminimaingresso']),
+                                  ),
+                                ],
+                              ),
+                              _SecaoDadosLoja(
+                                titulo: 'Imagens',
+                                dados: [
+                                  MapEntry(
+                                    'URL da logomarca',
+                                    _valorInformado(item['urllogoloja']),
+                                  ),
+                                  MapEntry(
+                                    'URL da fachada',
+                                    _valorInformado(item['urlfachadaloja']),
+                                  ),
+                                ],
+                              ),
+                              _SecaoDadosLoja(
+                                titulo: 'Controle do cadastro',
+                                dados: [
+                                  MapEntry(
+                                    'ID da loja',
+                                    _valorInformado(item['loja_id']),
+                                  ),
+                                  MapEntry(
+                                    'ID da organização',
+                                    _valorInformado(item['organizacao_id']),
+                                  ),
+                                  MapEntry(
+                                    'ID do estabelecimento de origem',
+                                    _valorInformado(
+                                      item['leadestabelecimento_id'],
+                                    ),
+                                  ),
+                                  MapEntry(
+                                    'ID do titular financeiro',
+                                    _valorInformado(
+                                      item['titularfinanceiro_id'],
+                                    ),
+                                  ),
+                                  MapEntry(
+                                    'ID da cidade',
+                                    _valorInformado(item['cidade_id']),
+                                  ),
+                                  MapEntry(
+                                    'ID do estado',
+                                    _valorInformado(item['estado_id']),
+                                  ),
+                                  MapEntry(
+                                    'Criado em',
+                                    _dataHoraBrasil(item['dtcriacao']),
+                                  ),
+                                  MapEntry(
+                                    'Atualizado em',
+                                    _dataHoraBrasil(item['dtultatu']),
+                                  ),
+                                ],
+                                ultima: true,
+                              ),
                             ],
                           ),
                         ),
@@ -390,6 +629,86 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                       const _Vazio('Nenhum estabelecimento encontrado.'),
                   ],
                 ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _SecaoDadosLoja extends StatelessWidget {
+  final String titulo;
+  final List<MapEntry<String, String>> dados;
+  final bool ultima;
+
+  const _SecaoDadosLoja({
+    required this.titulo,
+    required this.dados,
+    this.ultima = false,
+  });
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(bottom: ultima ? 0 : 18),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          titulo,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: ClubbarColors.info,
+          ),
+        ),
+        const SizedBox(height: 9),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final largura = constraints.maxWidth >= 700
+                ? (constraints.maxWidth - 12) / 2
+                : constraints.maxWidth;
+            return Wrap(
+              spacing: 12,
+              runSpacing: 10,
+              children: dados
+                  .map(
+                    (dado) => SizedBox(
+                      width: largura,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: ClubbarColors.fundo,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: ClubbarColors.divisor),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              dado.key,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: ClubbarColors.textoSecundario,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            SelectableText(
+                              dado.value.isEmpty ? 'Não informado' : dado.value,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: ClubbarColors.textoPrincipal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            );
+          },
         ),
       ],
     ),
