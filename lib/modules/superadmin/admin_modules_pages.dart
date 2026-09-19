@@ -121,6 +121,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                           titulo: _texto(item['nmorganizacao']),
                           status: _texto(item['sitorganizacao']),
                           icone: Icons.business_rounded,
+                          tamanhoTitulo: 16,
                         ),
                         const Divider(height: 24),
                         Text(
@@ -163,23 +164,6 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                                 ),
                               ),
                             ),
-                            _Pill(
-                              '${_inteiro(item['quantidade_usuarios'])} usuários',
-                              Icons.people_alt_rounded,
-                              cor: Colors.deepPurple,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => UsuariosAdminPage(
-                                    organizacaoId: _inteiro(
-                                      item['organizacao_id'],
-                                    ),
-                                    nomeOrganizacao: _texto(
-                                      item['nmorganizacao'],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ],
@@ -211,6 +195,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   final _repo = SuperAdminRepository();
   final _busca = TextEditingController();
   List<Map<String, dynamic>> _lojas = [];
+  int? _quantidadeUsuarios;
   bool _carregando = true;
 
   @override
@@ -229,18 +214,24 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
     setState(() => _carregando = true);
     try {
       if (widget.organizacaoId != null) {
-        final lojas = await _repo.listarLojas(widget.organizacaoId!);
+        final resultados = await Future.wait([
+          _repo.listarLojas(widget.organizacaoId!),
+          _repo.listarUsuarios(widget.organizacaoId!),
+        ]);
+        final lojas = resultados[0];
+        final usuarios = resultados[1];
         if (mounted) {
-          setState(
-            () => _lojas = lojas
+          setState(() {
+            _quantidadeUsuarios = usuarios.length;
+            _lojas = lojas
                 .map(
                   (loja) => <String, dynamic>{
                     ...loja,
                     'nmorganizacao': widget.nomeOrganizacao ?? '',
                   },
                 )
-                .toList(),
-          );
+                .toList();
+          });
         }
         return;
       }
@@ -304,7 +295,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
     child: Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
           child: _CampoBusca(
             controller: _busca,
             dica: 'Buscar organização ou estabelecimento',
@@ -312,6 +303,26 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
             comBorda: true,
           ),
         ),
+        if (widget.organizacaoId != null && _quantidadeUsuarios != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: _Pill(
+                '$_quantidadeUsuarios ${_quantidadeUsuarios == 1 ? 'usuário' : 'usuários'}',
+                Icons.people_alt_rounded,
+                cor: Colors.deepPurple,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => UsuariosAdminPage(
+                      organizacaoId: widget.organizacaoId!,
+                      nomeOrganizacao: widget.nomeOrganizacao ?? '',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         Expanded(
           child: _carregando
               ? const Center(
@@ -914,10 +925,12 @@ class _SeletorOrganizacao extends StatelessWidget {
 class _TituloStatus extends StatelessWidget {
   final String titulo, status;
   final IconData icone;
+  final double tamanhoTitulo;
   const _TituloStatus({
     required this.titulo,
     required this.status,
     required this.icone,
+    this.tamanhoTitulo = 18,
   });
   @override
   Widget build(BuildContext context) {
@@ -934,7 +947,10 @@ class _TituloStatus extends StatelessWidget {
         Expanded(
           child: Text(
             titulo,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            style: TextStyle(
+              fontSize: tamanhoTitulo,
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ),
         Container(
