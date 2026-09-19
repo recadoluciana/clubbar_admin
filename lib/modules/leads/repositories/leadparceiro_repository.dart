@@ -393,11 +393,12 @@ class LeadParceiroRepository {
   }
 
   Future<Map<String, dynamic>> isentarImplantacao({
-    required int cobrancaId,
+    required int leadestabelecimentoId,
     required String justificativa,
   }) async {
     final response = await ApiService.patch(
-      '/lead-estabelecimento-contratos/implantacao/$cobrancaId/isentar',
+      '/lead-estabelecimento-contratos/estabelecimento/'
+      '$leadestabelecimentoId/implantacao/isentar',
       {'justificativa': justificativa.trim()},
     );
     if (response.statusCode != 200) {

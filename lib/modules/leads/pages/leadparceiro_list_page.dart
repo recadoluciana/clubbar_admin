@@ -578,7 +578,18 @@ class _LeadEstabelecimentoListPageState
           builder: (context, setDialogState) {
             final status = cobranca['status']?.toString() ?? 'PENDENTE';
             final valor = (cobranca['valor'] as num?)?.toDouble() ?? 0;
-            final liberada = status == 'PAGA' || status == 'ISENTA';
+            final liberada =
+                status == 'PAGA' || status == 'ISENTA' || status == 'SEM_TAXA';
+            final cobrancaGerada = cobranca['cobrancaimplantacao_id'] != null;
+            final nomeStatus = switch (status) {
+              'NAO_GERADA' => 'Não gerada',
+              'SEM_TAXA' => 'Sem taxa',
+              'PENDENTE' => 'Pendente',
+              'PAGA' => 'Paga',
+              'ISENTA' => 'Isenta',
+              'VENCIDA' => 'Vencida',
+              _ => status,
+            };
             return AlertDialog(
               title: const Text('Taxa de implantação'),
               content: SizedBox(
@@ -601,7 +612,7 @@ class _LeadEstabelecimentoListPageState
                         liberada ? Icons.check_circle : Icons.schedule,
                         size: 18,
                       ),
-                      label: Text(status),
+                      label: Text(nomeStatus),
                     ),
                     if (status == 'PAGA')
                       Text(
@@ -609,26 +620,33 @@ class _LeadEstabelecimentoListPageState
                       ),
                     if (status == 'ISENTA')
                       Text('Motivo: ${cobranca['justificativaisencao'] ?? ''}'),
+                    if (status == 'NAO_GERADA')
+                      const Text(
+                        'Nenhuma cobrança foi gerada no Asaas. Você pode conceder a isenção diretamente.',
+                      ),
                     if (!liberada) ...[
                       const SizedBox(height: 12),
-                      const Text(
-                        'A conversão em parceiro será liberada após a confirmação oficial do Asaas.',
+                      Text(
+                        status == 'NAO_GERADA'
+                            ? 'A conversão será liberada após o pagamento ou a isenção da taxa.'
+                            : 'A conversão será liberada após a confirmação oficial do Asaas ou a isenção da taxa.',
                       ),
                     ],
                   ],
                 ),
               ),
               actions: [
-                TextButton.icon(
-                  onPressed: () async {
-                    cobranca = await _repository.consultarImplantacao(
-                      estabelecimento.id,
-                    );
-                    setDialogState(() {});
-                  },
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Verificar pagamento'),
-                ),
+                if (cobrancaGerada && status != 'ISENTA')
+                  TextButton.icon(
+                    onPressed: () async {
+                      cobranca = await _repository.consultarImplantacao(
+                        estabelecimento.id,
+                      );
+                      setDialogState(() {});
+                    },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Verificar pagamento'),
+                  ),
                 if (!liberada)
                   TextButton(
                     onPressed: () async {
@@ -670,7 +688,7 @@ class _LeadEstabelecimentoListPageState
                         return;
                       }
                       cobranca = await _repository.isentarImplantacao(
-                        cobrancaId: cobranca['cobrancaimplantacao_id'] as int,
+                        leadestabelecimentoId: estabelecimento.id,
                         justificativa: motivo,
                       );
                       setDialogState(() {});
