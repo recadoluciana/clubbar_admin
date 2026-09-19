@@ -195,7 +195,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
   final _repo = SuperAdminRepository();
   final _busca = TextEditingController();
   List<Map<String, dynamic>> _lojas = [];
-  int? _quantidadeUsuarios;
+  List<Map<String, dynamic>> _usuarios = [];
   bool _carregando = true;
 
   @override
@@ -222,7 +222,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
         final usuarios = resultados[1];
         if (mounted) {
           setState(() {
-            _quantidadeUsuarios = usuarios.length;
+            _usuarios = usuarios;
             _lojas = lojas
                 .map(
                   (loja) => <String, dynamic>{
@@ -238,20 +238,26 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
       final organizacoes = await _repo.listarOrganizacoes();
       final grupos = await Future.wait(
         organizacoes.map((organizacao) async {
-          final lojas = await _repo.listarLojas(
-            _inteiro(organizacao['organizacao_id']),
-          );
-          return lojas
-              .map(
-                (loja) => <String, dynamic>{
-                  ...loja,
-                  'nmorganizacao': _texto(organizacao['nmorganizacao']),
-                },
-              )
-              .toList();
+          final organizacaoId = _inteiro(organizacao['organizacao_id']);
+          final resultados = await Future.wait([
+            _repo.listarLojas(organizacaoId),
+            _repo.listarUsuarios(organizacaoId),
+          ]);
+          final nomeOrganizacao = _texto(organizacao['nmorganizacao']);
+          return <String, List<Map<String, dynamic>>>{
+            'lojas': resultados[0]
+                .map(
+                  (loja) => <String, dynamic>{
+                    ...loja,
+                    'nmorganizacao': nomeOrganizacao,
+                  },
+                )
+                .toList(),
+            'usuarios': resultados[1],
+          };
         }),
       );
-      _lojas = grupos.expand((lojas) => lojas).toList()
+      _lojas = grupos.expand((grupo) => grupo['lojas']!).toList()
         ..sort((a, b) {
           final organizacao = _texto(
             a['nmorganizacao'],
@@ -262,6 +268,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                   a['nmloja'],
                 ).toLowerCase().compareTo(_texto(b['nmloja']).toLowerCase());
         });
+      _usuarios = grupos.expand((grupo) => grupo['usuarios']!).toList();
       if (mounted) setState(() {});
     } catch (e) {
       if (mounted) {
@@ -283,6 +290,10 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
         .toList();
   }
 
+  int _quantidadeUsuariosDaLoja(int lojaId) => _usuarios
+      .where((usuario) => _inteiro(usuario['loja_id']) == lojaId)
+      .length;
+
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Estabelecimentos',
@@ -303,26 +314,6 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
             comBorda: true,
           ),
         ),
-        if (widget.organizacaoId != null && _quantidadeUsuarios != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: _Pill(
-                '$_quantidadeUsuarios ${_quantidadeUsuarios == 1 ? 'usuário' : 'usuários'}',
-                Icons.people_alt_rounded,
-                cor: Colors.deepPurple,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => UsuariosAdminPage(
-                      organizacaoId: widget.organizacaoId!,
-                      nomeOrganizacao: widget.nomeOrganizacao ?? '',
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
         Expanded(
           child: _carregando
               ? const Center(
@@ -331,8 +322,12 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                   children: [
-                    ..._filtradas.map(
-                      (item) => Padding(
+                    ..._filtradas.map((item) {
+                      final lojaId = _inteiro(item['loja_id']);
+                      final quantidadeUsuarios = _quantidadeUsuariosDaLoja(
+                        lojaId,
+                      );
+                      return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: ClubbarCard(
                           child: Column(
@@ -362,11 +357,31 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                               Text(
                                 'Telefone: ${ClubbarFormatters.telefone(_texto(item['nrtelloja']))}',
                               ),
+                              const SizedBox(height: 10),
+                              _Pill(
+                                '$quantidadeUsuarios ${quantidadeUsuarios == 1 ? 'usuário' : 'usuários'}',
+                                Icons.people_alt_rounded,
+                                cor: Colors.deepPurple,
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => UsuariosAdminPage(
+                                      organizacaoId: _inteiro(
+                                        item['organizacao_id'],
+                                      ),
+                                      nomeOrganizacao: _texto(
+                                        item['nmorganizacao'],
+                                      ),
+                                      lojaId: lojaId,
+                                      nomeLoja: _texto(item['nmloja']),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                     if (_filtradas.isEmpty)
                       const _Vazio('Nenhum estabelecimento encontrado.'),
                   ],
@@ -380,10 +395,14 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
 class UsuariosAdminPage extends StatefulWidget {
   final int organizacaoId;
   final String nomeOrganizacao;
+  final int? lojaId;
+  final String? nomeLoja;
   const UsuariosAdminPage({
     super.key,
     required this.organizacaoId,
     required this.nomeOrganizacao,
+    this.lojaId,
+    this.nomeLoja,
   });
   @override
   State<UsuariosAdminPage> createState() => _UsuariosAdminPageState();
@@ -410,7 +429,18 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
     setState(() => _carregando = true);
     try {
       final usuarios = await _repo.listarUsuarios(widget.organizacaoId);
-      if (mounted) setState(() => _usuarios = usuarios);
+      if (mounted) {
+        setState(
+          () => _usuarios = widget.lojaId == null
+              ? usuarios
+              : usuarios
+                    .where(
+                      (usuario) =>
+                          _inteiro(usuario['loja_id']) == widget.lojaId,
+                    )
+                    .toList(),
+        );
+      }
     } catch (e) {
       if (mounted) {
         AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
@@ -433,11 +463,11 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
 
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
-    titulo: widget.nomeOrganizacao,
+    titulo: widget.nomeLoja ?? widget.nomeOrganizacao,
     estiloTitulo: const TextStyle(color: ClubbarColors.info),
     subtitulo: _carregando
         ? 'Carregando usuários da empresa...'
-        : '${_usuarios.length} ${_usuarios.length == 1 ? 'usuário' : 'usuários'} na empresa',
+        : '${_usuarios.length} ${_usuarios.length == 1 ? 'usuário' : 'usuários'} ${widget.lojaId == null ? 'na empresa' : 'no estabelecimento'}',
     icone: Icons.manage_accounts_rounded,
     onAtualizar: _inicializar,
     child: Column(
