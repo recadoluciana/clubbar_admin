@@ -221,6 +221,24 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                               cor: Colors.blue,
                               onTap: () => _abrirEstabelecimentos(item),
                             ),
+                            _Pill(
+                              '${_inteiro(item['quantidade_usuarios_sem_loja'])} ${_inteiro(item['quantidade_usuarios_sem_loja']) == 1 ? 'usuário da organização' : 'usuários da organização'}',
+                              Icons.corporate_fare_rounded,
+                              cor: Colors.deepPurple,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => UsuariosAdminPage(
+                                    organizacaoId: _inteiro(
+                                      item['organizacao_id'],
+                                    ),
+                                    nomeOrganizacao: _texto(
+                                      item['nmorganizacao'],
+                                    ),
+                                    somenteSemLoja: true,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -720,12 +738,14 @@ class UsuariosAdminPage extends StatefulWidget {
   final String nomeOrganizacao;
   final int? lojaId;
   final String? nomeLoja;
+  final bool somenteSemLoja;
   const UsuariosAdminPage({
     super.key,
     required this.organizacaoId,
     required this.nomeOrganizacao,
     this.lojaId,
     this.nomeLoja,
+    this.somenteSemLoja = false,
   });
   @override
   State<UsuariosAdminPage> createState() => _UsuariosAdminPageState();
@@ -754,7 +774,11 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
       final usuarios = await _repo.listarUsuarios(widget.organizacaoId);
       if (mounted) {
         setState(
-          () => _usuarios = widget.lojaId == null
+          () => _usuarios = widget.somenteSemLoja
+              ? usuarios
+                    .where((usuario) => _texto(usuario['loja_id']).isEmpty)
+                    .toList()
+              : widget.lojaId == null
               ? usuarios
               : usuarios
                     .where(
@@ -790,7 +814,11 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
     estiloTitulo: const TextStyle(color: ClubbarColors.info),
     subtitulo: _carregando
         ? 'Carregando usuários da empresa...'
-        : '${_usuarios.length} ${_usuarios.length == 1 ? 'usuário' : 'usuários'} ${widget.lojaId == null ? 'na empresa' : 'no estabelecimento'}',
+        : '${_usuarios.length} ${_usuarios.length == 1 ? 'usuário' : 'usuários'} ${widget.somenteSemLoja
+              ? 'sem estabelecimento'
+              : widget.lojaId == null
+              ? 'na empresa'
+              : 'no estabelecimento'}',
     icone: Icons.manage_accounts_rounded,
     onAtualizar: _inicializar,
     child: Column(
