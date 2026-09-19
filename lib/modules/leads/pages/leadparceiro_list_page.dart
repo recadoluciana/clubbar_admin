@@ -616,7 +616,7 @@ class _LeadEstabelecimentoListPageState
                     ),
                     if (status == 'PAGA')
                       Text(
-                        'Pagamento: ${cobranca['dtpagamento'] ?? 'confirmado'}',
+                        'Pagamento: ${_formatarDataPagamento(cobranca['dtpagamento'])}',
                       ),
                     if (status == 'ISENTA')
                       Text('Motivo: ${cobranca['justificativaisencao'] ?? ''}'),
@@ -783,6 +783,17 @@ class _LeadEstabelecimentoListPageState
 
     return '${dois(local.day)}/${dois(local.month)}/${local.year} '
         '${dois(local.hour)}:${dois(local.minute)}';
+  }
+
+  String _formatarDataPagamento(Object? valor) {
+    if (valor == null) return 'confirmado';
+    final data = DateTime.tryParse(valor.toString());
+    if (data == null) return valor.toString();
+    final local = data.toLocal();
+    String dois(int numero) => numero.toString().padLeft(2, '0');
+
+    return '${dois(local.day)}/${dois(local.month)}/${local.year} '
+        '${dois(local.hour)}:${dois(local.minute)}:${dois(local.second)}';
   }
 
   String _textoEspera(LeadParceiro lead, String status) {
