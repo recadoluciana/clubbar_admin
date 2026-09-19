@@ -297,7 +297,9 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
 
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
-    titulo: 'Estabelecimentos',
+    titulo: widget.nomeOrganizacao?.trim().isNotEmpty == true
+        ? widget.nomeOrganizacao!.trim()
+        : 'Estabelecimentos',
     subtitulo: _carregando
         ? 'Carregando estabelecimentos...'
         : '${_lojas.length} estabelecimentos',
@@ -335,8 +337,9 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _TituloStatus(
-                                titulo:
-                                    '${_texto(item['nmorganizacao'])} — ${_texto(item['nmloja'])}',
+                                titulo: widget.organizacaoId == null
+                                    ? '${_texto(item['nmorganizacao'])} — ${_texto(item['nmloja'])}'
+                                    : _texto(item['nmloja']),
                                 status: _texto(item['sitloja']),
                                 icone: Icons.store_rounded,
                               ),
