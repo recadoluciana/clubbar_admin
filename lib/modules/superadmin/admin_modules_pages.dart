@@ -88,6 +88,17 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
         .toList();
   }
 
+  void _abrirEstabelecimentos(Map<String, dynamic> empresa) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => EstabelecimentosAdminPage(
+          organizacaoId: _inteiro(empresa['organizacao_id']),
+          nomeOrganizacao: _texto(empresa['nmorganizacao']),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
     titulo: 'Empresas Parceiras',
@@ -114,6 +125,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                 (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: ClubbarCard(
+                    onTap: () => _abrirEstabelecimentos(item),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -151,18 +163,7 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
                               '${_inteiro(item['quantidade_lojas'])} estabelecimentos',
                               Icons.storefront_rounded,
                               cor: Colors.blue,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => EstabelecimentosAdminPage(
-                                    organizacaoId: _inteiro(
-                                      item['organizacao_id'],
-                                    ),
-                                    nomeOrganizacao: _texto(
-                                      item['nmorganizacao'],
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              onTap: () => _abrirEstabelecimentos(item),
                             ),
                           ],
                         ),
