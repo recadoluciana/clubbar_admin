@@ -345,8 +345,13 @@ class _LeadParceiroListPageState extends State<LeadParceiroListPage> {
 
 class LeadEstabelecimentoListPage extends StatefulWidget {
   final int leadparceiroId;
+  final int? estabelecimentoSelecionadoId;
 
-  const LeadEstabelecimentoListPage({super.key, required this.leadparceiroId});
+  const LeadEstabelecimentoListPage({
+    super.key,
+    required this.leadparceiroId,
+    this.estabelecimentoSelecionadoId,
+  });
 
   @override
   State<LeadEstabelecimentoListPage> createState() =>
@@ -454,6 +459,18 @@ class _LeadEstabelecimentoListPageState
   }
 
   void _filtrar() => setState(_aplicarFiltros);
+
+  Future<void> _abrirDetalhes(LeadEstabelecimento estabelecimento) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => LeadEstabelecimentoListPage(
+          leadparceiroId: widget.leadparceiroId,
+          estabelecimentoSelecionadoId: estabelecimento.id,
+        ),
+      ),
+    );
+    if (mounted) await _carregar();
+  }
 
   Future<void> _abrirRetificacao(
     LeadParceiro lead,
@@ -1173,6 +1190,92 @@ class _LeadEstabelecimentoListPageState
     );
   }
 
+  Widget _cardEstabelecimentoResumido(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) {
+    final status = estabelecimento.status;
+
+    return ClubbarCard(
+      margin: const EdgeInsets.only(bottom: 14),
+      elevation: 1,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _abrirDetalhes(estabelecimento),
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: ClubbarColors.ambarClaro,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.storefront_rounded),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      estabelecimento.nome,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: ClubbarColors.info,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 7,
+                      children: [
+                        _chip(
+                          Icons.category_outlined,
+                          _nomeTipo(estabelecimento.tipo),
+                        ),
+                        _chip(
+                          Icons.location_on_outlined,
+                          '${lead.nmcidade}/${lead.sgestado}',
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _fundoStatus(status),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            _nomeStatusBadge(status),
+                            style: TextStyle(
+                              color: _corStatus(status),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: ClubbarColors.info,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _chip(IconData icone, String texto) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
@@ -1275,7 +1378,11 @@ class _LeadEstabelecimentoListPageState
     final cards = <Widget>[
       for (final lead in _leadsFiltrados)
         for (final estabelecimento in _estabelecimentosFiltrados(lead))
-          _cardLeadDetalhado(lead, estabelecimento),
+          if (widget.estabelecimentoSelecionadoId == null ||
+              estabelecimento.id == widget.estabelecimentoSelecionadoId)
+            widget.estabelecimentoSelecionadoId == null
+                ? _cardEstabelecimentoResumido(lead, estabelecimento)
+                : _cardLeadDetalhado(lead, estabelecimento),
     ];
 
     if (cards.isEmpty) {
@@ -1304,6 +1411,15 @@ class _LeadEstabelecimentoListPageState
 
   @override
   Widget build(BuildContext context) {
+    final exibindoDetalhes = widget.estabelecimentoSelecionadoId != null;
+    LeadEstabelecimento? estabelecimentoSelecionado;
+    for (final lead in _leads) {
+      for (final estabelecimento in lead.estabelecimentos) {
+        if (estabelecimento.id == widget.estabelecimentoSelecionadoId) {
+          estabelecimentoSelecionado = estabelecimento;
+        }
+      }
+    }
     final urgentes = _leads.fold(
       0,
       (total, lead) =>
@@ -1329,7 +1445,10 @@ class _LeadEstabelecimentoListPageState
                   : _leads.isEmpty
                   ? 'Lead não encontrado'
                   : 'Lead #${_leads.first.leadparceiroId} ${_leads.first.nmresponsavel}',
-              subtitulo: 'Estabelecimentos do lead',
+              subtitulo: exibindoDetalhes
+                  ? estabelecimentoSelecionado?.nome ??
+                        'Detalhes do estabelecimento'
+                  : 'Selecione um estabelecimento',
               icone: Icons.person_outline_rounded,
               estiloTitulo: const TextStyle(
                 fontSize: 24,
@@ -1350,7 +1469,7 @@ class _LeadEstabelecimentoListPageState
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
                   children: [
-                    if (!_carregando && urgentes > 0) ...[
+                    if (!exibindoDetalhes && !_carregando && urgentes > 0) ...[
                       ClubbarCard(
                         elevation: 0,
                         backgroundColor: ClubbarColors.erroClaro,
@@ -1379,8 +1498,10 @@ class _LeadEstabelecimentoListPageState
                       ),
                       const SizedBox(height: 14),
                     ],
-                    _filtros(),
-                    const SizedBox(height: 18),
+                    if (!exibindoDetalhes) ...[
+                      _filtros(),
+                      const SizedBox(height: 18),
+                    ],
                     _conteudoLista(),
                   ],
                 ),
