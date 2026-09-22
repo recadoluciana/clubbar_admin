@@ -44,6 +44,8 @@ class _LeadEstabelecimentoFormPageState
   final _complemento = TextEditingController();
   final _bairro = TextEditingController();
   final _mensagem = TextEditingController();
+  final _taxaProdutos = TextEditingController();
+  final _taxaIngressos = TextEditingController();
 
   List<Map<String, dynamic>> _estados = [];
   List<Map<String, dynamic>> _cidades = [];
@@ -81,6 +83,8 @@ class _LeadEstabelecimentoFormPageState
     _complemento.text = estabelecimento.complemento ?? '';
     _bairro.text = estabelecimento.bairro ?? '';
     _mensagem.text = estabelecimento.mensagem ?? '';
+    _taxaProdutos.text = estabelecimento.taxaProdutos.toStringAsFixed(2);
+    _taxaIngressos.text = estabelecimento.taxaIngressos.toStringAsFixed(2);
     _tipo = estabelecimento.tipo;
     _tipoVenda = estabelecimento.tipoVenda;
     _cep.addListener(_aoAlterarCep);
@@ -104,6 +108,8 @@ class _LeadEstabelecimentoFormPageState
       _complemento,
       _bairro,
       _mensagem,
+      _taxaProdutos,
+      _taxaIngressos,
     ]) {
       controller.dispose();
     }
@@ -214,6 +220,11 @@ class _LeadEstabelecimentoFormPageState
     return valor.isEmpty ? null : valor;
   }
 
+  double? _percentual(TextEditingController controller) {
+    final texto = controller.text.trim().replaceAll(',', '.');
+    return double.tryParse(texto);
+  }
+
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _salvando = true);
@@ -245,6 +256,8 @@ class _LeadEstabelecimentoFormPageState
           'complemento': _opcional(_complemento),
           'bairro': _opcional(_bairro),
           'mensagem': _opcional(_mensagem),
+          'vrtaxaprod': _percentual(_taxaProdutos),
+          'vrtaxaing': _percentual(_taxaIngressos),
         },
       );
       if (!mounted) return;
@@ -440,6 +453,69 @@ class _LeadEstabelecimentoFormPageState
                                 'Observações',
                                 Icons.notes_rounded,
                               ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _cardSecao(
+                          titulo: 'Condições comerciais',
+                          icone: Icons.percent_rounded,
+                          children: [
+                            const Text(
+                              'Estas taxas serão usadas no contrato enquanto ele ainda não tiver sido assinado.',
+                              style: TextStyle(
+                                color: ClubbarColors.textoSecundario,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _taxaProdutos,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    decoration: _decoracao(
+                                      'Taxa de produtos (%)',
+                                      Icons.shopping_bag_rounded,
+                                    ),
+                                    validator: (_) {
+                                      final valor = _percentual(_taxaProdutos);
+                                      if (valor == null ||
+                                          valor < 0 ||
+                                          valor > 100) {
+                                        return 'Informe de 0 a 100.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _taxaIngressos,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    decoration: _decoracao(
+                                      'Taxa de ingressos (%)',
+                                      Icons.confirmation_number_rounded,
+                                    ),
+                                    validator: (_) {
+                                      final valor = _percentual(_taxaIngressos);
+                                      if (valor == null ||
+                                          valor < 0 ||
+                                          valor > 100) {
+                                        return 'Informe de 0 a 100.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

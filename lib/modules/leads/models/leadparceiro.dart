@@ -20,6 +20,7 @@ class LeadEstabelecimento {
   final String? mensagem;
   final double taxaProdutos;
   final double taxaIngressos;
+  final bool contratoAssinado;
 
   const LeadEstabelecimento({
     required this.id,
@@ -43,6 +44,7 @@ class LeadEstabelecimento {
     required this.mensagem,
     required this.taxaProdutos,
     required this.taxaIngressos,
+    required this.contratoAssinado,
   });
 
   bool get dadosContratuaisCompletos =>
@@ -80,6 +82,7 @@ class LeadEstabelecimento {
     mensagem: json['mensagem']?.toString(),
     taxaProdutos: double.tryParse(json['vrtaxaprod']?.toString() ?? '') ?? 5,
     taxaIngressos: double.tryParse(json['vrtaxaing']?.toString() ?? '') ?? 5,
+    contratoAssinado: json['contrato_assinado'] == true,
   );
 }
 

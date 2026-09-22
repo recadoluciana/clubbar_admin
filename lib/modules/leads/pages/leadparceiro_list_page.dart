@@ -558,6 +558,13 @@ class _LeadEstabelecimentoListPageState
     LeadParceiro lead,
     LeadEstabelecimento estabelecimento,
   ) async {
+    if (estabelecimento.contratoAssinado) {
+      AppSnackBar.erro(
+        context,
+        'O contrato já foi assinado. Os dados contratuais estão bloqueados.',
+      );
+      return;
+    }
     final atualizado = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => LeadEstabelecimentoFormPage(
@@ -1065,7 +1072,9 @@ class _LeadEstabelecimentoListPageState
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        estabelecimento.dadosContratuaisCompletos
+                        estabelecimento.contratoAssinado
+                            ? 'Contrato assinado — dados bloqueados'
+                            : estabelecimento.dadosContratuaisCompletos
                             ? 'Dados contratuais completos'
                             : 'Dados contratuais incompletos',
                         style: TextStyle(
@@ -1076,16 +1085,25 @@ class _LeadEstabelecimentoListPageState
                         ),
                       ),
                     ),
-                    IconButton(
-                      tooltip: estabelecimento.dadosContratuaisCompletos
-                          ? 'Editar dados do contrato'
-                          : 'Completar dados para contrato',
-                      onPressed: () =>
-                          _editarDadosContratuais(lead, estabelecimento),
-                      icon: const Icon(Icons.edit_rounded),
-                      color: ClubbarColors.info,
-                      visualDensity: VisualDensity.compact,
-                    ),
+                    if (estabelecimento.contratoAssinado)
+                      const Tooltip(
+                        message: 'Dados bloqueados após a assinatura',
+                        child: Icon(
+                          Icons.lock_rounded,
+                          color: ClubbarColors.textoDesabilitado,
+                        ),
+                      )
+                    else
+                      IconButton(
+                        tooltip: estabelecimento.dadosContratuaisCompletos
+                            ? 'Editar dados do contrato'
+                            : 'Completar dados para contrato',
+                        onPressed: () =>
+                            _editarDadosContratuais(lead, estabelecimento),
+                        icon: const Icon(Icons.edit_rounded),
+                        color: ClubbarColors.info,
+                        visualDensity: VisualDensity.compact,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 8),
