@@ -18,6 +18,7 @@ import '../manuais/manual_backup_actions.dart';
 import '../categorias/categoria_padrao_admin_page.dart';
 import '../cora/cora_atendimentos_admin_page.dart';
 import '../cora/cora_duvidas_admin_page.dart';
+import '../politicas/politica_compra_admin_page.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -77,6 +78,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   void _abrirAtendimentosCora() => Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const CoraAtendimentosAdminPage()));
+
+  void _abrirPoliticaCompra() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const PoliticaCompraAdminPage()));
 
   void _abrirContratoPadrao() => Navigator.of(
     context,
@@ -538,6 +543,12 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 valor: 'Versões e condições comerciais',
                 icone: Icons.description_rounded,
                 onTap: _abrirContratoPadrao,
+              ),
+              _cardIndicador(
+                titulo: 'Política de compra',
+                valor: 'Versões gerais para clientes',
+                icone: Icons.policy_rounded,
+                onTap: _abrirPoliticaCompra,
               ),
             ]),
             const SizedBox(height: 18),
