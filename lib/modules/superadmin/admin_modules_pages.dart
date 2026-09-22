@@ -256,10 +256,12 @@ class _ParceirosAdminPageState extends State<ParceirosAdminPage> {
 class EstabelecimentosAdminPage extends StatefulWidget {
   final int? organizacaoId;
   final String? nomeOrganizacao;
+  final int? lojaIdDetalhe;
   const EstabelecimentosAdminPage({
     super.key,
     this.organizacaoId,
     this.nomeOrganizacao,
+    this.lojaIdDetalhe,
   });
   @override
   State<EstabelecimentosAdminPage> createState() =>
@@ -356,8 +358,15 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
 
   List<Map<String, dynamic>> get _filtradas {
     final busca = _busca.text.trim().toLowerCase();
-    if (busca.isEmpty) return _lojas;
-    return _lojas
+    final lojas = widget.lojaIdDetalhe == null
+        ? _lojas
+        : _lojas
+              .where(
+                (item) => _inteiro(item['loja_id']) == widget.lojaIdDetalhe,
+              )
+              .toList();
+    if (busca.isEmpty) return lojas;
+    return lojas
         .where(
           (item) =>
               item.values.any((v) => _texto(v).toLowerCase().contains(busca)),
@@ -369,13 +378,106 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
       .where((usuario) => _inteiro(usuario['loja_id']) == lojaId)
       .length;
 
+  Map<String, dynamic>? get _lojaDetalhe {
+    for (final loja in _lojas) {
+      if (_inteiro(loja['loja_id']) == widget.lojaIdDetalhe) return loja;
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _cancelamento(Map<String, dynamic> loja) {
+    final valor = loja['cancelamento_parceria'];
+    return valor is Map ? Map<String, dynamic>.from(valor) : null;
+  }
+
+  Widget _cardResumo(Map<String, dynamic> item) {
+    final cancelamento = _cancelamento(item);
+    final lojaId = _inteiro(item['loja_id']);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ClubbarCard(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => EstabelecimentosAdminPage(
+              organizacaoId: _inteiro(item['organizacao_id']),
+              nomeOrganizacao: _texto(item['nmorganizacao']),
+              lojaIdDetalhe: lojaId,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _TituloStatus(
+              titulo: _texto(item['nmloja']),
+              status: _texto(item['sitloja']),
+              icone: Icons.store_rounded,
+            ),
+            const Divider(height: 24),
+            Text('Razão social: ${_valorInformado(item['nmrazaosocial'])}'),
+            const SizedBox(height: 5),
+            Text(
+              'CPF/CNPJ: ${_valorInformado(ClubbarFormatters.cpfCnpj(_texto(item['cpfcnpjloja'])))}',
+            ),
+            const SizedBox(height: 5),
+            Text('Tipo de loja: ${_descricaoEnum(item['tipoloja'])}'),
+            if (cancelamento != null) ...[
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF1E8),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFFA36C)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.deepOrange,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Aviso prévio de cancelamento de parceria',
+                            style: TextStyle(
+                              color: Colors.deepOrange,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Solicitado em: ${_dataHoraBrasil(cancelamento['dtsolicitacao'])}',
+                    ),
+                    Text('Motivo: ${_valorInformado(cancelamento['motivo'])}'),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => _EstruturaModulo(
-    titulo: widget.nomeOrganizacao?.trim().isNotEmpty == true
+    titulo: widget.lojaIdDetalhe != null
+        ? _texto(_lojaDetalhe?['nmloja'])
+        : widget.nomeOrganizacao?.trim().isNotEmpty == true
         ? widget.nomeOrganizacao!.trim()
         : 'Estabelecimentos',
     subtitulo: _carregando
         ? 'Carregando estabelecimentos...'
+        : widget.lojaIdDetalhe != null
+        ? 'Detalhes do estabelecimento'
         : '${_lojas.length} estabelecimentos',
     estiloTitulo: const TextStyle(color: ClubbarColors.info),
     icone: Icons.storefront_rounded,
@@ -401,6 +503,9 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                   children: [
                     ..._filtradas.map((item) {
                       final lojaId = _inteiro(item['loja_id']);
+                      if (widget.lojaIdDetalhe == null) {
+                        return _cardResumo(item);
+                      }
                       final quantidadeUsuarios = _quantidadeUsuariosDaLoja(
                         lojaId,
                       );
@@ -561,8 +666,10 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
                                     '${_inteiro(item['nrdiavalidade'])}',
                                   ),
                                   MapEntry(
-                                    'Quantidade de PDVs',
-                                    _valorInformado(item['qtcpdloja']),
+                                    'Capacidade máxima do estabelecimento',
+                                    _inteiro(item['qtcpdloja']) > 0
+                                        ? '${_inteiro(item['qtcpdloja'])} pessoas'
+                                        : 'Não informada',
                                   ),
                                 ],
                               ),
