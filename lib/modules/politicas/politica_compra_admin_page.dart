@@ -21,6 +21,10 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     'PRODUTO': [],
   };
   bool _carregando = true;
+  int? _textoEmEdicaoId;
+  TextEditingController? _textoEmEdicaoController;
+  FocusNode? _textoEmEdicaoFocus;
+  bool _salvandoTexto = false;
 
   @override
   void initState() {
@@ -33,6 +37,8 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
   @override
   void dispose() {
     _abas.dispose();
+    _textoEmEdicaoController?.dispose();
+    _textoEmEdicaoFocus?.dispose();
     super.dispose();
   }
 
@@ -194,54 +200,56 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     }
   }
 
-  Future<void> _editarTextoRascunho(Map<String, dynamic> item) async {
-    final conteudo = TextEditingController(
-      text: item['conteudo']?.toString() ?? '',
-    );
-    final form = GlobalKey<FormState>();
-    final salvar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Editar texto — versão ${item['versao']}'),
-        content: SizedBox(
-          width: 620,
-          child: Form(
-            key: form,
-            child: _campo(
-              conteudo,
-              'Texto da política *',
-              'Escreva as regras que serão exibidas ao cliente.',
-              obrigatorio: true,
-              linhas: 16,
-              ajuda: 'Parágrafos e quebras de linha serão mantidos ao salvar.',
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton.icon(
-            onPressed: () {
-              if (form.currentState!.validate()) Navigator.pop(context, true);
-            },
-            icon: const Icon(Icons.save_outlined),
-            label: const Text('Salvar texto'),
-          ),
-        ],
-      ),
-    );
-    if (salvar != true) return;
+  void _iniciarEdicaoTexto(Map<String, dynamic> item) {
+    _textoEmEdicaoController?.dispose();
+    _textoEmEdicaoFocus?.dispose();
+    final foco = FocusNode();
+    final politicaId = int.parse(item['politicacompra_id'].toString());
+    setState(() {
+      _textoEmEdicaoId = politicaId;
+      _textoEmEdicaoController = TextEditingController(
+        text: item['conteudo']?.toString() ?? '',
+      );
+      _textoEmEdicaoFocus = foco;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _textoEmEdicaoId == politicaId) foco.requestFocus();
+    });
+  }
+
+  void _cancelarEdicaoTexto() {
+    final controller = _textoEmEdicaoController;
+    final foco = _textoEmEdicaoFocus;
+    setState(() {
+      _textoEmEdicaoId = null;
+      _textoEmEdicaoController = null;
+      _textoEmEdicaoFocus = null;
+      _salvandoTexto = false;
+    });
+    controller?.dispose();
+    foco?.dispose();
+  }
+
+  Future<void> _salvarTextoRascunho(Map<String, dynamic> item) async {
+    final conteudo = _textoEmEdicaoController?.text.trim() ?? '';
+    if (conteudo.isEmpty) {
+      _mensagem('Informe o texto da política.', erro: true);
+      return;
+    }
+    setState(() => _salvandoTexto = true);
     try {
       await _repo.atualizarTextoRascunho(
         int.parse(item['politicacompra_id'].toString()),
-        conteudo.text.trim(),
+        conteudo,
       );
-      if (mounted) _mensagem('Texto do rascunho atualizado.');
+      if (!mounted) return;
+      _cancelarEdicaoTexto();
+      _mensagem('Texto do rascunho atualizado.');
       await _carregar();
     } catch (e) {
       if (mounted) _mensagem('$e', erro: true);
+    } finally {
+      if (mounted && _salvandoTexto) setState(() => _salvandoTexto = false);
     }
   }
 
@@ -388,26 +396,62 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
                   children: [
                     _parametros(item, tipo),
                     const SizedBox(height: 14),
-                    _conteudoFormatado(item['conteudo']?.toString() ?? ''),
+                    if (_textoEmEdicaoId ==
+                        int.tryParse(item['politicacompra_id'].toString()))
+                      _editorTextoInline()
+                    else
+                      _conteudoFormatado(item['conteudo']?.toString() ?? ''),
                     if (rascunho) ...[
                       const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _editarTextoRascunho(item),
-                          icon: const Icon(Icons.edit_outlined),
-                          label: const Text('Editar texto'),
+                      if (_textoEmEdicaoId ==
+                          int.tryParse(item['politicacompra_id'].toString()))
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: _salvandoTexto
+                                  ? null
+                                  : _cancelarEdicaoTexto,
+                              child: const Text('Cancelar'),
+                            ),
+                            const SizedBox(width: 8),
+                            FilledButton.icon(
+                              onPressed: _salvandoTexto
+                                  ? null
+                                  : () => _salvarTextoRascunho(item),
+                              icon: _salvandoTexto
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.save_outlined),
+                              label: const Text('Salvar texto'),
+                            ),
+                          ],
+                        )
+                      else ...[
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _iniciarEdicaoTexto(item),
+                            icon: const Icon(Icons.edit_outlined),
+                            label: const Text('Editar texto'),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: FilledButton.icon(
-                          onPressed: () => _vigenciar(item),
-                          icon: const Icon(Icons.publish_rounded),
-                          label: const Text('Colocar vigente'),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton.icon(
+                            onPressed: () => _vigenciar(item),
+                            icon: const Icon(Icons.publish_rounded),
+                            label: const Text('Colocar vigente'),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ],
                 ),
@@ -465,4 +509,26 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
       ),
     );
   }
+
+  Widget _editorTextoInline() => SizedBox(
+    height: 420,
+    child: TextField(
+      controller: _textoEmEdicaoController,
+      focusNode: _textoEmEdicaoFocus,
+      expands: true,
+      minLines: null,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+      textInputAction: TextInputAction.newline,
+      textAlignVertical: TextAlignVertical.top,
+      style: const TextStyle(fontFamily: 'monospace', height: 1.45),
+      decoration: const InputDecoration(
+        labelText: 'Texto da política',
+        alignLabelWithHint: true,
+        helperText:
+            'Use Enter para criar parágrafos. As quebras serão mantidas.',
+        border: OutlineInputBorder(),
+      ),
+    ),
+  );
 }
