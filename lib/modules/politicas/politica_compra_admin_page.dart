@@ -227,6 +227,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
               'Escreva as regras que serão exibidas ao cliente.',
               obrigatorio: true,
               linhas: 16,
+              ajuda: 'Parágrafos e quebras de linha serão mantidos ao salvar.',
             ),
           ),
         ),
@@ -401,10 +402,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
                   children: [
                     _parametros(item, tipo),
                     const SizedBox(height: 14),
-                    SelectableText(
-                      item['conteudo']?.toString() ?? '',
-                      style: const TextStyle(height: 1.45),
-                    ),
+                    _conteudoFormatado(item['conteudo']?.toString() ?? ''),
                     if (rascunho) ...[
                       const SizedBox(height: 16),
                       Align(
@@ -461,4 +459,24 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
       ],
     ],
   );
+
+  Widget _conteudoFormatado(String conteudo) {
+    final paragrafos = conteudo
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .split(RegExp(r'\n[ \t]*\n'))
+        .where((paragrafo) => paragrafo.trim().isNotEmpty)
+        .toList();
+    return SelectionArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var indice = 0; indice < paragrafos.length; indice++) ...[
+            Text(paragrafos[indice], style: const TextStyle(height: 1.45)),
+            if (indice < paragrafos.length - 1) const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
 }
