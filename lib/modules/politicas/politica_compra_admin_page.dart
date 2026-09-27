@@ -83,9 +83,6 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
           atual?['titulo']?.toString() ??
           'Política de compra de ${_rotuloAtual}',
     );
-    final conteudo = TextEditingController(
-      text: atual?['conteudo']?.toString() ?? '',
-    );
     final dias = TextEditingController(
       text: '${_valor(atual, 'qtd_dias_cancelamento', 7)}',
     );
@@ -118,16 +115,6 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
                   ),
                   const SizedBox(height: 12),
                   _campo(titulo, 'Título *', null, obrigatorio: true),
-                  const SizedBox(height: 12),
-                  _campo(
-                    conteudo,
-                    'Texto da política *',
-                    'Escreva as regras que serão exibidas ao cliente.',
-                    obrigatorio: true,
-                    linhas: 14,
-                    ajuda:
-                        'Revise o texto quando alterar os parâmetros abaixo.',
-                  ),
                   const SizedBox(height: 12),
                   _campo(
                     dias,
@@ -188,7 +175,6 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
       await _repo.criar({
         'versao': versao.text.trim(),
         'titulo': titulo.text.trim(),
-        'conteudo': conteudo.text.trim(),
         'tipopolitica': tipo,
         'qtd_dias_cancelamento': int.parse(dias.text.trim()),
         if (tipo == 'INGRESSO') ...{
