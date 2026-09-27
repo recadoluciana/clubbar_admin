@@ -27,6 +27,14 @@ class PoliticaCompraRepository {
     if (resposta.statusCode != 201) throw Exception(_erro(resposta.body));
   }
 
+  Future<void> atualizarTextoRascunho(int politicaId, String conteudo) async {
+    final resposta = await ApiService.patch(
+      '/politicas/compra/$politicaId/rascunho',
+      {'conteudo': conteudo},
+    );
+    if (resposta.statusCode != 200) throw Exception(_erro(resposta.body));
+  }
+
   Future<void> vigenciar(int politicaId) async {
     final resposta = await ApiService.post(
       '/politicas/compra/$politicaId/vigenciar',

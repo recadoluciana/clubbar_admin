@@ -208,6 +208,56 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     }
   }
 
+  Future<void> _editarTextoRascunho(Map<String, dynamic> item) async {
+    final conteudo = TextEditingController(
+      text: item['conteudo']?.toString() ?? '',
+    );
+    final form = GlobalKey<FormState>();
+    final salvar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Editar texto — versão ${item['versao']}'),
+        content: SizedBox(
+          width: 620,
+          child: Form(
+            key: form,
+            child: _campo(
+              conteudo,
+              'Texto da política *',
+              'Escreva as regras que serão exibidas ao cliente.',
+              obrigatorio: true,
+              linhas: 16,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              if (form.currentState!.validate()) Navigator.pop(context, true);
+            },
+            icon: const Icon(Icons.save_outlined),
+            label: const Text('Salvar texto'),
+          ),
+        ],
+      ),
+    );
+    if (salvar != true) return;
+    try {
+      await _repo.atualizarTextoRascunho(
+        int.parse(item['politicacompra_id'].toString()),
+        conteudo.text.trim(),
+      );
+      if (mounted) _mensagem('Texto do rascunho atualizado.');
+      await _carregar();
+    } catch (e) {
+      if (mounted) _mensagem('$e', erro: true);
+    }
+  }
+
   Widget _campo(
     TextEditingController controller,
     String label,
@@ -357,6 +407,15 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
                     ),
                     if (rascunho) ...[
                       const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _editarTextoRascunho(item),
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text('Editar texto'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       Align(
                         alignment: Alignment.centerRight,
                         child: FilledButton.icon(
