@@ -76,11 +76,15 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
         break;
       }
     }
+    atual ??= _itens[tipo]!.isEmpty ? null : _itens[tipo]!.first;
     final versao = TextEditingController();
     final titulo = TextEditingController(
       text:
           atual?['titulo']?.toString() ??
           'Política de compra de ${_rotuloAtual}',
+    );
+    final conteudo = TextEditingController(
+      text: atual?['conteudo']?.toString() ?? '',
     );
     final dias = TextEditingController(
       text: '${_valor(atual, 'qtd_dias_cancelamento', 7)}',
@@ -114,6 +118,16 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
                   ),
                   const SizedBox(height: 12),
                   _campo(titulo, 'Título *', null, obrigatorio: true),
+                  const SizedBox(height: 12),
+                  _campo(
+                    conteudo,
+                    'Texto da política *',
+                    'Escreva as regras que serão exibidas ao cliente.',
+                    obrigatorio: true,
+                    linhas: 14,
+                    ajuda:
+                        'Revise o texto quando alterar os parâmetros abaixo.',
+                  ),
                   const SizedBox(height: 12),
                   _campo(
                     dias,
@@ -174,6 +188,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
       await _repo.criar({
         'versao': versao.text.trim(),
         'titulo': titulo.text.trim(),
+        'conteudo': conteudo.text.trim(),
         'tipopolitica': tipo,
         'qtd_dias_cancelamento': int.parse(dias.text.trim()),
         if (tipo == 'INGRESSO') ...{
@@ -199,12 +214,17 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     String? hint, {
     bool obrigatorio = false,
     bool numero = false,
+    int? linhas,
+    String? ajuda,
   }) => TextFormField(
     controller: controller,
     keyboardType: numero ? TextInputType.number : TextInputType.text,
+    minLines: linhas == null ? null : 6,
+    maxLines: linhas,
     decoration: InputDecoration(
       labelText: label,
       hintText: hint,
+      helperText: ajuda,
       border: const OutlineInputBorder(),
     ),
     validator: (valor) {
