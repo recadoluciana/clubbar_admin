@@ -976,7 +976,8 @@ class _UsuariosAdminPageState extends State<UsuariosAdminPage> {
                                     Icons.badge_outlined,
                                     cor: _corCargo(item['dscargo']),
                                   ),
-                                  if (_texto(item['nmloja']).isNotEmpty)
+                                  if (widget.lojaId == null &&
+                                      _texto(item['nmloja']).isNotEmpty)
                                     _Pill(
                                       _texto(item['nmloja']),
                                       Icons.storefront_rounded,
