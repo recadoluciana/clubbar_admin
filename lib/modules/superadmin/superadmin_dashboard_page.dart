@@ -208,7 +208,8 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   }
 
   int _totalParceiros() {
-    return _valorInteiro('parceiros_ativos');
+    final cadastrados = _valorInteiro('parceiros_cadastrados');
+    return cadastrados > 0 ? cadastrados : _valorInteiro('organizacoes');
   }
 
   double _valorFaturamentoHoje() {
