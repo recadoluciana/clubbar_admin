@@ -19,6 +19,7 @@ import '../categorias/categoria_padrao_admin_page.dart';
 import '../cora/cora_atendimentos_admin_page.dart';
 import '../cora/cora_duvidas_admin_page.dart';
 import '../politicas/politica_compra_admin_page.dart';
+import '../ingressos/catalogo_ingressos_admin_page.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -70,6 +71,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   void _abrirCategoriasPadrao() => Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const CategoriaPadraoAdminPage()));
+
+  void _abrirCatalogoIngressos() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const CatalogoIngressosAdminPage()));
 
   void _abrirDuvidasCora() => Navigator.of(
     context,
@@ -532,6 +537,12 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 valor: 'Catálogo geral do Clubbar',
                 icone: Icons.category_rounded,
                 onTap: _abrirCategoriasPadrao,
+              ),
+              _cardIndicador(
+                titulo: 'Modalidades e benefícios',
+                valor: 'Catálogo geral de ingressos',
+                icone: Icons.confirmation_number_outlined,
+                onTap: _abrirCatalogoIngressos,
               ),
               _cardIndicador(
                 titulo: 'Dúvidas frequentes da Cora',
