@@ -141,12 +141,20 @@ class _State extends State<CatalogoIngressosAdminPage> {
                 children: [
                   TextField(
                     controller: codigo,
-                    decoration: const InputDecoration(labelText: 'Código'),
+                    readOnly: atual != null,
+                    decoration: InputDecoration(
+                      labelText: atual == null ? 'Código' : 'Código (fixo)',
+                      suffixIcon: atual == null
+                          ? null
+                          : const Icon(Icons.lock_outline_rounded),
+                    ),
                   ),
+                  const SizedBox(height: 14),
                   TextField(
                     controller: nome,
                     decoration: const InputDecoration(labelText: 'Nome'),
                   ),
+                  const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     initialValue: tipo,
                     items: const ['PADRAO', 'LEGAL', 'COMERCIAL']
@@ -155,11 +163,13 @@ class _State extends State<CatalogoIngressosAdminPage> {
                     onChanged: (v) => setDialogState(() => tipo = v!),
                     decoration: const InputDecoration(labelText: 'Tipo'),
                   ),
+                  const SizedBox(height: 14),
                   TextField(
                     controller: ordem,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Ordem'),
                   ),
+                  const SizedBox(height: 8),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     value: cota,
