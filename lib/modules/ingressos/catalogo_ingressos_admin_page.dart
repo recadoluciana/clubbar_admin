@@ -282,51 +282,197 @@ class _State extends State<CatalogoIngressosAdminPage> {
     }
   }
 
-  Widget listaModalidades() => ListView(
-    padding: const EdgeInsets.all(16),
-    children: [
-      OutlinedButton.icon(
-        onPressed: () => editarModalidade(),
-        icon: const Icon(Icons.add),
-        label: const Text('Nova modalidade'),
+  Color corDaModalidade(ModalidadeCatalogo modalidade) =>
+      switch (modalidade.tipo) {
+        'LEGAL' => Colors.deepOrange,
+        'PADRAO' => Colors.blue,
+        _ => Colors.teal,
+      };
+
+  IconData iconeDaModalidade(ModalidadeCatalogo modalidade) =>
+      switch (modalidade.tipo) {
+        'LEGAL' => Icons.gavel_rounded,
+        'PADRAO' => Icons.confirmation_number_rounded,
+        _ => Icons.local_offer_rounded,
+      };
+
+  Widget etiqueta(String texto, {Color? cor}) {
+    final color = cor ?? Colors.blueGrey;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(20),
       ),
-      const SizedBox(height: 10),
-      ...modalidades.map(
-        (m) => Card(
-          child: ListTile(
-            title: Text(m.nome),
-            subtitle: Text(
-              '${m.codigo} • ${m.tipo}${m.beneficios.isEmpty ? '' : ' • ${m.beneficios.map((b) => b.nome).join(', ')}'}',
+      child: Text(
+        texto,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget cardModalidade(ModalidadeCatalogo modalidade) {
+    final cor = corDaModalidade(modalidade);
+    final beneficiosNomes = modalidade.beneficios.map((b) => b.nome).toList();
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: cor.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(iconeDaModalidade(modalidade), color: cor),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          modalidade.nome,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      etiqueta(
+                        modalidade.situacao == 'ATIVO' ? 'ATIVA' : 'INATIVA',
+                        cor: modalidade.situacao == 'ATIVO'
+                            ? Colors.green
+                            : Colors.grey,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Código fixo: ${modalidade.codigo}',
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      etiqueta(modalidade.tipo, cor: cor),
+                      etiqueta(
+                        modalidade.aplicaCotaLegal
+                            ? 'Aplica cota legal'
+                            : 'Não aplica cota legal',
+                        cor: modalidade.aplicaCotaLegal
+                            ? Colors.deepOrange
+                            : Colors.blueGrey,
+                      ),
+                      if (modalidade.exigeBeneficio)
+                        etiqueta(
+                          '${beneficiosNomes.length} ${beneficiosNomes.length == 1 ? 'benefício' : 'benefícios'}',
+                          cor: Colors.indigo,
+                        ),
+                      if (modalidade.exigeComprovante)
+                        etiqueta('Exige comprovante', cor: Colors.purple),
+                    ],
+                  ),
+                  if (beneficiosNomes.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Benefícios vinculados',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 7),
+                    Wrap(
+                      spacing: 7,
+                      runSpacing: 7,
+                      children: beneficiosNomes
+                          .map((nome) => etiqueta(nome, cor: Colors.indigo))
+                          .toList(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
               children: [
-                Chip(label: Text(m.situacao)),
                 IconButton(
-                  onPressed: () => editarModalidade(m),
-                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  tooltip: 'Editar modalidade',
+                  onPressed: () => editarModalidade(modalidade),
+                  icon: const Icon(Icons.edit_outlined, color: Colors.blue),
                 ),
                 IconButton(
-                  onPressed: () => excluirModalidade(m),
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  tooltip: 'Excluir modalidade',
+                  onPressed: () => excluirModalidade(modalidade),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget listaModalidades() => ListView(
+    padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+    children: [
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.amber.withValues(alpha: .12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.info_outline_rounded, color: Colors.brown),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Cada modalidade reúne as regras de venda, como tipo e cota legal. Os benefícios abaixo indicam quem pode utilizá-la.',
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 16),
+      FilledButton.icon(
+        onPressed: () => editarModalidade(),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Cadastrar modalidade'),
+      ),
+      const SizedBox(height: 18),
+      Text(
+        '${modalidades.length} modalidades cadastradas',
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: 10),
+      ...modalidades.map(cardModalidade),
     ],
   );
 
   Widget listaBeneficios() => ListView(
-    padding: const EdgeInsets.all(16),
+    padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
     children: [
-      OutlinedButton.icon(
+      FilledButton.icon(
         onPressed: () => editarBeneficio(),
-        icon: const Icon(Icons.add),
-        label: const Text('Novo benefício'),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Cadastrar benefício'),
       ),
-      const SizedBox(height: 10),
+      const SizedBox(height: 18),
       ...beneficios.map(
         (b) => Card(
           child: ListTile(
@@ -362,14 +508,14 @@ class _State extends State<CatalogoIngressosAdminPage> {
       body: Column(
         children: [
           const ClubbarPageHeader(
-            titulo: 'Modalidades e benefícios',
-            subtitulo: 'Catálogo geral de ingressos do Clubbar',
+            titulo: 'Modalidades de ingresso',
+            subtitulo: 'Configure regras de venda e os benefícios aceitos',
             mostrarDadosSessao: false,
           ),
-          const TabBar(
+          TabBar(
             tabs: [
-              Tab(text: 'Modalidades'),
-              Tab(text: 'Benefícios'),
+              Tab(text: 'Modalidades (${modalidades.length})'),
+              Tab(text: 'Catálogo de benefícios (${beneficios.length})'),
             ],
           ),
           Expanded(
