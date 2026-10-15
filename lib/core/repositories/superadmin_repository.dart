@@ -58,6 +58,32 @@ class SuperAdminRepository {
         .toList();
   }
 
+  Future<List<Map<String, dynamic>>> listarUsuariosControle({
+    int? organizacaoId,
+  }) async {
+    final filtro = organizacaoId == null
+        ? ''
+        : '?organizacao_id=$organizacaoId';
+    final response = await ApiService.get('/superadmin/usuarios$filtro');
+    final data = _decodificarResposta(
+      response,
+      'Erro ao carregar os usuários cadastrados.',
+    );
+    return (data as List)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> resetarSenhaUsuario(int usuarioId) async {
+    final response = await ApiService.post(
+      '/superadmin/usuarios/$usuarioId/resetar-senha',
+      const <String, dynamic>{},
+    );
+    return Map<String, dynamic>.from(
+      _decodificarResposta(response, 'Não foi possível redefinir a senha.'),
+    );
+  }
+
   Future<Map<String, dynamic>> vendasHoje({
     DateTime? dataInicio,
     DateTime? dataFim,

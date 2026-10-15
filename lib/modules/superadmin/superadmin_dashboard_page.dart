@@ -20,6 +20,7 @@ import '../cora/cora_atendimentos_admin_page.dart';
 import '../cora/cora_duvidas_admin_page.dart';
 import '../politicas/politica_compra_admin_page.dart';
 import '../ingressos/catalogo_ingressos_admin_page.dart';
+import 'controle_usuarios_admin_page.dart';
 
 class SuperAdminDashboardPage extends StatefulWidget {
   const SuperAdminDashboardPage({super.key});
@@ -59,6 +60,10 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
   void _abrirParceiros() => Navigator.of(
     context,
   ).push(MaterialPageRoute(builder: (_) => const ParceirosAdminPage()));
+
+  void _abrirControleUsuarios() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const ControleUsuariosAdminPage()));
 
   void _abrirVendasHoje() => Navigator.of(
     context,
@@ -483,6 +488,12 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 valor: '${_totalParceiros()}',
                 icone: Icons.business_rounded,
                 onTap: _abrirParceiros,
+              ),
+              _cardIndicador(
+                titulo: 'Controle de usuários',
+                valor: '${_valorInteiro('usuarios')} acessos cadastrados',
+                icone: Icons.manage_accounts_rounded,
+                onTap: _abrirControleUsuarios,
               ),
             ]),
             const SizedBox(height: 18),
