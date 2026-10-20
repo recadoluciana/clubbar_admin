@@ -119,8 +119,9 @@ class CatalogoIngressoRepository {
             '/ingressos-catalogo/beneficios/${atual.id}',
             body,
           );
-    if (r.statusCode < 200 || r.statusCode >= 300)
+    if (r.statusCode < 200 || r.statusCode >= 300) {
       throw Exception(_erro(r.body));
+    }
   }
 
   Future<void> salvarModalidade(
@@ -133,19 +134,22 @@ class CatalogoIngressoRepository {
             '/ingressos-catalogo/modalidades/${atual.id}',
             body,
           );
-    if (r.statusCode < 200 || r.statusCode >= 300)
+    if (r.statusCode < 200 || r.statusCode >= 300) {
       throw Exception(_erro(r.body));
+    }
   }
 
   Future<void> excluirBeneficio(int id) async {
     final r = await ApiService.delete('/ingressos-catalogo/beneficios/$id');
-    if (r.statusCode < 200 || r.statusCode >= 300)
+    if (r.statusCode < 200 || r.statusCode >= 300) {
       throw Exception(_erro(r.body));
+    }
   }
 
   Future<void> excluirModalidade(int id) async {
     final r = await ApiService.delete('/ingressos-catalogo/modalidades/$id');
-    if (r.statusCode < 200 || r.statusCode >= 300)
+    if (r.statusCode < 200 || r.statusCode >= 300) {
       throw Exception(_erro(r.body));
+    }
   }
 }

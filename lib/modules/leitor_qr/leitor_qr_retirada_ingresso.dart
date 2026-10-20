@@ -25,13 +25,13 @@ class _LeitorQrRetiradaIngressoScreenState
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   Future<void> vibrarSucesso() async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       Vibration.vibrate(duration: 200);
     }
   }
 
   Future<void> vibrarErro() async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       Vibration.vibrate(pattern: [0, 300, 150, 300]);
     }
   }

@@ -87,7 +87,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     final titulo = TextEditingController(
       text:
           atual?['titulo']?.toString() ??
-          'Política de compra de ${_rotuloAtual}',
+          'Política de compra de $_rotuloAtual',
     );
     final dias = TextEditingController(
       text: '${_valor(atual, 'qtd_dias_cancelamento', 7)}',
@@ -105,7 +105,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     final criar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Nova versão — política de ${_rotuloAtual}'),
+        title: Text('Nova versão — política de $_rotuloAtual'),
         content: SizedBox(
           width: 620,
           child: Form(
@@ -273,10 +273,12 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
       border: const OutlineInputBorder(),
     ),
     validator: (valor) {
-      if ((obrigatorio || numero) && (valor == null || valor.trim().isEmpty))
+      if ((obrigatorio || numero) && (valor == null || valor.trim().isEmpty)) {
         return 'Informe este campo';
-      if (numero && int.tryParse(valor!.trim()) == null)
+      }
+      if (numero && int.tryParse(valor!.trim()) == null) {
         return 'Informe um número inteiro';
+      }
       return null;
     },
   );
@@ -287,7 +289,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
       builder: (context) => AlertDialog(
         title: const Text('Colocar política vigente?'),
         content: Text(
-          'A versão ${item['versao']} passará a valer para compras de ${_rotuloAtual}. A versão atual será encerrada.',
+          'A versão ${item['versao']} passará a valer para compras de $_rotuloAtual. A versão atual será encerrada.',
         ),
         actions: [
           TextButton(
@@ -362,8 +364,9 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
 
   Widget _lista(String tipo) {
     final itens = _itens[tipo] ?? [];
-    if (itens.isEmpty)
+    if (itens.isEmpty) {
       return const Center(child: Text('Nenhuma versão cadastrada.'));
+    }
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
       itemCount: itens.length,

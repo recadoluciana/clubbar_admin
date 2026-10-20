@@ -186,7 +186,7 @@ class _KpiCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -198,7 +198,7 @@ class _KpiCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.15),
+              color: Colors.amber.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icone, color: Colors.amber.shade800),
