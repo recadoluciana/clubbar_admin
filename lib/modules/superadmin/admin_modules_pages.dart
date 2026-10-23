@@ -488,7 +488,7 @@ class _EstabelecimentosAdminPageState extends State<EstabelecimentosAdminPage> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
           child: _CampoBusca(
             controller: _busca,
-            dica: 'Buscar organização ou estabelecimento',
+            dica: 'Buscar estabelecimento',
             onChanged: (_) => setState(() {}),
             comBorda: true,
           ),
