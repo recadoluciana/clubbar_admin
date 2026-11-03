@@ -576,149 +576,6 @@ class _LeadEstabelecimentoListPageState
     if (atualizado == true && mounted) await _carregar();
   }
 
-  Future<void> _abrirImplantacao(LeadEstabelecimento estabelecimento) async {
-    try {
-      var cobranca = await _repository.consultarImplantacao(estabelecimento.id);
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => StatefulBuilder(
-          builder: (context, setDialogState) {
-            final status = cobranca['status']?.toString() ?? 'PENDENTE';
-            final valor = (cobranca['valor'] as num?)?.toDouble() ?? 0;
-            final liberada =
-                status == 'PAGA' || status == 'ISENTA' || status == 'SEM_TAXA';
-            final cobrancaGerada = cobranca['cobrancaimplantacao_id'] != null;
-            final nomeStatus = switch (status) {
-              'NAO_GERADA' => 'Não gerada',
-              'SEM_TAXA' => 'Sem taxa',
-              'PENDENTE' => 'Pendente',
-              'PAGA' => 'Paga',
-              'ISENTA' => 'Isenta',
-              'VENCIDA' => 'Vencida',
-              _ => status,
-            };
-            return AlertDialog(
-              title: const Text('Taxa de implantação'),
-              content: SizedBox(
-                width: 430,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: ClubbarColors.info,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Chip(
-                      avatar: Icon(
-                        liberada ? Icons.check_circle : Icons.schedule,
-                        size: 18,
-                      ),
-                      label: Text(nomeStatus),
-                    ),
-                    if (status == 'PAGA')
-                      Text(
-                        'Pagamento: ${_formatarDataPagamento(cobranca['dtpagamento'])}',
-                      ),
-                    if (status == 'ISENTA')
-                      Text('Motivo: ${cobranca['justificativaisencao'] ?? ''}'),
-                    if (status == 'NAO_GERADA')
-                      const Text(
-                        'Nenhuma cobrança foi gerada no Asaas. Você pode conceder a isenção diretamente.',
-                      ),
-                    if (!liberada) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        status == 'NAO_GERADA'
-                            ? 'A conversão será liberada após o pagamento ou a isenção da taxa.'
-                            : 'A conversão será liberada após a confirmação oficial do Asaas ou a isenção da taxa.',
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              actions: [
-                if (cobrancaGerada && status != 'ISENTA')
-                  TextButton.icon(
-                    onPressed: () async {
-                      cobranca = await _repository.consultarImplantacao(
-                        estabelecimento.id,
-                      );
-                      setDialogState(() {});
-                    },
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Verificar pagamento'),
-                  ),
-                if (!liberada)
-                  TextButton(
-                    onPressed: () async {
-                      final justificativa = TextEditingController();
-                      final motivo = await showDialog<String>(
-                        context: dialogContext,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Isentar taxa de implantação'),
-                          content: TextField(
-                            controller: justificativa,
-                            minLines: 2,
-                            maxLines: 4,
-                            decoration: const InputDecoration(
-                              labelText: 'Justificativa obrigatória',
-                              hintText: 'Informe o motivo da isenção',
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Cancelar'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () =>
-                                  Navigator.pop(ctx, justificativa.text.trim()),
-                              child: const Text('Confirmar isenção'),
-                            ),
-                          ],
-                        ),
-                      );
-                      justificativa.dispose();
-                      if (motivo == null || motivo.length < 10) {
-                        if (context.mounted && motivo != null) {
-                          AppSnackBar.aviso(
-                            context,
-                            'Informe uma justificativa com pelo menos 10 caracteres.',
-                          );
-                        }
-                        return;
-                      }
-                      cobranca = await _repository.isentarImplantacao(
-                        leadestabelecimentoId: estabelecimento.id,
-                        justificativa: motivo,
-                      );
-                      setDialogState(() {});
-                    },
-                    child: const Text('Conceder isenção'),
-                  ),
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Fechar'),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-    } catch (e) {
-      if (mounted) {
-        AppSnackBar.erro(context, e.toString().replaceFirst('Exception: ', ''));
-      }
-    }
-  }
-
   String _nomeStatusBadge(String status) {
     switch (status) {
       case 'CONTATADO':
@@ -791,17 +648,6 @@ class _LeadEstabelecimentoListPageState
 
     return '${dois(local.day)}/${dois(local.month)}/${local.year} '
         '${dois(local.hour)}:${dois(local.minute)}';
-  }
-
-  String _formatarDataPagamento(Object? valor) {
-    if (valor == null) return 'confirmado';
-    final data = DateTime.tryParse(valor.toString());
-    if (data == null) return valor.toString();
-    final local = data.toLocal();
-    String dois(int numero) => numero.toString().padLeft(2, '0');
-
-    return '${dois(local.day)}/${dois(local.month)}/${local.year} '
-        '${dois(local.hour)}:${dois(local.minute)}:${dois(local.second)}';
   }
 
   String _textoEspera(LeadParceiro lead, String status) {
@@ -1117,20 +963,6 @@ class _LeadEstabelecimentoListPageState
                   'Taxas: produtos ${estabelecimento.taxaProdutos.toStringAsFixed(2)}% • ingressos ${estabelecimento.taxaIngressos.toStringAsFixed(2)}%',
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _abrirImplantacao(estabelecimento),
-              icon: const Icon(Icons.payments_rounded),
-              label: const Text('Consultar taxa de implantação'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: ClubbarColors.info,
-                backgroundColor: ClubbarColors.infoClaro,
-                side: const BorderSide(color: ClubbarColors.info),
-              ),
             ),
           ),
           if (status == 'NEGOCIANDO' ||

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/repositories/contrato_padrao_repository.dart';
 import '../../core/widgets/clubbar_app_bar.dart';
@@ -14,7 +12,6 @@ class ContratoPadraoPage extends StatefulWidget {
 
 class _ContratoPadraoPageState extends State<ContratoPadraoPage> {
   final _repo = ContratoPadraoRepository();
-  final _moeda = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
   List<Map<String, dynamic>> _itens = [];
   bool _carregando = true;
 
@@ -42,11 +39,6 @@ class _ContratoPadraoPageState extends State<ContratoPadraoPage> {
     }
     final versao = TextEditingController();
     final titulo = TextEditingController(text: atual?['titulo']?.toString() ?? 'Termo de Parceria Comercial Clubbar');
-    final valorAtual = atual?['vrimplantacao'];
-    final valor = TextEditingController(
-      text: (valorAtual is num ? valorAtual.toDouble() : double.tryParse('$valorAtual') ?? 0)
-          .toStringAsFixed(2).replaceAll('.', ','),
-    );
     final conteudo = TextEditingController(text: atual?['conteudomodelo']?.toString() ?? '');
     final form = GlobalKey<FormState>();
     final confirmar = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
@@ -56,8 +48,6 @@ class _ContratoPadraoPageState extends State<ContratoPadraoPage> {
         const SizedBox(height: 12),
         TextFormField(controller: titulo, decoration: const InputDecoration(labelText: 'Título *', border: OutlineInputBorder()), validator: (v) => v == null || v.trim().length < 3 ? 'Informe o título' : null),
         const SizedBox(height: 12),
-        TextFormField(controller: valor, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]'))], decoration: const InputDecoration(labelText: 'Taxa única de implantação', prefixText: 'R\$ ', border: OutlineInputBorder())),
-        const SizedBox(height: 12),
         const Align(alignment: Alignment.centerLeft, child: Text('Mantenha os marcadores entre {{ }} para preencher automaticamente os dados do parceiro.', style: TextStyle(fontWeight: FontWeight.w600))),
         const SizedBox(height: 8),
         TextFormField(controller: conteudo, minLines: 18, maxLines: 26, decoration: const InputDecoration(labelText: 'Conteúdo do contrato *', alignLabelWithHint: true, border: OutlineInputBorder()), validator: (v) => v == null || v.trim().length < 100 ? 'O contrato precisa ter conteúdo completo' : null),
@@ -66,7 +56,7 @@ class _ContratoPadraoPageState extends State<ContratoPadraoPage> {
     ));
     if (confirmar != true) return;
     try {
-      await _repo.publicar({'versao': versao.text.trim(), 'titulo': titulo.text.trim(), 'vrimplantacao': double.tryParse(valor.text.replaceAll('.', '').replaceAll(',', '.')) ?? 0, 'conteudomodelo': conteudo.text.trim()});
+      await _repo.publicar({'versao': versao.text.trim(), 'titulo': titulo.text.trim(), 'vrimplantacao': 0, 'conteudomodelo': conteudo.text.trim()});
       if (mounted) _mensagem('Nova versão publicada. A versão anterior foi preservada.');
       await _carregar();
     } catch (e) { if (mounted) _mensagem('$e', erro: true); }
@@ -85,7 +75,7 @@ class _ContratoPadraoPageState extends State<ContratoPadraoPage> {
         itemBuilder: (_, indice) { final item = _itens[indice]; final ativo = item['sitcontrato'] == 'ATIVO'; return Card(child: ExpansionTile(
           leading: CircleAvatar(backgroundColor: (ativo ? Colors.green : Colors.grey).withValues(alpha: .14), child: Icon(Icons.description_rounded, color: ativo ? Colors.green.shade700 : Colors.grey.shade700)),
           title: Text('${item['titulo']} • versão ${item['versao']}', style: const TextStyle(fontWeight: FontWeight.w800)),
-          subtitle: Text('${ativo ? 'ATIVO' : 'INATIVO'}  •  Implantação ${_moeda.format(item['vrimplantacao'] ?? 0)}'),
+          subtitle: Text(ativo ? 'ATIVO' : 'INATIVO'),
           trailing: ativo ? const Chip(label: Text('Versão atual'), backgroundColor: Color(0xFFE8F5E9)) : null,
           children: [Padding(padding: const EdgeInsets.all(16), child: SelectableText(item['conteudomodelo']?.toString() ?? ''))],
         )); },
