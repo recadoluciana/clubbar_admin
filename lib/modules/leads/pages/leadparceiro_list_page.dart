@@ -974,7 +974,7 @@ class _LeadEstabelecimentoListPageState
               child: OutlinedButton.icon(
                 onPressed: () => _abrirContratos(lead, estabelecimento),
                 icon: const Icon(Icons.folder_copy_outlined),
-                label: const Text('Contratos e retificações'),
+                label: const Text('Consultar contrato'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: ClubbarColors.sucesso,
                   backgroundColor: ClubbarColors.sucessoClaro,
@@ -988,7 +988,7 @@ class _LeadEstabelecimentoListPageState
               child: OutlinedButton.icon(
                 onPressed: () => _abrirRetificacao(lead, estabelecimento),
                 icon: const Icon(Icons.edit_document),
-                label: const Text('Nova retificação'),
+                label: const Text('Gerar retificação'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.deepOrange.shade700,
                   backgroundColor: Colors.deepOrange.shade50,
