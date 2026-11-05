@@ -236,6 +236,14 @@ class _LeadParceiroConverterPageState extends State<LeadParceiroConverterPage> {
                                 value: 'CASA_EVENTOS',
                                 child: Text('Casa de eventos'),
                               ),
+                              DropdownMenuItem(
+                                value: 'RESTAURANTE',
+                                child: Text('Restaurante'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'CONVENIENCIA',
+                                child: Text('Conveniência'),
+                              ),
                             ],
                             onChanged: (v) => setState(() => _tipoLoja = v!),
                           ),

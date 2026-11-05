@@ -374,6 +374,14 @@ class _LeadEstabelecimentoFormPageState
                                   value: 'PRODUTOR_EVENTOS',
                                   child: Text('Produtor de eventos'),
                                 ),
+                                DropdownMenuItem(
+                                  value: 'RESTAURANTE',
+                                  child: Text('Restaurante'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'CONVENIENCIA',
+                                  child: Text('Conveniência'),
+                                ),
                               ],
                               onChanged: (v) => setState(() => _tipo = v!),
                             ),

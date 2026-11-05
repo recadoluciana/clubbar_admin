@@ -380,6 +380,8 @@ class _LeadEstabelecimentoListPageState
     'CASA_NOTURNA',
     'PRODUTOR_EVENTOS',
     'CASA_EVENTOS',
+    'RESTAURANTE',
+    'CONVENIENCIA',
   ];
   @override
   void initState() {
@@ -603,6 +605,11 @@ class _LeadEstabelecimentoListPageState
         return 'Produtor de Eventos';
       case 'CASA_EVENTOS':
         return 'Casa de eventos';
+
+      case 'RESTAURANTE':
+        return 'Restaurante';
+      case 'CONVENIENCIA':
+        return 'Conveniência';
 
       case 'BAR':
         return 'Bar';
