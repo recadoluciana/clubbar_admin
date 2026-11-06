@@ -11,7 +11,6 @@ import '../models/leadparceiro.dart';
 import '../repositories/leadparceiro_repository.dart';
 
 import 'leadparceiro_form_page.dart';
-import 'leadparceiro_converter_page.dart';
 import 'leadestabelecimento_form_page.dart';
 import 'leadcontrato_retificacao_page.dart';
 import 'leadcontratos_page.dart';
@@ -501,22 +500,6 @@ class _LeadEstabelecimentoListPageState
     );
   }
 
-  Future<void> _abrirConversao(
-    LeadParceiro lead,
-    LeadEstabelecimento estabelecimento,
-  ) async {
-    final resultado = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => LeadParceiroConverterPage(
-          lead: lead,
-          estabelecimento: estabelecimento,
-        ),
-      ),
-    );
-
-    if (resultado == true) await _carregar();
-  }
-
   Future<void> _reenviarConvite(LeadParceiro lead) async {
     try {
       final resultado = await _repository.reenviarConviteParceiro(
@@ -1004,28 +987,6 @@ class _LeadEstabelecimentoListPageState
               ),
             ),
           ],
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: status == 'ACEITOU_PARCERIA'
-                  ? () => _abrirConversao(lead, estabelecimento)
-                  : null,
-              icon: const Icon(Icons.storefront_rounded),
-              label: Text(
-                status == 'CONVERTIDO'
-                    ? '${estabelecimento.nome} — convertido'
-                    : 'Converter ${estabelecimento.nome}',
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ClubbarColors.ambar,
-                foregroundColor: ClubbarColors.preto,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-            ),
-          ),
           if (status == 'CONVERTIDO') ...[
             const SizedBox(height: 10),
             SizedBox(
