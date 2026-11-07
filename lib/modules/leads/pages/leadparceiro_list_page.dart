@@ -381,6 +381,9 @@ class _LeadEstabelecimentoListPageState
     'CASA_EVENTOS',
     'RESTAURANTE',
     'CONVENIENCIA',
+    'HAMBURGUERIA',
+    'PIZZARIA',
+    'LANCHONETE',
   ];
   @override
   void initState() {
@@ -593,6 +596,12 @@ class _LeadEstabelecimentoListPageState
         return 'Restaurante';
       case 'CONVENIENCIA':
         return 'Conveniência';
+      case 'HAMBURGUERIA':
+        return 'Hamburgueria';
+      case 'PIZZARIA':
+        return 'Pizzaria';
+      case 'LANCHONETE':
+        return 'Lanchonete';
 
       case 'BAR':
         return 'Bar';
