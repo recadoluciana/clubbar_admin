@@ -19,6 +19,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
   final Map<String, List<Map<String, dynamic>>> _itens = {
     'INGRESSO': [],
     'PRODUTO': [],
+    'PRIVACIDADE': [],
   };
   bool _carregando = true;
   int? _textoEmEdicaoId;
@@ -29,7 +30,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
   @override
   void initState() {
     super.initState();
-    _abas = TabController(length: 2, vsync: this)
+    _abas = TabController(length: 3, vsync: this)
       ..addListener(() => setState(() {}));
     _carregar();
   }
@@ -42,8 +43,12 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     super.dispose();
   }
 
-  String get _tipoAtual => _abas.index == 0 ? 'INGRESSO' : 'PRODUTO';
-  String get _rotuloAtual => _tipoAtual == 'INGRESSO' ? 'ingresso' : 'produto';
+  String get _tipoAtual => ['INGRESSO', 'PRODUTO', 'PRIVACIDADE'][_abas.index];
+  String get _rotuloAtual => _tipoAtual == 'INGRESSO'
+      ? 'ingresso'
+      : _tipoAtual == 'PRODUTO'
+      ? 'produto'
+      : 'privacidade';
 
   Future<void> _carregar() async {
     setState(() => _carregando = true);
@@ -51,9 +56,11 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
       final resultados = await Future.wait([
         _repo.listar('INGRESSO'),
         _repo.listar('PRODUTO'),
+        _repo.listar('PRIVACIDADE'),
       ]);
       _itens['INGRESSO'] = resultados[0];
       _itens['PRODUTO'] = resultados[1];
+      _itens['PRIVACIDADE'] = resultados[2];
     } catch (e) {
       if (mounted) _mensagem('$e', erro: true);
     } finally {
@@ -87,7 +94,9 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     final titulo = TextEditingController(
       text:
           atual?['titulo']?.toString() ??
-          'Política de compra de $_rotuloAtual',
+          (tipo == 'PRIVACIDADE'
+              ? 'Política de Privacidade'
+              : 'Política de compra de $_rotuloAtual'),
     );
     final dias = TextEditingController(
       text: '${_valor(atual, 'qtd_dias_cancelamento', 7)}',
@@ -122,12 +131,13 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
                   const SizedBox(height: 12),
                   _campo(titulo, 'Título *', null, obrigatorio: true),
                   const SizedBox(height: 12),
-                  _campo(
-                    dias,
-                    'Dias corridos para cancelamento *',
-                    null,
-                    numero: true,
-                  ),
+                  if (tipo != 'PRIVACIDADE')
+                    _campo(
+                      dias,
+                      'Dias corridos para cancelamento *',
+                      null,
+                      numero: true,
+                    ),
                   if (tipo == 'INGRESSO') ...[
                     const SizedBox(height: 12),
                     _campo(
@@ -182,7 +192,11 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
         'versao': versao.text.trim(),
         'titulo': titulo.text.trim(),
         'tipopolitica': tipo,
-        'qtd_dias_cancelamento': int.parse(dias.text.trim()),
+        'qtd_dias_cancelamento': tipo == 'PRIVACIDADE'
+            ? 0
+            : int.parse(dias.text.trim()),
+        if (tipo == 'PRIVACIDADE' && atual != null)
+          'conteudo': atual['conteudo'],
         if (tipo == 'INGRESSO') ...{
           'qtd_horas_antecedencia_cancelamento': int.parse(
             horasCancelamento.text.trim(),
@@ -289,7 +303,9 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
       builder: (context) => AlertDialog(
         title: const Text('Colocar política vigente?'),
         content: Text(
-          'A versão ${item['versao']} passará a valer para compras de $_rotuloAtual. A versão atual será encerrada.',
+          _tipoAtual == 'PRIVACIDADE'
+              ? 'A versão ${item['versao']} passará a ser a política de privacidade vigente. A versão atual será encerrada.'
+              : 'A versão ${item['versao']} passará a valer para compras de $_rotuloAtual. A versão atual será encerrada.',
         ),
         actions: [
           TextButton(
@@ -325,8 +341,8 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
     body: Column(
       children: [
         ClubbarPageHeader(
-          titulo: 'Políticas de compra',
-          subtitulo: 'Versões gerais do Clubbar para ingressos e produtos',
+          titulo: 'Políticas do Clubbar',
+          subtitulo: 'Versões de compra e privacidade',
           mostrarDadosSessao: false,
           trailing: IconButton(
             onPressed: _carregar,
@@ -347,6 +363,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
                 icon: Icon(Icons.shopping_bag_outlined),
                 text: 'Política de compra de produto',
               ),
+              Tab(icon: Icon(Icons.privacy_tip_outlined), text: 'Privacidade'),
             ],
           ),
         ),
@@ -355,7 +372,11 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
               ? const Center(child: CircularProgressIndicator())
               : TabBarView(
                   controller: _abas,
-                  children: [_lista('INGRESSO'), _lista('PRODUTO')],
+                  children: [
+                    _lista('INGRESSO'),
+                    _lista('PRODUTO'),
+                    _lista('PRIVACIDADE'),
+                  ],
                 ),
         ),
       ],
@@ -397,7 +418,7 @@ class _PoliticaCompraAdminPageState extends State<PoliticaCompraAdminPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _parametros(item, tipo),
+                    if (tipo != 'PRIVACIDADE') _parametros(item, tipo),
                     const SizedBox(height: 14),
                     if (_textoEmEdicaoId ==
                         int.tryParse(item['politicacompra_id'].toString()))

@@ -568,7 +568,7 @@ class _SuperAdminDashboardPageState extends State<SuperAdminDashboardPage> {
                 onTap: _abrirContratoPadrao,
               ),
               _cardIndicador(
-                titulo: 'Política de compra',
+                titulo: 'Políticas de compra e privacidade',
                 valor: 'Versões gerais para clientes',
                 icone: Icons.policy_rounded,
                 onTap: _abrirPoliticaCompra,
