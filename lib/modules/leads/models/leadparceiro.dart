@@ -21,6 +21,8 @@ class LeadEstabelecimento {
   final double taxaProdutos;
   final double taxaIngressos;
   final bool contratoAssinado;
+  final bool documentoConferido;
+  final String? nomeTitularConferido;
 
   const LeadEstabelecimento({
     required this.id,
@@ -45,6 +47,8 @@ class LeadEstabelecimento {
     required this.taxaProdutos,
     required this.taxaIngressos,
     required this.contratoAssinado,
+    required this.documentoConferido,
+    required this.nomeTitularConferido,
   });
 
   bool get dadosContratuaisCompletos =>
@@ -83,6 +87,8 @@ class LeadEstabelecimento {
     taxaProdutos: double.tryParse(json['vrtaxaprod']?.toString() ?? '') ?? 5,
     taxaIngressos: double.tryParse(json['vrtaxaing']?.toString() ?? '') ?? 5,
     contratoAssinado: json['contrato_assinado'] == true,
+    documentoConferido: json['documento_conferido'] == true,
+    nomeTitularConferido: json['nome_titular_conferido']?.toString(),
   );
 }
 

@@ -9,6 +9,26 @@ import '../../../core/services/api_service.dart';
 import '../models/leadparceiro.dart';
 
 class LeadParceiroRepository {
+  Future<void> conferirDocumento(
+    int leadId,
+    int estabelecimentoId,
+    String documento,
+    String nomeTitular,
+  ) async {
+    final response = await ApiService.post(
+      '/parceiros/$leadId/estabelecimentos/$estabelecimentoId/conferir-documento',
+      {'cpfcnpj': documento, 'nome_titular': nomeTitular},
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extrairErro(
+          response.body,
+          'Não foi possível registrar a conferência.',
+        ),
+      );
+    }
+  }
+
   Future<List<Map<String, dynamic>>> listarEstados() async {
     final response = await ApiService.get('/localidades/estados');
     if (response.statusCode != 200) {

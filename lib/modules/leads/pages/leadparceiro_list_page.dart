@@ -564,6 +564,79 @@ class _LeadEstabelecimentoListPageState
     if (atualizado == true && mounted) await _carregar();
   }
 
+  Future<void> _conferirDocumento(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) async {
+    final documento = estabelecimento.cpfCnpj ?? '';
+    if (documento.isEmpty) {
+      AppSnackBar.erro(
+        context,
+        'O CPF/CNPJ do estabelecimento não foi informado.',
+      );
+      return;
+    }
+    final nome = TextEditingController();
+    final confirmado = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Conferência manual'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('CPF/CNPJ: ${ClubbarFormatters.cpfCnpj(documento)}'),
+            const SizedBox(height: 12),
+            const Text(
+              'Confira o documento por um meio confiável e informe o nome do titular. O Clubbar não faz essa consulta automaticamente.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: nome,
+              decoration: const InputDecoration(
+                labelText: 'Nome do titular do CPF/CNPJ',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (nome.text.trim().length >= 2) {
+                Navigator.pop(dialogContext, nome.text.trim());
+              }
+            },
+            child: const Text('Registrar conferência'),
+          ),
+        ],
+      ),
+    );
+    nome.dispose();
+    if (confirmado == null || !mounted) return;
+    try {
+      await _repository.conferirDocumento(
+        lead.leadparceiroId,
+        estabelecimento.id,
+        documento,
+        confirmado,
+      );
+      if (!mounted) return;
+      AppSnackBar.sucesso(context, 'Conferência manual registrada.');
+      await _carregar();
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(
+          context,
+          e.toString().replaceFirst('Exception: ', '').trim(),
+        );
+      }
+    }
+  }
+
   String _nomeStatusBadge(String status) {
     switch (status) {
       case 'CONTATADO':
@@ -955,6 +1028,17 @@ class _LeadEstabelecimentoListPageState
                 Text(
                   'CPF/CNPJ: ${(estabelecimento.cpfCnpj ?? '').isEmpty ? 'não informado' : ClubbarFormatters.cpfCnpj(estabelecimento.cpfCnpj)}',
                 ),
+                Text(
+                  estabelecimento.documentoConferido
+                      ? 'Conferido manualmente: ${estabelecimento.nomeTitularConferido}'
+                      : 'Titular do CPF/CNPJ aguardando conferência manual',
+                ),
+                if (!estabelecimento.documentoConferido)
+                  TextButton.icon(
+                    onPressed: () => _conferirDocumento(lead, estabelecimento),
+                    icon: const Icon(Icons.fact_check_outlined),
+                    label: const Text('Conferir titular'),
+                  ),
                 Text(
                   'Endereço: ${(estabelecimento.endereco ?? '').isEmpty ? 'não informado' : '${estabelecimento.endereco}, ${estabelecimento.numero ?? ''}'}',
                 ),

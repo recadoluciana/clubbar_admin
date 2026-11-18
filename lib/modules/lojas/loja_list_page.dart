@@ -155,16 +155,6 @@ class _LojaListPageState extends State<LojaListPage> {
         : '${ApiConfig.baseUrl}/$caminho';
   }
 
-  Future<void> _abrirNovaLoja() async {
-    final resultado = await Navigator.of(
-      context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => const LojaFormPage()));
-
-    if (resultado == true) {
-      await _carregarLojas();
-    }
-  }
-
   Future<void> _abrirEdicao(Loja loja) async {
     final resultado = await Navigator.of(
       context,
@@ -531,49 +521,13 @@ class _LojaListPageState extends State<LojaListPage> {
   }
 
   Widget _acoesTopo() {
-    return Row(
-      children: [
-        Expanded(
-          child: SizedBox(
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _abrirNovaLoja,
-              icon: const Icon(Icons.add_business_rounded),
-              label: const Text(
-                'Novo estabelecimento',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ClubbarColors.ambar,
-                foregroundColor: ClubbarColors.preto,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 10),
-
-        SizedBox(
-          width: 50,
-          height: 50,
-          child: OutlinedButton(
-            onPressed: _carregando ? null : _carregarLojas,
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.zero,
-              foregroundColor: ClubbarColors.textoPrincipal,
-              side: const BorderSide(color: ClubbarColors.borda),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-            ),
-            child: const Icon(Icons.refresh_rounded),
-          ),
-        ),
-      ],
+    return Align(
+      alignment: Alignment.centerRight,
+      child: IconButton(
+        tooltip: 'Atualizar estabelecimentos',
+        onPressed: _carregando ? null : _carregarLojas,
+        icon: const Icon(Icons.refresh_rounded),
+      ),
     );
   }
 
@@ -615,7 +569,7 @@ class _LojaListPageState extends State<LojaListPage> {
             Text(
               temBusca
                   ? 'Tente pesquisar usando outro nome, bairro ou endereço.'
-                  : 'Cadastre o primeiro estabelecimento da sua empresa.',
+                  : 'Os estabelecimentos são criados após o cadastro no site e a conversão do lead.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,
@@ -623,23 +577,6 @@ class _LojaListPageState extends State<LojaListPage> {
                 height: 1.4,
               ),
             ),
-
-            if (!temBusca) ...[
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _abrirNovaLoja,
-                icon: const Icon(Icons.add_rounded),
-                label: const Text(
-                  'Cadastrar estabelecimento',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ClubbarColors.ambar,
-                  foregroundColor: ClubbarColors.preto,
-                  elevation: 0,
-                ),
-              ),
-            ],
           ],
         ),
       ),
