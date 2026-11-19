@@ -596,6 +596,7 @@ class _LeadEstabelecimentoListPageState
                 controller: novo,
                 decoration: const InputDecoration(labelText: 'Novo CPF/CNPJ'),
               ),
+              const SizedBox(height: 12),
               TextField(
                 controller: titular,
                 decoration: const InputDecoration(
