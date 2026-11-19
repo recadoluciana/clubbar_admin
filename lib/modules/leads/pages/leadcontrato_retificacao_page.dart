@@ -31,6 +31,8 @@ class _LeadContratoRetificacaoPageState
   late final TextEditingController _motivo;
   late final TextEditingController _documento;
   String _documentoContratante = '';
+  bool _corrigirDocumento = false;
+  bool _mesmaParte = false;
   late final TextEditingController _nome;
   late final TextEditingController _cep;
   late final TextEditingController _endereco;
@@ -176,7 +178,10 @@ class _LeadContratoRetificacaoPageState
     String taxa(TextEditingController c) => c.text.trim().replaceAll(',', '.');
     return {
       'motivo': _motivo.text.trim(),
-      'cpfcnpj': _documentoContratante,
+      'cpfcnpj': _corrigirDocumento
+          ? _documento.text.trim()
+          : _documentoContratante,
+      'confirma_mesma_parte': _corrigirDocumento && _mesmaParte,
       'nmrazaosocial': _nome.text.trim(),
       'cep': _cep.text.replaceAll(RegExp(r'\D'), ''),
       'endereco': _endereco.text.trim(),
@@ -195,6 +200,13 @@ class _LeadContratoRetificacaoPageState
 
   Future<void> _enviar() async {
     if (_salvando || !_form.currentState!.validate()) return;
+    if (_corrigirDocumento && !_mesmaParte) {
+      AppSnackBar.aviso(
+        context,
+        'Confirme que o documento pertence à mesma parte contratante.',
+      );
+      return;
+    }
     if (_estadoId == null || _cidadeId == null) {
       AppSnackBar.aviso(context, 'Selecione estado e cidade.');
       return;
@@ -405,15 +417,63 @@ class _LeadContratoRetificacaoPageState
                               const SizedBox(height: 12),
                               TextFormField(
                                 controller: _documento,
-                                readOnly: true,
-                                decoration: const InputDecoration(
+                                readOnly: !_corrigirDocumento,
+                                validator: (valor) =>
+                                    _corrigirDocumento &&
+                                        (valor ?? '').trim().isEmpty
+                                    ? 'Informe o CPF/CNPJ corrigido.'
+                                    : null,
+                                decoration: InputDecoration(
                                   labelText: 'CPF/CNPJ do contratante',
-                                  helperText:
-                                      'Documento do contrato • somente consulta',
-                                  suffixIcon: Icon(Icons.lock_outline),
-                                  border: OutlineInputBorder(),
+                                  helperText: _corrigirDocumento
+                                      ? 'Informe o documento corrigido.'
+                                      : 'Documento do contrato • somente consulta',
+                                  suffixIcon: Icon(
+                                    _corrigirDocumento
+                                        ? Icons.edit_outlined
+                                        : Icons.lock_outline,
+                                  ),
+                                  border: const OutlineInputBorder(),
                                 ),
                               ),
+                              TextButton.icon(
+                                onPressed: () => setState(() {
+                                  _corrigirDocumento = !_corrigirDocumento;
+                                  _mesmaParte = false;
+                                  if (!_corrigirDocumento) {
+                                    _documento.text =
+                                        RegExp(
+                                          r'[A-Za-z]',
+                                        ).hasMatch(_documentoContratante)
+                                        ? _documentoContratante
+                                        : ClubbarFormatters.cpfCnpj(
+                                            _documentoContratante,
+                                          );
+                                  }
+                                }),
+                                icon: Icon(
+                                  _corrigirDocumento
+                                      ? Icons.close
+                                      : Icons.edit_outlined,
+                                ),
+                                label: Text(
+                                  _corrigirDocumento
+                                      ? 'Cancelar correção do documento'
+                                      : 'Corrigir CPF/CNPJ do contratante',
+                                ),
+                              ),
+                              if (_corrigirDocumento)
+                                CheckboxListTile(
+                                  value: _mesmaParte,
+                                  onChanged: (v) =>
+                                      setState(() => _mesmaParte = v ?? false),
+                                  title: const Text(
+                                    'Confirme que o documento pertence à mesma parte contratante',
+                                  ),
+                                  subtitle: const Text(
+                                    'Para outra pessoa ou empresa, não use esta correção. O documento do estabelecimento e o titular financeiro não serão alterados.',
+                                  ),
+                                ),
                               const SizedBox(height: 12),
                               _campo(
                                 'Nome completo ou razão social',
