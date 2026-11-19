@@ -564,6 +564,91 @@ class _LeadEstabelecimentoListPageState
     if (atualizado == true && mounted) await _carregar();
   }
 
+  Future<void> _corrigirDocumento(
+    LeadParceiro lead,
+    LeadEstabelecimento estabelecimento,
+  ) async {
+    final atual = estabelecimento.cpfCnpj ?? '';
+    if (atual.isEmpty) {
+      AppSnackBar.erro(
+        context,
+        'O documento atual precisa ser regularizado pela equipe técnica.',
+      );
+      return;
+    }
+    final novo = TextEditingController();
+    final titular = TextEditingController();
+    final dados = await showDialog<List<String>>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Corrigir CPF/CNPJ'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Documento atual: ${ClubbarFormatters.cpfCnpj(atual)}'),
+              const SizedBox(height: 12),
+              const Text(
+                'Confirme o novo documento e o nome do titular por um meio confiável. A correção altera o lead e a loja; contratos assinados e o titular financeiro permanecem inalterados.',
+              ),
+              TextField(
+                controller: novo,
+                decoration: const InputDecoration(labelText: 'Novo CPF/CNPJ'),
+              ),
+              TextField(
+                controller: titular,
+                decoration: const InputDecoration(
+                  labelText: 'Nome do titular conferido',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (novo.text.trim().isNotEmpty &&
+                  titular.text.trim().length >= 2) {
+                Navigator.pop(dialogContext, [
+                  novo.text.trim(),
+                  titular.text.trim(),
+                ]);
+              }
+            },
+            child: const Text('Corrigir documento'),
+          ),
+        ],
+      ),
+    );
+    novo.dispose();
+    titular.dispose();
+    if (dados == null || !mounted) return;
+    try {
+      await _repository.corrigirDocumento(
+        lead.leadparceiroId,
+        estabelecimento.id,
+        atual,
+        dados[0],
+        dados[1],
+      );
+      if (!mounted) return;
+      AppSnackBar.sucesso(context, 'Documento corrigido no lead e na loja.');
+      await _carregar();
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.erro(
+          context,
+          e.toString().replaceFirst('Exception: ', '').trim(),
+        );
+      }
+    }
+  }
+
   Future<void> _conferirDocumento(
     LeadParceiro lead,
     LeadEstabelecimento estabelecimento,
@@ -1027,6 +1112,11 @@ class _LeadEstabelecimentoListPageState
                 const SizedBox(height: 8),
                 Text(
                   'CPF/CNPJ: ${(estabelecimento.cpfCnpj ?? '').isEmpty ? 'não informado' : ClubbarFormatters.cpfCnpj(estabelecimento.cpfCnpj)}',
+                ),
+                TextButton.icon(
+                  onPressed: () => _corrigirDocumento(lead, estabelecimento),
+                  icon: const Icon(Icons.edit_note),
+                  label: const Text('Corrigir CPF/CNPJ'),
                 ),
                 Text(
                   estabelecimento.documentoConferido

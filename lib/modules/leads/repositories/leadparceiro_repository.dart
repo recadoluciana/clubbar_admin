@@ -9,6 +9,28 @@ import '../../../core/services/api_service.dart';
 import '../models/leadparceiro.dart';
 
 class LeadParceiroRepository {
+  Future<void> corrigirDocumento(
+    int leadId,
+    int estabelecimentoId,
+    String atual,
+    String novo,
+    String nomeTitular,
+  ) async {
+    final response = await ApiService.post(
+      '/parceiros/$leadId/estabelecimentos/$estabelecimentoId/corrigir-documento',
+      {
+        'documento_atual': atual,
+        'novo_documento': novo,
+        'nome_titular': nomeTitular,
+      },
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extrairErro(response.body, 'Não foi possível corrigir o documento.'),
+      );
+    }
+  }
+
   Future<void> conferirDocumento(
     int leadId,
     int estabelecimentoId,
