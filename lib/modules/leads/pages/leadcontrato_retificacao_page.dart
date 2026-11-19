@@ -30,6 +30,7 @@ class _LeadContratoRetificacaoPageState
   final _form = GlobalKey<FormState>();
   late final TextEditingController _motivo;
   late final TextEditingController _documento;
+  String _documentoContratante = '';
   late final TextEditingController _nome;
   late final TextEditingController _cep;
   late final TextEditingController _endereco;
@@ -44,7 +45,6 @@ class _LeadContratoRetificacaoPageState
   List<Map<String, dynamic>> _cidades = [];
   int? _estadoId;
   int? _cidadeId;
-  bool _mesmaParte = false;
   bool _carregando = true;
   bool _salvando = false;
   String? _erro;
@@ -53,6 +53,7 @@ class _LeadContratoRetificacaoPageState
   void initState() {
     super.initState();
     final e = widget.estabelecimento;
+    _documentoContratante = e.cpfCnpj ?? '';
     _motivo = TextEditingController();
     _documento = TextEditingController(
       text: ClubbarFormatters.cpfCnpj(e.cpfCnpj),
@@ -130,9 +131,10 @@ class _LeadContratoRetificacaoPageState
             ? _cidadeId
             : _id(base, 'cidade_id_contratante');
         if (base != null) {
-          _documento.text = ClubbarFormatters.cpfCnpj(
-            '${base['cpfcnpjcontratante'] ?? ''}',
-          );
+          _documentoContratante = '${base['cpfcnpjcontratante'] ?? ''}';
+          _documento.text = RegExp(r'[A-Za-z]').hasMatch(_documentoContratante)
+              ? _documentoContratante
+              : ClubbarFormatters.cpfCnpj(_documentoContratante);
           _nome.text = '${base['nmrazaosocial'] ?? ''}';
           _cep.text = ClubbarFormatters.cep('${base['cepcontratante'] ?? ''}');
           _endereco.text = '${base['enderecocontratante'] ?? ''}';
@@ -174,7 +176,7 @@ class _LeadContratoRetificacaoPageState
     String taxa(TextEditingController c) => c.text.trim().replaceAll(',', '.');
     return {
       'motivo': _motivo.text.trim(),
-      'cpfcnpj': _documento.text.replaceAll(RegExp(r'\D'), ''),
+      'cpfcnpj': _documentoContratante,
       'nmrazaosocial': _nome.text.trim(),
       'cep': _cep.text.replaceAll(RegExp(r'\D'), ''),
       'endereco': _endereco.text.trim(),
@@ -188,7 +190,6 @@ class _LeadContratoRetificacaoPageState
       'vrtaxaprod': taxa(_taxaProdutos),
       'vrtaxaing': taxa(_taxaIngressos),
       'vrtaxaminimaingresso': taxa(_taxaMinima),
-      'confirma_mesma_parte': _mesmaParte,
     };
   }
 
@@ -402,31 +403,15 @@ class _LeadContratoRetificacaoPageState
                                 linhas: 2,
                               ),
                               const SizedBox(height: 12),
-                              _campo(
-                                'CPF/CNPJ',
-                                _documento,
-                                tipo: TextInputType.number,
-                                formatadores: const [CpfCnpjInputFormatter()],
-                                validador: (valor) {
-                                  final tamanho =
-                                      ClubbarFormatters.somenteNumeros(
-                                        valor,
-                                      ).length;
-                                  return tamanho == 11 || tamanho == 14
-                                      ? null
-                                      : 'Informe um CPF ou CNPJ completo.';
-                                },
-                              ),
-                              const SizedBox(height: 12),
-                              CheckboxListTile(
-                                value: _mesmaParte,
-                                onChanged: (v) =>
-                                    setState(() => _mesmaParte = v ?? false),
-                                title: const Text(
-                                  'Se o CPF/CNPJ mudou, confirme que continua sendo a mesma parte contratante',
-                                ),
-                                subtitle: const Text(
-                                  'Se for outra pessoa ou empresa, não use retificação: emita um novo contrato após revisão jurídica.',
+                              TextFormField(
+                                controller: _documento,
+                                readOnly: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'CPF/CNPJ do contratante',
+                                  helperText:
+                                      'Documento do contrato • somente consulta',
+                                  suffixIcon: Icon(Icons.lock_outline),
+                                  border: OutlineInputBorder(),
                                 ),
                               ),
                               const SizedBox(height: 12),
